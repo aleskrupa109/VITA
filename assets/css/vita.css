@@ -526,3 +526,18 @@
   .prisp-note { font-size:12px; color:#666; background:#f7f7f4; border:1px dashed #c9c9c0; padding:7px 10px; margin-top:8px; }
   .vz-ok { color:#1f6b1f; } .vz-cond { color:#1f4e88; } .vz-no { color:#8a1f1f; font-weight:bold; } .vz-na { color:#888; }
   .ext-flag { color:#6a3da0; font-weight:bold; }
+
+  /* ====== Náhled příspěvku (modal) ====== */
+  .pm-head { display:flex; align-items:center; gap:10px; padding:10px 14px 6px; flex-wrap:wrap; }
+  .pm-head .pm-usek { font-weight:bold; color:#1f4e88; min-width:42px; }
+  .pm-head label { color:#333; }
+  .pm-head select { min-width:300px; }
+  .pm-zmoc { display:flex; align-items:center; gap:10px; padding:0 14px 8px; }
+  .pm-zmoc label { color:#333; min-width:70px; }
+  .pm-zmoc input { flex:1 1 auto; }
+  .pm-content { min-height:240px; padding:12px 16px; background:#fff; font-size:14px; }
+  .pm-content ul { margin:0; padding-left:22px; }
+  .pm-content li { min-height:18px; }
+  .pm-empty { color:#999; }
+  #prispModal .htabs { margin-top:0; }
+  #prispModal .m-body { padding:0; background:#fff; }
