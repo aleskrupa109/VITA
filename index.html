@@ -27,7 +27,7 @@
     <div class="menu-item"><u>H</u>ledej</div>
     <div class="menu-item"><u>Ú</u>daje</div>
     <div class="menu-item"><u>K</u>artotéky</div>
-    <div class="menu-item"><u>P</u>ošta</div>
+    <div class="menu-item" id="mi-posta"><u>P</u>ošta</div>
     <div class="menu-item disabled">Mapa</div>
     <div class="menu-item">Zákony</div>
     <div class="menu-item">Program</div>
@@ -48,16 +48,94 @@
     <div class="tb-drop">&#9660;</div>
   </div>
 
-  <!-- OBSAH: prázdný seznam -->
+  <!-- OBSAH -->
   <div class="home-area">
-    <div class="home-list">
-      <div class="hl-head">
-        <div class="hl-col col-spis">Spis. zn.</div>
-        <div class="hl-col col-zprava">Zpráva</div>
-        <div class="hl-col col-rest"></div>
+
+    <!-- výchozí prázdný seznam -->
+    <div id="viewHome">
+      <div class="home-list">
+        <div class="hl-head">
+          <div class="hl-col col-spis">Spis. zn.</div>
+          <div class="hl-col col-zprava">Zpráva</div>
+          <div class="hl-col col-rest"></div>
+        </div>
+        <div class="hl-body">Seznam neobsahuje žádné záznamy</div>
       </div>
-      <div class="hl-body">Seznam neobsahuje žádné záznamy</div>
     </div>
+
+    <!-- Došlá pošta (Pošta → Došlá pošta) -->
+    <div id="viewMail" style="display:none">
+      <div class="content-tabs">
+        <div class="ctab">Došlá pošta</div>
+        <div class="ctab-x" title="Zavřít" onclick="closeMail()">&#10005;</div>
+      </div>
+      <div class="mail-area">
+        <div class="mail-grid-wrap">
+          <table class="mail">
+            <thead>
+              <tr>
+                <th style="width:34px"></th>
+                <th style="width:160px">Č.j.</th>
+                <th style="width:52px">SSL</th>
+                <th style="width:56px">Prac.</th>
+                <th style="width:56px">IDDS</th>
+                <th style="width:340px">Odesílatel</th>
+                <th style="width:460px">Věc</th>
+                <th>Došlo</th>
+              </tr>
+            </thead>
+            <tbody id="mailBody">
+              <tr>
+                <td class="mail-ico">&#9993;</td>
+                <td>DESU/000138/26</td>
+                <td><span class="ssl-arrow">&#10153;</span></td>
+                <td></td><td></td>
+                <td>ISSŘ: ALMANI s.r.o.</td>
+                <td>Povolení záměru - testovací zpráva mail 14.5.26</td>
+                <td>14.5.2026</td>
+              </tr>
+              <tr>
+                <td class="mail-ico">&#9993;</td>
+                <td>DESU/000205/25</td>
+                <td><span class="ssl-arrow">&#10153;</span></td>
+                <td></td><td></td>
+                <td>ISSŘ: STEHLÍKOVÁ EVA</td>
+                <td>Test 21/08 - 1</td>
+                <td>20.8.2025</td>
+              </tr>
+              <tr>
+                <td class="mail-ico">&#9993;</td>
+                <td>DESU/000206/25</td>
+                <td><span class="ssl-arrow">&#10153;</span></td>
+                <td></td><td></td>
+                <td>ISSŘ: STEHLÍKOVÁ EVA</td>
+                <td>Test 21/08 - 2</td>
+                <td>20.8.2025</td>
+              </tr>
+              <tr>
+                <td class="mail-ico">&#9993;</td>
+                <td>DESU/000225/25</td>
+                <td><span class="ssl-arrow">&#10153;</span></td>
+                <td></td><td></td>
+                <td>ISSŘ:</td>
+                <td>Žádost postoupení AK</td>
+                <td>2.9.2025</td>
+              </tr>
+              <tr>
+                <td class="mail-ico">&#128193;</td>
+                <td>/000229/25/</td>
+                <td><span class="ssl-arrow">&#10153;</span></td>
+                <td></td><td></td>
+                <td>vlastní záznam</td>
+                <td></td>
+                <td>15.10.2025</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- STATUS BAR -->
@@ -78,7 +156,93 @@
   </div>
 </div>
 
+<!-- Rozbalovací menu: Pošta -->
+<div class="popup-menu" id="postaMenu">
+  <div class="mi" onclick="postaAction('Podací deník')">Podací deník</div>
+  <div class="mi" onclick="showMail()">Došlá pošta</div>
+  <div class="sep"></div>
+  <div class="mi" onclick="postaAction('Pošta k parafování')">Pošta k parafování</div>
+  <div class="mi" onclick="postaAction('Pošta k podepsání')">Pošta k podepsání</div>
+  <div class="mi" onclick="postaAction('Pošta připravená k odeslání')">Pošta připravená k odeslání</div>
+  <div class="mi" onclick="postaAction('Pošta odeslaná')">Pošta odeslaná</div>
+  <div class="mi" onclick="postaAction('Pošta odeslaná - chyby')">Pošta odeslaná - chyby</div>
+  <div class="sep"></div>
+  <div class="mi" onclick="postaAction('Doručenky')">Doručenky<span class="sc">Ctrl+D</span></div>
+  <div class="mi" onclick="postaAction('Hledat podle ID SSL')">Hledat podle ID SSL</div>
+  <div class="sep"></div>
+  <div class="mi" onclick="postaAction('Zprávy')">Zprávy</div>
+</div>
+
+<!-- Kontextové menu na řádku došlé pošty -->
+<div class="popup-menu" id="ctxMenu">
+  <div class="mi" onclick="ctxAction('vec')">Věc</div>
+  <div class="sep"></div>
+  <div class="mi" onclick="ctxAction('Přiřadit k č.j.')">Přiřadit k č.j.</div>
+  <div class="mi" onclick="ctxAction('Vyřízeno …')">Vyřízeno …</div>
+  <div class="mi" onclick="ctxAction('Vrátit …')">Vrátit …</div>
+  <div class="mi" onclick="ctxAction('Vrátit do SSL')">Vrátit do SSL</div>
+  <div class="sep"></div>
+  <div class="mi" onclick="ctxAction('El. přílohy ze SSL')">El. přílohy ze SSL</div>
+  <div class="mi" onclick="ctxAction('Historie')">Historie</div>
+  <div class="sep"></div>
+  <div class="mi" onclick="ctxAction('Znovu načíst')">Znovu načíst</div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script src="assets/js/vita.js"></script>
+<script>
+const postaMenu = document.getElementById('postaMenu');
+const ctxMenu   = document.getElementById('ctxMenu');
+const postaItem = document.getElementById('mi-posta');
+
+function closeMenus(){
+  postaMenu.classList.remove('show');
+  ctxMenu.classList.remove('show');
+  postaItem.classList.remove('open');
+}
+
+// --- menu Pošta ---
+postaItem.addEventListener('click', e=>{
+  e.stopPropagation();
+  const open = postaMenu.classList.contains('show');
+  closeMenus();
+  if(!open){
+    const r = postaItem.getBoundingClientRect();
+    postaMenu.style.left = r.left + 'px';
+    postaMenu.style.top  = r.bottom + 'px';
+    postaMenu.classList.add('show');
+    postaItem.classList.add('open');
+  }
+});
+function postaAction(name){ closeMenus(); toast('„'+name+'" – v mockupu zatím nepodporováno.'); }
+
+// --- přepínání pohledů ---
+function showMail(){ closeMenus(); document.getElementById('viewHome').style.display='none'; document.getElementById('viewMail').style.display='flex'; }
+function closeMail(){ document.getElementById('viewMail').style.display='none'; document.getElementById('viewHome').style.display='block'; }
+
+// --- výběr + kontextové menu na řádcích ---
+function selectRow(tr){ document.querySelectorAll('#mailBody tr').forEach(r=>r.classList.remove('sel')); tr.classList.add('sel'); }
+document.querySelectorAll('#mailBody tr').forEach(tr=>{
+  tr.addEventListener('click', ()=> selectRow(tr));
+  tr.addEventListener('contextmenu', e=>{
+    e.preventDefault();
+    selectRow(tr);
+    closeMenus();
+    ctxMenu.style.left = Math.min(e.clientX, window.innerWidth - 250) + 'px';
+    ctxMenu.style.top  = Math.min(e.clientY, window.innerHeight - 300) + 'px';
+    ctxMenu.classList.add('show');
+  });
+});
+function ctxAction(name){
+  closeMenus();
+  if(name === 'vec'){ location.href = 'pages/zahajeni-rizeni.html'; return; }
+  toast('„'+name+'" – v mockupu zatím nepodporováno.');
+}
+
+// zavření menu klikem mimo / klávesou Esc
+document.addEventListener('click', closeMenus);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeMenus(); });
+</script>
+
 </body>
 </html>
