@@ -483,9 +483,10 @@
 
   /* ====== Rozbalovací panely s modrou patkou (záměr / podklady / DO / přispěvatelé) ====== */
   .vpanel { margin-bottom: 8px; }
-  .vp-bar { display:flex; align-items:stretch; min-height:26px; cursor:default; border:1px solid #2c5aa0; }
-  .vp-bar-lbl { background:#1f6fc9; color:#fff; font-weight:bold; font-size:13px; padding:0 14px; display:flex; align-items:center; min-width:118px; }
-  .vp-bar-sum { flex:1 1 auto; background:#fff; color:#00148c; font-weight:bold; font-size:13px; padding:3px 10px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; border-left:1px solid #2c5aa0; }
+  .vp-bar { display:flex; align-items:stretch; gap:8px; min-height:24px; cursor:default; }
+  .vp-bar-lbl { width:132px; flex:0 0 132px; text-align:center; justify-content:center; background:linear-gradient(#fafafa,#e6e6e6); border:1px solid #9a9a9a; border-radius:2px; color:#000; font-weight:normal; font-size:13px; display:flex; align-items:center; padding:0 6px; }
+  .vp-bar:hover .vp-bar-lbl { background:linear-gradient(#ffffff,#e0ecf8); border-color:#5a87c0; }
+  .vp-bar-sum { flex:1 1 auto; min-height:24px; border:1px solid #7f9db9; background:#fff; color:#00148c; font-weight:bold; font-size:13px; padding:2px 8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .vp-bar:hover .vp-bar-sum { background:#f3f9ff; }
   .vp-exp { display:none; border:1px solid #2c5aa0; }
   .vpanel.open > .vp-bar { display:none; }
