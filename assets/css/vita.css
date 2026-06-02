@@ -480,3 +480,48 @@
   .kv-pod-no { color:#b21f1f; font-weight:bold; }
   .kv-pod-wait { color:#999; }
   .kv-ext { color:#6a3da0; }
+
+  /* ====== Rozbalovací panely s modrou patkou (záměr / podklady / DO / přispěvatelé) ====== */
+  .vpanel { margin-bottom: 8px; }
+  .vp-bar { display:flex; align-items:stretch; min-height:26px; cursor:default; border:1px solid #2c5aa0; }
+  .vp-bar-lbl { background:#1f6fc9; color:#fff; font-weight:bold; font-size:13px; padding:0 14px; display:flex; align-items:center; min-width:118px; }
+  .vp-bar-sum { flex:1 1 auto; background:#fff; color:#00148c; font-weight:bold; font-size:13px; padding:3px 10px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; border-left:1px solid #2c5aa0; }
+  .vp-bar:hover .vp-bar-sum { background:#f3f9ff; }
+  .vp-exp { display:none; border:1px solid #2c5aa0; }
+  .vpanel.open > .vp-bar { display:none; }
+  .vpanel.open > .vp-exp { display:block; }
+  .vp-row { display:flex; align-items:stretch; background:#ececec; }
+  .vp-row > .spine { flex:0 0 26px; cursor:default; }
+  .vp-content { flex:1 1 auto; min-width:0; padding:12px 14px; background:#fff; overflow:auto; }
+  #vp-zamer .vp-exp .m-body { height:380px; display:flex; flex-direction:column; padding:0; background:#fff; }
+  #vp-zamer .vp-exp .spine { cursor:default; }
+
+  /* Podklady (panel) */
+  .pod-grids { display:flex; gap:10px; }
+  .pod-col { flex:1 1 0; min-width:0; border:1px solid #9fb0c2; background:#fff; min-height:200px; display:flex; flex-direction:column; }
+  .pod-col table.grid { flex:0 0 auto; }
+  .pod-empty { padding:8px 10px; color:#777; font-size:12px; }
+  .pod-hint { font-size:11px; color:#888; margin-top:8px; }
+  table.grid tbody tr.sel-multi, table.grid tbody tr.sel-multi:nth-child(even) { background:#1f6fc9 !important; }
+  table.grid tbody tr.sel-multi td { color:#fff; }
+
+  /* kontextové menu */
+  .ctx-menu { position:fixed; z-index:200; background:#fff; border:1px solid #9a9a9a; box-shadow:0 4px 14px rgba(0,0,0,.18); min-width:190px; font-size:13px; display:none; }
+  .ctx-menu.show { display:block; }
+  .ctx-menu .ci { padding:5px 14px; cursor:default; white-space:nowrap; }
+  .ctx-menu .ci:hover { background:#1f6fc9; color:#fff; }
+  .ctx-menu .ci.disabled, .ctx-menu .ci.disabled:hover { color:#aaa; background:#fff; }
+  .ctx-menu .cisep { height:1px; background:#e0e0e0; margin:3px 0; }
+
+  /* DO panel (předání + termíny) */
+  .pred-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+  .pred-row > label { width:90px; font-weight:bold; font-size:12px; color:#333; }
+  .pred-done { font-size:12px; background:#eef6ee; border:1px solid #bfe0bf; color:#225522; padding:6px 10px; margin-bottom:10px; }
+  .pred-done.prerus { background:#fdeee0; border-color:#e7c08a; color:#8a5a00; }
+
+  /* Přispěvatelé panel */
+  .prisp-alert { font-size:12px; background:#fbe9e7; border:1px solid #e0a59a; color:#8a2f1f; padding:7px 10px; margin-bottom:8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .prisp-alert .btn { margin-left:auto; }
+  .prisp-note { font-size:12px; color:#666; background:#f7f7f4; border:1px dashed #c9c9c0; padding:7px 10px; margin-top:8px; }
+  .vz-ok { color:#1f6b1f; } .vz-cond { color:#1f4e88; } .vz-no { color:#8a1f1f; font-weight:bold; } .vz-na { color:#888; }
+  .ext-flag { color:#6a3da0; font-weight:bold; }
