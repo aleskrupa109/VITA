@@ -708,8 +708,20 @@ renderSummary();
 
 function toggleTypeTree(e){
   if(e) e.stopPropagation();
-  document.getElementById('typeTree').classList.toggle('hidden');   // „…" jen skryje/zobrazí seznam
+  document.getElementById('typeTree').classList.toggle('hidden');   // „…" jen skryje/zobrazí box
 }
+// posun boxu se seznamem typů přesně pod pole „typ"
+function alignTypeTree(){
+  var tt=document.getElementById('typeTree'), tf=document.getElementById('typField');
+  if(!tt||!tf) return;
+  var fa=tt.parentElement, faR=fa.getBoundingClientRect();
+  var padL=parseFloat(getComputedStyle(fa).paddingLeft)||0;
+  var left=tf.getBoundingClientRect().left - (faR.left + padL);
+  tt.style.marginLeft = Math.max(0, Math.round(left)) + 'px';
+  tt.style.maxWidth = Math.max(260, Math.round(faR.width - padL*2 - left)) + 'px';
+}
+window.addEventListener('resize', alignTypeTree);
+alignTypeTree();
 function pickType(code, label, fee, load){
   document.getElementById('typField').value = label;
   document.getElementById('feeText').textContent = fee;
