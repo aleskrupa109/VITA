@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stavební úřad – VITA · Zahájení řízení (mockup)</title>
+<link rel="stylesheet" href="../assets/css/vita.css">
+</head>
+<body>
+<div class="app-window">
+
+  <!-- TITULKOVÝ PRUH -->
+  <div class="titlebar">
+    <div class="logo"></div>
+    <div class="title">Stavební úřad</div>
+    <div class="win-controls">
+      <button title="Minimalizovat">&#xE921;</button>
+      <button title="Maximalizovat">&#xE922;</button>
+      <button class="close" title="Zavřít">&#xE8BB;</button>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <div class="menubar">
+    <div class="menu-item"><u>V</u>ěc</div>
+    <div class="menu-item"><u>Z</u>obrazit</div>
+    <div class="menu-item"><u>H</u>ledej</div>
+    <div class="menu-item"><u>Ú</u>daje</div>
+    <div class="menu-item"><u>K</u>artotéky</div>
+    <div class="menu-item"><u>P</u>ošta</div>
+    <div class="menu-item disabled">Mapa</div>
+    <div class="menu-item">Zákony</div>
+    <div class="menu-item">Program</div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="tbtn"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="#2f6fb0" stroke-width="2"/><line x1="14.5" y1="14.5" x2="21" y2="21" stroke="#2f6fb0" stroke-width="3" stroke-linecap="round"/></svg><span class="lbl">Hledej</span></div>
+    <div class="tbtn"><svg viewBox="0 0 24 24"><path d="M2 6 h7 l2 2 h11 v12 H2 Z" fill="#f4c542" stroke="#caa02b"/><path d="M4 11 h18 l-2 9 H2 Z" fill="#ffd766" stroke="#caa02b"/></svg><span class="lbl">Oprav</span></div>
+    <div class="tb-drop">&#9660;</div>
+    <div class="tbtn"><svg viewBox="0 0 24 24"><path d="M6 2 h9 l4 4 v16 H6 Z" fill="#fff" stroke="#888"/><path d="M15 2 v4 h4" fill="#e6e6e6" stroke="#888"/></svg><span class="lbl">Nový</span></div>
+    <div class="tbtn"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="19" rx="1" fill="#fff" stroke="#888"/><rect x="8" y="2" width="8" height="3" rx="1" fill="#cfcfcf" stroke="#888"/><path d="M8 10 l2 2 4-5" fill="none" stroke="#2faa4c" stroke-width="2"/><line x1="8" y1="15" x2="16" y2="15" stroke="#bbb" stroke-width="1.5"/><line x1="8" y1="18" x2="16" y2="18" stroke="#bbb" stroke-width="1.5"/></svg><span class="lbl">Úkoly</span></div>
+    <div class="tb-drop">&#9660;</div>
+    <div class="tb-sep"></div>
+    <div class="tbtn"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="#2f6fb0" stroke-width="2"/><line x1="14.5" y1="14.5" x2="21" y2="21" stroke="#2f6fb0" stroke-width="3" stroke-linecap="round"/></svg><span class="lbl">Hledej</span></div>
+    <div class="tb-drop">&#9660;</div>
+    <div class="tbtn"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1" fill="#6aa0c8" stroke="#3a6e95"/><rect x="6" y="3" width="12" height="5" rx="1" fill="#cdd9a6" stroke="#7d8a55"/><rect x="9" y="9" width="6" height="3" fill="#fff" stroke="#3a6e95"/></svg><span class="lbl">Kartotéky</span></div>
+    <div class="tb-drop">&#9660;</div>
+    <div class="tb-sep"></div>
+    <div class="tbtn"><svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="8" rx="1" fill="#d8d8d8" stroke="#888"/><rect x="7" y="3" width="10" height="6" fill="#fff" stroke="#888"/><rect x="7" y="15" width="10" height="6" fill="#fff" stroke="#888"/><circle cx="17" cy="12" r="1" fill="#2faa4c"/></svg><span class="lbl">Tisk</span></div>
+    <div class="tbtn"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" fill="#fff" stroke="#888"/><line x1="7" y1="7" x2="17" y2="7" stroke="#3a6e95" stroke-width="1.5"/><line x1="7" y1="11" x2="17" y2="11" stroke="#bbb" stroke-width="1.5"/><line x1="7" y1="15" x2="17" y2="15" stroke="#bbb" stroke-width="1.5"/></svg><span class="lbl">Soupis</span></div>
+    <div class="tbtn active"><svg viewBox="0 0 24 24"><path d="M4 3 h13 l3 3 v15 H4 Z" fill="#3a6ea5" stroke="#2c5380"/><rect x="7" y="3" width="8" height="6" fill="#dfe8f2"/><rect x="9" y="14" width="6" height="7" fill="#cdd9e8"/></svg><span class="lbl">Uložit</span></div>
+    <div class="tbtn"><svg viewBox="0 0 24 24"><path d="M16 4 a3 3 0 0 1 0 6 l-7 7 a2 2 0 0 1 -3 -3 l8 -8" fill="none" stroke="#888" stroke-width="2"/></svg><span class="lbl">Poznámka</span></div>
+    <div class="tbtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#fff" stroke="#888"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#c0392b" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#e0a83c"/><path d="M12 3 v3 M12 18 v3 M3 12 h3 M18 12 h3" stroke="#2f6fb0" stroke-width="1.5"/></svg><span class="lbl">Kontrola</span></div>
+  </div>
+
+  <!-- ZÁLOŽKA -->
+  <div class="tabstrip">
+    <div class="crumb">Oprav</div>
+    <div class="tab active">(PSZ&nbsp;6.2.2)&nbsp;000138/26</div>
+  </div>
+
+  <!-- HLAVIČKA PANELU -->
+  <div class="panel-head">
+    <div class="ph-title">Zahájení řízení</div>
+    <div class="ph-close" title="Zpět na seznam" onclick="location.href='../index.html'">&#10005;</div>
+  </div>
+
+  <!-- FORMULÁŘ -->
+  <div class="form-area">
+
+    <div class="row">
+      <span class="lbl-plain">spis. zn.</span>
+      <input type="text" class="readonly" style="width:88px" value="000138" readonly>
+      <span>/</span>
+      <input type="text" class="readonly" style="width:48px" value="26" readonly>
+      <input type="text" class="readonly" style="width:170px" value="SZ DESU_skol/000138/26" readonly>
+      <span class="lbl-plain" style="margin-left:8px">typ</span>
+      <input type="text" class="readonly" style="flex:1 1 auto" value="PSZ 6.2.2 - Zrychlené řízení" readonly>
+      <button class="btn icon">…</button>
+      <button class="btn icon">+</button>
+      <button class="btn icon" title="Přiřadit do složky">&#128193;</button>
+    </div>
+
+    <div class="row">
+      <button class="btn">souv. řízení</button>
+      <button class="btn">poplatek</button>
+      <span class="fee">správní poplatek: 10000 Kč</span>
+      <span class="lbl-right">archiv</span>
+      <input type="text" style="width:240px" value="">
+    </div>
+
+    <div class="field-rows">
+      <div class="field-row stavba-row">
+        <div class="fld-label-btn" id="stavbaLabel" title="Otevřít detail záměru" onclick="openStavba()"><u>z</u>áměr</div>
+        <div class="val" onclick="openStavba()">Povolení záměru - testovací zpráva mail 14.5.26</div>
+      </div>
+      <div class="field-row">
+        <div class="fld-label-btn"><u>z</u>ástupci</div>
+        <div class="val empty"></div>
+      </div>
+      <div class="field-row">
+        <div class="fld-label-btn">stavebník</div>
+        <div class="val">ALMANI s.r.o.</div>
+      </div>
+      <div class="field-row">
+        <div class="fld-label-btn"><u>h</u>lavní účastníci</div>
+        <div class="val empty"></div>
+      </div>
+      <div class="field-row">
+        <div class="fld-label-btn"><u>ú</u>častníci</div>
+        <div class="val empty"></div>
+      </div>
+
+      <!-- ===== NOVĚ INTEGROVANÝ ŘÁDEK DOTČENÝCH ORGÁNŮ ===== -->
+      <div class="field-row do-row">
+        <div class="fld-label-btn" id="doLabel" title="Otevřít správu dotčených orgánů"><u>D</u>O</div>
+        <div class="val" id="doVal" onclick="openDO()">
+          <span id="doValContent"><span class="placeholder">Klikněte pro správu dotčených orgánů a vyžádání stanovisek…</span></span>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="fld-label-btn"><u>o</u>statní</div>
+        <div class="val empty"></div>
+      </div>
+      <div class="field-row">
+        <div class="fld-label-btn">stanoviska</div>
+        <div class="val empty"></div>
+      </div>
+    </div>
+
+    <h3 class="section">Termíny</h3>
+    <div class="term-row">
+      <label>zahájení</label>
+      <input type="text" style="width:110px" value="14.5.2026">
+    </div>
+    <div class="term-row">
+      <label>z<u>r</u>ychlené řízení</label>
+      <select style="width:130px"><option></option><option>ano</option><option>ne</option></select>
+    </div>
+
+    <div class="signature">Dne 25.5.2026, zapsal ales.krupa</div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <div class="sb-left">Stavební úřad - VITA software</div>
+    <div class="sb-right">
+      <span>5.3.0.33</span>
+      <span id="clock">20:40:54</span>
+      <span class="sb-dots">
+        <span class="sb-dot" style="background:#e74c3c"></span>
+        <span class="sb-dot" style="background:#2980b9"></span>
+        <span class="sb-dot" style="background:#27ae60"></span>
+      </span>
+      <span>Krupa Aleš</span>
+      <span>Oddělení staveb drah</span>
+      <span>https://test-vita.desu.gov.cz/VITA/APP/</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODÁL: SPRÁVA DOTČENÝCH ORGÁNŮ ============ -->
+<div class="overlay" id="doOverlay">
+  <div class="modal">
+    <div class="m-title">
+      <span>Dotčené orgány&nbsp;&nbsp;—&nbsp;&nbsp;SZ DESU_skol/000138/26&nbsp;&nbsp;(PSZ 6.2.2 – Zrychlené řízení)</span>
+      <div class="m-x" onclick="closeDO()" title="Zavřít">&#10005;</div>
+    </div>
+
+    <div class="m-toolbar">
+      <button class="btn sm" onclick="openAddDialog()">➕ Přidat dotčený orgán</button>
+      <button class="btn sm" onclick="sendRequest()">📤 Odeslat žádost o vyjádření</button>
+      <button class="btn sm" onclick="urge()">🔔 Urgovat / prodloužit lhůtu</button>
+      <button class="btn sm" onclick="openRecordDialog()">📝 Zaznamenat stanovisko</button>
+      <button class="btn sm" onclick="removeRow()">🗑 Odebrat</button>
+      <span style="width:1px;height:20px;background:#ccc;margin:0 4px"></span>
+      <button class="btn sm" onclick="autoSuggest()" title="Návrh DO podle druhu a místa záměru">✨ Navrhnout DO podle záměru</button>
+    </div>
+
+    <div class="m-body">
+      <table class="grid" id="doGrid">
+        <thead>
+          <tr>
+            <th style="width:26px"></th>
+            <th style="min-width:240px">Dotčený orgán</th>
+            <th>Agenda / úsek</th>
+            <th>Typ úkonu</th>
+            <th>Kanál</th>
+            <th>Odesláno</th>
+            <th>Lhůta do</th>
+            <th>Stav</th>
+            <th>Výsledek / dokument</th>
+          </tr>
+        </thead>
+        <tbody id="doBody"><!-- generováno JS --></tbody>
+      </table>
+    </div>
+
+    <div class="m-foot">
+      <div class="legend">
+        <span class="status-badge s-none">Nepožádáno</span>
+        <span class="status-badge s-sent">Běží lhůta</span>
+        <span class="status-badge s-fiction">Fikce souhlasu</span>
+        <span class="status-badge s-ok">Souhlasné</span>
+        <span class="status-badge s-cond">S podmínkami</span>
+        <span class="status-badge s-no">Nesouhlasné</span>
+      </div>
+      <div class="right">
+        <button class="btn" onclick="closeDO()">Zavřít</button>
+        <button class="btn" onclick="saveDO()">Uložit a převzít do řízení</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODÁL: STAVBA (detail – horizontální záložky) ============ -->
+<div class="overlay" id="stavbaOverlay">
+  <div class="modal stavba">
+    <div class="m-title">
+      <span>Záměr&nbsp;&nbsp;—&nbsp;&nbsp;SZ DESU_skol/000138/26&nbsp;&nbsp;(PSZ 6.2.2 – Zrychlené řízení)</span>
+      <div class="m-x" onclick="closeStavba()" title="Zavřít">&#10005;</div>
+    </div>
+
+    <div class="m-body">
+      <!-- horizontální záložky -->
+      <div class="htabs">
+        <div class="htab active" data-tab="misto" onclick="stavbaTab('misto')">Místo stavby</div>
+        <div class="htab" data-tab="nazev" onclick="stavbaTab('nazev')">Název</div>
+        <div class="htab" data-tab="popis" onclick="stavbaTab('popis')">Popis</div>
+        <div class="htab" data-tab="vodo" onclick="stavbaTab('vodo')">Vodoprávní evidence</div>
+        <div class="htab" data-tab="dsr" onclick="stavbaTab('dsr')">DSŘ</div>
+      </div>
+
+      <div class="stavba-wrap">
+        <div class="spine"><span>záměr</span></div>
+        <div class="stavba-panes">
+
+          <!-- ===== MÍSTO STAVBY ===== -->
+          <div class="pane" id="pane-misto">
+            <div class="misto-grid">
+              <div class="misto-left">
+                <div class="mrow">
+                  <label>obec</label>
+                  <div class="combo wide"><input value="Lhota"><span class="cbtn">&#9660;</span></div>
+                </div>
+                <div class="mrow">
+                  <label>část</label>
+                  <div class="combo wide"><input value=""><span class="cbtn">&#9660;</span></div>
+                  <input class="num" type="text">
+                  <span class="lbl-cp">č.p.</span>
+                </div>
+                <div class="mrow">
+                  <label>ulice</label>
+                  <div class="combo wide"><input value=""><span class="cbtn">&#9660;</span></div>
+                  <input class="num2" type="text">
+                  <input class="num2" type="text">
+                </div>
+                <div class="mrow" style="margin-top:16px">
+                  <div class="combo xwide"><input value="svépomocí - stavební dozor"><span class="cbtn">&#9660;</span></div>
+                </div>
+              </div>
+
+              <div class="misto-right">
+                <div class="subtabs">
+                  <div class="subtab active" onclick="subTab(this)">Parcely</div>
+                  <div class="subtab" onclick="subTab(this)">Sousední</div>
+                </div>
+                <div class="parcel-grid">
+                  <table class="grid">
+                    <thead>
+                      <tr><th style="width:46px">D</th><th>Kmen</th><th style="width:46px">P</th><th>Katastr</th></tr>
+                    </thead>
+                  </table>
+                  <div class="parcel-empty">Seznam neobsahuje žádné záznamy</div>
+                  <div class="parcel-add">
+                    <input class="num" style="width:40px" type="text" title="D">
+                    <input class="num" style="width:92px" type="text" title="Kmen">
+                    <input class="num" style="width:40px" type="text" title="P">
+                    <div class="combo" style="flex:1 1 auto"><input placeholder="katastrální území"><span class="cbtn">&#9660;</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== NÁZEV ===== -->
+          <div class="pane" id="pane-nazev" style="display:none">
+            <div class="rt-toolbar">
+              <div class="rb" style="font-weight:bold">B</div>
+              <div class="rb" style="font-style:italic">I</div>
+              <div class="rb" style="text-decoration:underline">U</div>
+              <div class="rb">A<sup>2</sup></div>
+              <div class="rb">A<sub>2</sub></div>
+              <div class="rsep"></div>
+              <div class="rb" title="Vyjmout">&#9986;</div>
+              <div class="rb" title="Kopírovat">&#128203;</div>
+              <div class="rb" title="Vložit">&#128204;</div>
+            </div>
+            <div class="rt-area" contenteditable="true">Povolení záměru - testovací zpráva mail 14.5.26<br>MM</div>
+          </div>
+
+          <!-- ===== POPIS ===== -->
+          <div class="pane" id="pane-popis" style="display:none">
+            <div class="rt-toolbar">
+              <div class="rb" style="font-weight:bold">B</div>
+              <div class="rb" style="font-style:italic">I</div>
+              <div class="rb" style="text-decoration:underline">U</div>
+              <div class="rb">A<sup>2</sup></div>
+              <div class="rb">A<sub>2</sub></div>
+              <div class="rsep"></div>
+              <div class="rb" title="Vyjmout">&#9986;</div>
+              <div class="rb" title="Kopírovat">&#128203;</div>
+              <div class="rb" title="Vložit">&#128204;</div>
+            </div>
+            <div class="rt-area" contenteditable="true" style="color:#888">Slovní popis stavby / záměru…</div>
+          </div>
+
+          <!-- ===== VODOPRÁVNÍ EVIDENCE (předběžný návrh) ===== -->
+          <div class="pane" id="pane-vodo" style="display:none">
+            <div class="vodo-note">⚠ Rozložení této záložky nebylo ve screenshotech – jde o předběžný návrh k upřesnění (napojení na vodoprávní evidenci / IS VODA).</div>
+            <div class="vodo-grid">
+              <label>Druh vodního díla</label>
+              <select><option></option><option>Vodovodní řad</option><option>Kanalizační stoka</option><option>ČOV</option><option>Most / propustek přes vodní tok</option></select>
+              <label>Vodní tok (IDVT)</label>
+              <input type="text" placeholder="ID vodního toku">
+              <label>Číslo hydrolog. pořadí (ČHP)</label>
+              <input type="text" placeholder="x-xx-xx-xxxx-x-xx">
+              <label>Říční km</label>
+              <input type="text">
+              <label>Hydrogeologický rajon</label>
+              <input type="text">
+            </div>
+          </div>
+
+          <!-- ===== DSŘ ===== -->
+          <div class="pane" id="pane-dsr" style="display:none">
+            <div class="dsr-grid">
+              <label>Záměr</label>
+              <input type="text" value="Z/2026/959">
+              <span></span>
+              <label>Dokumentace</label>
+              <input type="text" value="SR00X005P60K">
+              <button class="btn-cmd" onclick="window.open('https://aleskrupa109.github.io/ISSR/pages/detail-zameru.html','_blank')">Zobrazit BPP (DSŘ)</button>
+              <label>Řízení</label>
+              <input type="text" value="R/2026/473">
+              <span></span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="m-foot">
+      <span class="hint" style="margin:0">Záložky odpovídají rozbalenému tlačítku „záměr" v reálné aplikaci.</span>
+      <div class="right">
+        <button class="btn" onclick="closeStavba()">Zavřít</button>
+        <button class="btn" onclick="toast('Změny záměru uloženy.'); closeStavba();">Uložit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MINI DIALOG: PŘIDAT DO ============ -->
+<div class="overlay" id="addOverlay">
+  <div class="modal mini">
+    <div class="m-title"><span>Přidat dotčený orgán z kartotéky</span><div class="m-x" onclick="closeAddDialog()">&#10005;</div></div>
+    <div class="m-body">
+      <p class="hint" style="margin-top:0">Návrhy jsou předfiltrované podle druhu záměru (<b>stavba dráhy</b>) a katastrálního území. Označte orgány, které mají být osloveny.</p>
+      <div class="suggest-box" id="suggestBox"><!-- generováno JS --></div>
+    </div>
+    <div class="m-foot">
+      <span class="hint" id="addCount" style="margin:0">Vybráno: 0</span>
+      <div class="right">
+        <button class="btn" onclick="closeAddDialog()">Storno</button>
+        <button class="btn" onclick="confirmAdd()">Přidat vybrané</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MINI DIALOG: ZAZNAMENAT STANOVISKO ============ -->
+<div class="overlay" id="recordOverlay">
+  <div class="modal mini" style="width:640px">
+    <div class="m-title"><span>Zaznamenat stanovisko / vyjádření</span><div class="m-x" onclick="closeRecordDialog()">&#10005;</div></div>
+    <div class="m-body">
+      <p class="hint" id="recordFor" style="margin-top:0"></p>
+      <div class="form-grid">
+        <label>Typ úkonu</label>
+        <select id="recType"><option>Závazné stanovisko</option><option>Vyjádření</option><option>Koordinované záv. stanovisko</option><option>Jednotné env. stanovisko (JES)</option></select>
+        <label>Výsledek</label>
+        <select id="recResult">
+          <option value="ok">Souhlasné</option>
+          <option value="cond">Souhlasné s podmínkami</option>
+          <option value="no">Nesouhlasné</option>
+        </select>
+        <label>Č. j. orgánu</label>
+        <input type="text" id="recCj" placeholder="např. DUCR-12345/26/Ksm">
+        <label>Datum doručení</label>
+        <input type="text" id="recDate" value="">
+        <label>Dokument</label>
+        <input type="text" id="recDoc" placeholder="název přílohy / odkaz na dokument v ISSŘ">
+        <label>Podmínky / poznámka</label>
+        <textarea id="recNote" placeholder="text podmínek, které se přenesou do výroku rozhodnutí…"></textarea>
+      </div>
+      <p class="hint">Stanovisko obdržené přes ISSŘ se po potvrzení automaticky zařadí do spisu a podmínky lze jedním krokem převzít do výroku rozhodnutí.</p>
+    </div>
+    <div class="m-foot">
+      <div class="right">
+        <button class="btn" onclick="closeRecordDialog()">Storno</button>
+        <button class="btn" onclick="confirmRecord()">Uložit stanovisko</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../assets/js/vita.js"></script>
+<script>
+/* =================== DATA =================== */
+// Kartotéka / katalog dotčených orgánů (návrhy podle druhu záměru "stavba dráhy")
+const CATALOG = [
+  { grp:"Závazná stanoviska – speciální", items:[
+    { id:"ducr", name:"Drážní úřad", agenda:"Stavby drah – sekce stavební", ukon:"Závazné stanovisko", flag:"zs", lhuta:30 },
+    { id:"hzs",  name:"HZS Středočeského kraje", agenda:"Požární ochrana", ukon:"Závazné stanovisko", flag:"zs", lhuta:30 },
+    { id:"khs",  name:"Krajská hygienická stanice Stč. kraje", agenda:"Ochrana veřejného zdraví", ukon:"Závazné stanovisko", flag:"zs", lhuta:30 },
+    { id:"pam",  name:"MěÚ – odbor památkové péče", agenda:"Státní památková péče", ukon:"Závazné stanovisko", flag:"zs", lhuta:30 },
+  ]},
+  { grp:"Životní prostředí (JES)", items:[
+    { id:"jes", name:"Krajský úřad Stč. kraje – odbor ŽP", agenda:"Jednotné environmentální stanovisko", ukon:"Jednotné env. stanovisko (JES)", flag:"jes", lhuta:60 },
+    { id:"orp", name:"MěÚ – odbor ŽP (ORP)", agenda:"Ochrana přírody, vody, ovzduší", ukon:"Vyjádření", flag:"", lhuta:30 },
+  ]},
+  { grp:"Vyjádření a dotčené subjekty", items:[
+    { id:"mdcr", name:"Ministerstvo dopravy – Odbor drah", agenda:"Drážní doprava", ukon:"Vyjádření", flag:"", lhuta:30 },
+    { id:"pcr",  name:"Policie ČR – DI Nymburk", agenda:"Bezpečnost silničního provozu", ukon:"Vyjádření", flag:"", lhuta:30 },
+    { id:"szel", name:"Správa železnic, s.o.", agenda:"Vlastník/správce dráhy", ukon:"Vyjádření", flag:"", lhuta:30 },
+    { id:"mo",   name:"Ministerstvo obrany – SEM", agenda:"Zájmy obrany státu", ukon:"Vyjádření", flag:"", lhuta:30 },
+    { id:"cetin",name:"CETIN a.s.", agenda:"Správce sítě elektronických komunikací", ukon:"Vyjádření", flag:"", lhuta:30 },
+  ]},
+];
+
+// Aktuální stav řízení – ukázková data (2 už mají výsledek)
+let rows = [
+  mk("ducr", { status:"ok",   sent:"15.5.2026", deadline:"14.6.2026", channel:"ISSŘ", cj:"DUCR-21044/26/Ksm", doc:"ZS_Drazni_urad.pdf", ukon:"Závazné stanovisko" }),
+  mk("hzs",  { status:"cond", sent:"15.5.2026", deadline:"14.6.2026", channel:"ISSŘ", cj:"HSKL-3120/26", doc:"ZS_HZS_podminky.pdf", ukon:"Závazné stanovisko", note:"Doložit požárně bezpečnostní řešení před zahájením." }),
+  mk("khs",  { status:"sent", sent:"15.5.2026", deadline:"14.6.2026", channel:"ISSŘ", ukon:"Závazné stanovisko" }),
+  mk("jes",  { status:"sent", sent:"15.5.2026", deadline:"14.7.2026", channel:"ISSŘ", ukon:"Jednotné env. stanovisko (JES)" }),
+  mk("szel", { status:"none", channel:"Datová schránka", ukon:"Vyjádření" }),
+];
+
+let selectedId = null;
+
+function mk(catId, over){
+  let c = null;
+  CATALOG.forEach(g => g.items.forEach(i => { if(i.id===catId) c=i; }));
+  return Object.assign({
+    rid: "r"+Math.random().toString(36).slice(2,8),
+    catId: catId, name:c?.name||catId, agenda:c?.agenda||"", ukon:c?.ukon||"Vyjádření",
+    lhuta:c?.lhuta||30, channel:"ISSŘ", status:"none",
+    sent:"", deadline:"", cj:"", doc:"", note:""
+  }, over||{});
+}
+
+/* =================== RENDER TABULKY =================== */
+const STATUS = {
+  none:{cls:"s-none", txt:"Nepožádáno"},
+  sent:{cls:"s-sent", txt:"Běží lhůta"},
+  fiction:{cls:"s-fiction", txt:"Fikce souhlasu"},
+  ok:{cls:"s-ok", txt:"Souhlasné"},
+  cond:{cls:"s-cond", txt:"Souhlasné s podmínkami"},
+  no:{cls:"s-no", txt:"Nesouhlasné"},
+};
+
+function renderGrid(){
+  const tb = document.getElementById('doBody');
+  tb.innerHTML = '';
+  rows.forEach(r => {
+    const st = STATUS[r.status] || STATUS.none;
+    const tr = document.createElement('tr');
+    if(r.rid === selectedId) tr.classList.add('sel');
+    tr.onclick = () => { selectedId = r.rid; renderGrid(); };
+
+    // upozornění na lhůtu
+    let dlHtml = r.deadline || '<span class="sub">—</span>';
+    if(r.status === 'sent' && r.deadline){
+      dlHtml = '<span class="deadline-warn">'+r.deadline+'</span>';
+    }
+
+    let resHtml = '<span class="sub">—</span>';
+    if(['ok','cond','no'].includes(r.status)){
+      resHtml = (r.cj ? '<div>'+r.cj+'</div>' : '') +
+                (r.doc ? '<span class="doc-link" title="Otevřít dokument">📎 '+r.doc+'</span>' : '') +
+                (r.note ? '<div class="sub">'+r.note+'</div>' : '');
+    }
+
+    tr.innerHTML =
+      '<td style="text-align:center"><input type="radio" class="checkbox" name="dosel" '+(r.rid===selectedId?'checked':'')+' onclick="event.stopPropagation(); selectedId=\''+r.rid+'\'; renderGrid();"></td>'+
+      '<td><b>'+r.name+'</b></td>'+
+      '<td>'+r.agenda+'</td>'+
+      '<td>'+r.ukon+'</td>'+
+      '<td>'+r.channel+'</td>'+
+      '<td>'+(r.sent||'<span class="sub">—</span>')+'</td>'+
+      '<td>'+dlHtml+'</td>'+
+      '<td><span class="status-badge '+st.cls+'">'+st.txt+'</span></td>'+
+      '<td>'+resHtml+'</td>';
+    tb.appendChild(tr);
+  });
+}
+
+/* =================== SHRNUTÍ NA HLAVNÍM FORMULÁŘI =================== */
+function renderSummary(){
+  const el = document.getElementById('doValContent');
+  if(rows.length === 0){
+    el.innerHTML = '<span class="placeholder">Klikněte pro správu dotčených orgánů a vyžádání stanovisek…</span>';
+    return;
+  }
+  const total = rows.length;
+  const received = rows.filter(r=>['ok','cond','no'].includes(r.status)).length;
+  const pending = rows.filter(r=>r.status==='sent').length;
+  const no = rows.filter(r=>r.status==='no').length;
+
+  const names = rows.map(r=>r.name.replace(/ –.*/,'').split(' (')[0]);
+  let label = names.slice(0,3).join('; ');
+  if(names.length>3) label += '; +'+(names.length-3);
+
+  let chips = '<span class="chip ok">obdrženo '+received+'/'+total+'</span>';
+  if(pending) chips += '<span class="chip req">běží lhůta '+pending+'</span>';
+  if(no) chips += '<span class="chip no">nesouhlas '+no+'</span>';
+
+  el.innerHTML = '<div class="do-summary-chips"><span>'+label+'</span>'+chips+'</div>';
+}
+
+/* =================== AKCE =================== */
+function openDO(){ document.getElementById('doOverlay').classList.add('show'); renderGrid(); }
+function closeDO(){ document.getElementById('doOverlay').classList.remove('show'); }
+function saveDO(){ renderSummary(); closeDO(); toast('Dotčené orgány převzaty do řízení.'); }
+
+function getSel(){ return rows.find(r=>r.rid===selectedId); }
+
+function sendRequest(){
+  const r = getSel();
+  if(!r){ toast('Vyberte orgán, kterému se má odeslat žádost.'); return; }
+  if(r.status!=='none'){ toast('Žádost již byla odeslána.'); return; }
+  const today = new Date('2026-05-25');
+  r.sent = '25.5.2026';
+  const dl = new Date(today.getTime() + r.lhuta*86400000);
+  r.deadline = dl.getDate()+'.'+(dl.getMonth()+1)+'.'+dl.getFullYear();
+  r.status = 'sent';
+  renderGrid();
+  toast('Žádost odeslána přes '+r.channel+'. Lhůta '+r.lhuta+' dní běží do '+r.deadline+'.');
+}
+
+function urge(){
+  const r = getSel();
+  if(!r){ toast('Vyberte orgán.'); return; }
+  if(r.status==='sent'){ r.status='fiction'; renderGrid(); toast('Marné uplynutí lhůty – uplatněna fikce souhlasu (§ dle SZ).'); }
+  else { toast('Urgence zaznamenána.'); }
+}
+
+function removeRow(){
+  const r = getSel();
+  if(!r){ toast('Vyberte orgán k odebrání.'); return; }
+  rows = rows.filter(x=>x.rid!==r.rid); selectedId=null; renderGrid();
+  toast('Orgán odebrán z řízení.');
+}
+
+/* ---- Přidat DO ---- */
+let pendingSel = new Set();
+function openAddDialog(){
+  pendingSel = new Set();
+  const box = document.getElementById('suggestBox');
+  box.innerHTML='';
+  const existing = new Set(rows.map(r=>r.catId));
+  CATALOG.forEach(g=>{
+    const grp = document.createElement('div'); grp.className='grp'; grp.textContent=g.grp; box.appendChild(grp);
+    g.items.forEach(it=>{
+      const row = document.createElement('label'); row.className='suggest-row';
+      const already = existing.has(it.id);
+      let flag = it.flag==='jes' ? '<span class="badge-jes">JES</span>' : (it.flag==='zs' ? '<span class="badge-zs">záv. stanovisko</span>' : '');
+      row.innerHTML =
+        '<input type="checkbox" class="checkbox" '+(already?'disabled checked':'')+' data-id="'+it.id+'">'+
+        '<div><div><b>'+it.name+'</b>'+flag+(already?' <span class="meta">(již v řízení)</span>':'')+'</div>'+
+        '<div class="meta">'+it.agenda+' · lhůta '+it.lhuta+' dní</div></div>';
+      const cb = row.querySelector('input');
+      if(!already) cb.onchange = ()=>{ cb.checked?pendingSel.add(it.id):pendingSel.delete(it.id); document.getElementById('addCount').textContent='Vybráno: '+pendingSel.size; };
+      box.appendChild(row);
+    });
+  });
+  document.getElementById('addCount').textContent='Vybráno: 0';
+  document.getElementById('addOverlay').classList.add('show');
+}
+function closeAddDialog(){ document.getElementById('addOverlay').classList.remove('show'); }
+function confirmAdd(){
+  if(pendingSel.size===0){ toast('Nevybrali jste žádný orgán.'); return; }
+  pendingSel.forEach(id=> rows.push(mk(id,{status:'none'})));
+  closeAddDialog(); renderGrid(); toast(pendingSel.size+' orgán(ů) přidáno do řízení.');
+}
+function autoSuggest(){
+  // přidá automaticky doporučené (závazná stanoviska + JES), pokud chybí
+  const existing = new Set(rows.map(r=>r.catId));
+  const recommended = ['ducr','hzs','khs','jes','szel'];
+  let added=0;
+  recommended.forEach(id=>{ if(!existing.has(id)){ rows.push(mk(id,{status:'none'})); added++; } });
+  renderGrid();
+  toast(added? added+' doporučených DO doplněno podle druhu záměru (stavba dráhy).' : 'Všechny doporučené DO už jsou v řízení.');
+}
+
+/* ---- Zaznamenat stanovisko ---- */
+function openRecordDialog(){
+  const r = getSel();
+  if(!r){ toast('Vyberte orgán, jehož stanovisko chcete zaznamenat.'); return; }
+  document.getElementById('recordFor').innerHTML = 'Orgán: <b>'+r.name+'</b> &nbsp;·&nbsp; '+r.agenda;
+  document.getElementById('recType').value = r.ukon;
+  document.getElementById('recResult').value = ['ok','cond','no'].includes(r.status)?r.status:'ok';
+  document.getElementById('recCj').value = r.cj||'';
+  document.getElementById('recDate').value = '25.5.2026';
+  document.getElementById('recDoc').value = r.doc||'';
+  document.getElementById('recNote').value = r.note||'';
+  document.getElementById('recordOverlay').classList.add('show');
+}
+function closeRecordDialog(){ document.getElementById('recordOverlay').classList.remove('show'); }
+function confirmRecord(){
+  const r = getSel(); if(!r) return;
+  r.ukon = document.getElementById('recType').value;
+  r.status = document.getElementById('recResult').value;
+  r.cj = document.getElementById('recCj').value;
+  r.doc = document.getElementById('recDoc').value;
+  r.note = document.getElementById('recNote').value;
+  if(!r.sent) r.sent = '25.5.2026';
+  closeRecordDialog(); renderGrid(); toast('Stanovisko zaznamenáno a zařazeno do spisu.');
+}
+
+
+document.getElementById('doLabel').onclick = openDO;
+
+/* ---- STAVBA modál ---- */
+function openStavba(){ document.getElementById('stavbaOverlay').classList.add('show'); }
+function closeStavba(){ document.getElementById('stavbaOverlay').classList.remove('show'); }
+function stavbaTab(id){
+  document.querySelectorAll('#stavbaOverlay .htab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
+  document.querySelectorAll('#stavbaOverlay .pane').forEach(p=>p.style.display = (p.id==='pane-'+id)?'block':'none');
+}
+function subTab(el){
+  el.parentElement.querySelectorAll('.subtab').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+}
+
+
+
+renderSummary();
+</script>
+</body>
+</html>

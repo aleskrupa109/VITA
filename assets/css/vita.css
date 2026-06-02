@@ -1,0 +1,398 @@
+
+  /* ====== Základní reset a klasický Win32 / VCL vzhled ====== */
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    font-family: "Segoe UI", Tahoma, "MS Sans Serif", sans-serif;
+    font-size: 13px;
+    color: #000;
+    background: #c8c8c8;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Okno aplikace */
+  .app-window {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #ffffff;
+    border: 1px solid #4a4a4a;
+  }
+
+  /* ---- Titulkový pruh (Windows 10 styl: světlý) ---- */
+  .titlebar {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    background: #ffffff;
+    border-bottom: 1px solid #e6e6e6;
+    flex: 0 0 auto;
+    user-select: none;
+  }
+  .titlebar .logo {
+    width: 22px; height: 22px; margin: 0 6px 0 6px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 35%, #9fb4cf 0 35%, #4a6a93 36% 70%, #2b3f5c 71% 100%);
+    box-shadow: inset 0 0 0 1px #2b3f5c;
+  }
+  .titlebar .title { font-size: 13px; color: #1a1a1a; }
+  .titlebar .win-controls { margin-left: auto; display: flex; }
+  .titlebar .win-controls button {
+    width: 46px; height: 30px; border: 0; background: transparent;
+    font-family: "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
+    font-size: 12px; color: #444; cursor: default;
+  }
+  .titlebar .win-controls button:hover { background: #e5e5e5; }
+  .titlebar .win-controls button.close:hover { background: #e81123; color: #fff; }
+
+  /* ---- Menu ---- */
+  .menubar {
+    display: flex;
+    height: 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #eaeaea;
+    flex: 0 0 auto;
+    padding-left: 4px;
+    user-select: none;
+  }
+  .menubar .menu-item {
+    padding: 3px 9px;
+    font-size: 13px;
+    color: #111;
+    cursor: default;
+    line-height: 18px;
+  }
+  .menubar .menu-item:hover { background: #cde2f7; outline: 1px solid #7da2ce; }
+  .menubar .menu-item.disabled { color: #9a9a9a; }
+  .menubar .menu-item.disabled:hover { background: transparent; outline: none; }
+
+  /* ---- Toolbar (ikony s popiskem) ---- */
+  .toolbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 58px;
+    background: #fbfbfb;
+    border-bottom: 1px solid #cfcfcf;
+    padding: 3px 6px 2px 6px;
+    flex: 0 0 auto;
+    user-select: none;
+  }
+  .tbtn {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    min-width: 46px; height: 52px; padding: 2px 4px 1px;
+    border: 1px solid transparent;
+    background: transparent; cursor: default;
+    font-size: 12px; color: #000;
+  }
+  .tbtn:hover { border-color: #7da2ce; background: #e9f2fb; }
+  .tbtn.active { border-color: #b5b5b5; background: #e3e3e3; box-shadow: inset 0 0 0 1px #fff; }
+  .tbtn svg { width: 26px; height: 26px; margin-bottom: 2px; }
+  .tbtn .lbl { line-height: 12px; }
+  .tb-drop {
+    width: 16px; height: 52px; align-self: flex-end;
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 16px;
+    border: 1px solid transparent; cursor: default; color: #333; font-size: 9px;
+  }
+  .tb-drop:hover { border-color: #7da2ce; background: #e9f2fb; }
+  .tb-sep { width: 1px; align-self: center; height: 40px; background: #d6d6d6; margin: 0 4px; }
+
+  /* ---- Záložka / drobečková navigace ---- */
+  .tabstrip {
+    display: flex; align-items: stretch;
+    height: 24px; background: #ffffff; flex: 0 0 auto;
+    border-bottom: 1px solid #c9c9c9;
+    padding-left: 4px; user-select: none;
+  }
+  .tabstrip .crumb {
+    display: flex; align-items: center; padding: 0 10px; font-size: 13px; color: #222;
+  }
+  .tabstrip .tab {
+    display: flex; align-items: center; padding: 0 14px; font-size: 13px;
+    background: #eef1f4; border: 1px solid #c9c9c9; border-bottom: 0;
+    margin-top: 2px;
+  }
+  .tabstrip .tab.active { background: #ffffff; }
+
+  /* ---- Panel řízení ---- */
+  .panel-head {
+    display: flex; align-items: center;
+    height: 22px; background: #ffffff; border-bottom: 1px solid #d0d0d0;
+    padding: 0 6px; flex: 0 0 auto; user-select: none;
+  }
+  .panel-head .ph-title { font-size: 13px; color: #111; }
+  .panel-head .ph-close {
+    margin-left: auto; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+    color: #c0392b; cursor: default; font-weight: bold;
+  }
+  .panel-head .ph-close:hover { background: #f3d6d3; }
+
+  /* ---- Obsah formuláře ---- */
+  .form-area {
+    flex: 1 1 auto;
+    overflow: auto;
+    background: #ffffff;
+    padding: 14px 18px 18px 14px;
+  }
+
+  /* horní řádek spis. zn. */
+  .row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .lbl-plain { color: #000; }
+  .lbl-right { margin-left: auto; }
+
+  input[type=text], select {
+    font-family: inherit; font-size: 13px; color: #00148c;
+    background: #ffffff; border: 1px solid #7f9db9;
+    height: 22px; padding: 0 4px;
+  }
+  input[type=text]:focus, select:focus { outline: 1px solid #2f6fb0; }
+  input.readonly { background: #eef0f2; color: #333; }
+
+  /* tlačítka VCL */
+  .btn {
+    font-family: inherit; font-size: 13px; color: #000;
+    background: linear-gradient(#fdfdfd, #e7e7e7);
+    border: 1px solid #8a8a8a; border-radius: 2px;
+    min-height: 22px; padding: 1px 10px; cursor: default;
+  }
+  .btn:hover { background: linear-gradient(#ffffff, #e0ecf8); border-color: #5a87c0; }
+  .btn:active { background: #dfe7ef; }
+  .btn.sm { min-height: 20px; padding: 0 7px; font-size: 12px; }
+  .btn.icon { min-width: 26px; padding: 1px 4px; }
+  /* příkazové tlačítko ve stylu předlohy (DSŘ – Zobrazit BPP) */
+  .btn-cmd {
+    font-family: inherit; font-size: 13px; color: #000;
+    background: #e9e9e9; border: 1px solid #adadad; border-radius: 2px;
+    padding: 7px 20px; cursor: pointer; line-height: 1;
+  }
+  .btn-cmd:hover { background: #e5f0fb; border-color: #5a87c0; }
+  .btn-cmd:active { background: #d8e6f5; }
+
+  .fld-label-btn {
+    width: 132px; text-align: center;
+    background: linear-gradient(#fafafa, #e6e6e6);
+    border: 1px solid #9a9a9a; border-radius: 2px;
+    min-height: 24px; cursor: default; font-size: 13px; color: #000;
+    display: flex; align-items: center; justify-content: center; padding: 0 6px;
+  }
+  .fld-label-btn:hover { background: linear-gradient(#ffffff, #e0ecf8); border-color: #5a87c0; }
+  .fld-label-btn u { text-underline-offset: 1px; }
+
+  .fee { font-weight: bold; color: #111; }
+
+  /* tabulka řádků (stavba, zástupci, …) */
+  .field-rows { margin-top: 10px; }
+  .field-row {
+    display: flex; align-items: stretch; gap: 8px; margin-bottom: 7px;
+  }
+  .field-row .val {
+    flex: 1 1 auto; min-height: 24px;
+    border: 1px solid #7f9db9; background: #ffffff;
+    padding: 2px 6px; display: flex; align-items: center;
+    font-size: 13px; color: #00148c; font-weight: bold;
+  }
+  .field-row .val.empty { color: #777; font-weight: normal; }
+  .field-row .val.placeholder { color: #9a9a9a; font-weight: normal; font-style: italic; }
+
+  /* zvýraznění nově integrovaného DO řádku */
+  .field-row.do-row .fld-label-btn {
+    background: linear-gradient(#eaf4ff, #cfe6fb);
+    border-color: #3b7fc4; color: #0b3d6b; font-weight: bold;
+  }
+  .field-row.do-row .val { border-color: #3b7fc4; cursor: pointer; }
+  .field-row.do-row .val:hover { background: #f3f9ff; }
+
+  .do-summary-chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .chip {
+    font-size: 11px; font-weight: normal; padding: 1px 7px; border-radius: 9px;
+    border: 1px solid; line-height: 15px;
+  }
+  .chip.req   { background: #fff4e0; border-color: #e0a83c; color: #8a5a00; }
+  .chip.ok    { background: #e3f6e3; border-color: #4caa4c; color: #1f6b1f; }
+  .chip.cond  { background: #e4eefb; border-color: #4a82c4; color: #1f4e88; }
+  .chip.no    { background: #fbe3e3; border-color: #c44a4a; color: #8a1f1f; }
+  .chip.none  { background: #f0f0f0; border-color: #aaa; color: #555; }
+
+  /* Termíny */
+  h3.section { font-size: 13px; font-weight: bold; margin: 18px 0 8px; }
+  .term-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .term-row label { width: 150px; }
+  .signature { margin-top: 22px; color: #222; }
+
+  /* ---- Status bar ---- */
+  .statusbar {
+    display: flex; align-items: center; height: 22px;
+    background: #f0f0f0; border-top: 1px solid #c4c4c4;
+    font-size: 12px; color: #222; flex: 0 0 auto; user-select: none;
+  }
+  .statusbar .sb-left { padding: 0 8px; }
+  .statusbar .sb-right { margin-left: auto; display: flex; align-items: center; gap: 12px; padding: 0 10px; }
+  .statusbar .sb-dots { display: flex; gap: 3px; }
+  .statusbar .sb-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ====== MODÁLNÍ OKNO ====== */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.18);
+    display: none; align-items: center; justify-content: center; z-index: 50;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    width: 1080px; max-width: 96vw; max-height: 92vh;
+    background: #ffffff; border: 1px solid #4a4a4a;
+    box-shadow: 0 6px 26px rgba(0,0,0,.35);
+    display: flex; flex-direction: column;
+  }
+  .modal .m-title {
+    display: flex; align-items: center; height: 28px;
+    background: linear-gradient(#3a6ea5, #2c5380); color: #fff;
+    padding: 0 8px; font-size: 13px; user-select: none;
+  }
+  .modal .m-title .m-x {
+    margin-left: auto; width: 22px; height: 20px; display: flex; align-items: center; justify-content: center;
+    cursor: default; border-radius: 2px;
+  }
+  .modal .m-title .m-x:hover { background: #e81123; }
+  .modal .m-toolbar {
+    display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+    border-bottom: 1px solid #d3d3d3; background: #f6f6f6; flex-wrap: wrap;
+  }
+  .modal .m-body { padding: 0; overflow: auto; flex: 1 1 auto; background:#fff; }
+  .modal .m-foot {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+    border-top: 1px solid #d3d3d3; background: #f6f6f6;
+  }
+  .modal .m-foot .legend { display:flex; gap:8px; align-items:center; font-size:11px; color:#444; flex-wrap:wrap; }
+  .modal .m-foot .right { margin-left: auto; display: flex; gap: 8px; }
+
+  /* tabulka DO */
+  table.grid { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.grid thead th {
+    position: sticky; top: 0;
+    background: linear-gradient(#fafafa, #ececec);
+    border: 1px solid #cfcfcf; border-left: 0;
+    padding: 5px 7px; text-align: left; font-weight: bold; color: #222; white-space: nowrap;
+  }
+  table.grid thead th:first-child { border-left: 1px solid #cfcfcf; }
+  table.grid tbody td {
+    border: 1px solid #e4e4e4; border-left: 0; padding: 4px 7px; vertical-align: top;
+  }
+  table.grid tbody td:first-child { border-left: 1px solid #e4e4e4; }
+  table.grid tbody tr:nth-child(even) { background: #fafcff; }
+  table.grid tbody tr.sel { background: #cde2f7 !important; outline: 1px solid #7da2ce; }
+  table.grid tbody tr:hover { background: #eef5fd; }
+  table.grid .sub { color: #777; font-size: 11px; }
+  .status-badge {
+    display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 9px; border: 1px solid; white-space: nowrap;
+  }
+  .s-none { background: #f0f0f0; border-color: #aaa; color: #555; }
+  .s-sent { background: #fff4e0; border-color: #e0a83c; color: #8a5a00; }
+  .s-fiction { background: #f1e7fb; border-color: #9a6fc4; color: #5a2f88; }
+  .s-ok   { background: #e3f6e3; border-color: #4caa4c; color: #1f6b1f; }
+  .s-cond { background: #e4eefb; border-color: #4a82c4; color: #1f4e88; }
+  .s-no   { background: #fbe3e3; border-color: #c44a4a; color: #8a1f1f; }
+  .deadline-warn { color: #b8860b; font-weight: bold; }
+  .deadline-over { color: #c0392b; font-weight: bold; }
+
+  .doc-link { color: #00148c; text-decoration: underline; cursor: default; }
+  .doc-link:hover { color: #0b3d8c; }
+
+  .checkbox { width: 14px; height: 14px; }
+
+  /* malý dialog */
+  .mini { width: 760px; }
+  .mini .m-body { padding: 12px 14px; }
+  .form-grid { display: grid; grid-template-columns: 160px 1fr; gap: 8px 12px; align-items: center; }
+  .form-grid label { color: #222; }
+  .form-grid input, .form-grid select, .form-grid textarea { width: 100%; }
+  .form-grid textarea { font-family: inherit; font-size: 13px; border: 1px solid #7f9db9; min-height: 54px; padding: 4px; color: #00148c; }
+  .hint { font-size: 11px; color: #666; margin: 6px 0 0; }
+  .suggest-box { border: 1px solid #d7d7d7; max-height: 320px; overflow: auto; }
+  .suggest-box .grp { background:#eef2f6; font-weight:bold; padding:4px 8px; font-size:12px; border-top:1px solid #dcdcdc; position:sticky; top:0;}
+  .suggest-row { display: flex; align-items: flex-start; gap: 8px; padding: 5px 8px; border-bottom: 1px solid #f0f0f0; }
+  .suggest-row:hover { background: #eef5fd; }
+  .suggest-row .meta { font-size: 11px; color: #777; }
+  .badge-jes { font-size:10px; background:#e3f6e3; border:1px solid #4caa4c; color:#1f6b1f; border-radius:8px; padding:0 6px; margin-left:6px;}
+  .badge-zs  { font-size:10px; background:#fff4e0; border:1px solid #e0a83c; color:#8a5a00; border-radius:8px; padding:0 6px; margin-left:6px;}
+
+  .toast {
+    position: fixed; bottom: 34px; left: 50%; transform: translateX(-50%);
+    background: #323232; color: #fff; padding: 8px 16px; border-radius: 4px; font-size: 12px;
+    z-index: 99; opacity: 0; transition: opacity .2s; pointer-events: none;
+  }
+  .toast.show { opacity: .95; }
+
+  /* ====== STAVBA modál – horizontální záložky ====== */
+  .modal.stavba { width: 1180px; height: 664px; }
+  .modal.stavba .m-body { display: flex; flex-direction: column; background:#ececec; padding:0; }
+  .stavba-row .val { cursor: pointer; }
+  .stavba-row .val:hover { background:#f3f9ff; }
+
+  .htabs { display:flex; align-items:flex-end; background:#ececec; padding:6px 8px 0; border-bottom:1px solid #b9b9b9; }
+  .htab { padding:4px 12px 4px; font-size:13px; border:1px solid #b9b9b9; border-bottom:0; background:#e0e0e0; margin-right:2px; position:relative; top:1px; cursor:default; }
+  .htab:hover { background:#eaeaea; }
+  .htab.active { background:#ececec; border-bottom:1px solid #ececec; padding-bottom:5px; }
+
+  .stavba-wrap { flex:1 1 auto; display:flex; min-height:0; background:#ececec; }
+  .spine { width:26px; background:#1f6fc9; display:flex; align-items:center; justify-content:center; }
+  .spine span { writing-mode: vertical-rl; transform: rotate(180deg); color:#fff; font-size:13px; letter-spacing:.5px; }
+  .stavba-panes { flex:1 1 auto; padding:16px 20px; overflow:auto; min-width:0; }
+  .pane { height:100%; }
+
+  /* combo boxy (klasické Win) */
+  .combo { display:inline-flex; align-items:stretch; height:23px; border:1px solid #7f9db9; background:#fff; vertical-align:middle; }
+  .combo input { border:0; outline:0; height:21px; padding:0 5px; font-size:13px; color:#000; background:transparent; min-width:0; width:100%; }
+  .combo .cbtn { width:17px; display:flex; align-items:center; justify-content:center; background:linear-gradient(#f4f4f4,#d8d8d8); border-left:1px solid #9fb0c2; font-size:8px; color:#333; flex:0 0 auto; }
+  .combo.wide { width:236px; } .combo.xwide { width:300px; }
+  .hl { background:#2a6fc9; color:#fff; padding:0 2px; }
+
+  /* místo stavby */
+  .misto-grid { display:flex; gap:30px; height:100%; }
+  .misto-left { width:430px; flex:0 0 auto; }
+  .mrow { display:flex; align-items:center; gap:8px; margin-bottom:9px; }
+  .mrow > label { width:42px; color:#000; }
+  .mrow .num { width:54px; height:23px; border:1px solid #7f9db9; background:#fff; }
+  .mrow .num2 { width:38px; height:23px; border:1px solid #7f9db9; background:#fff; }
+  .lbl-cp { color:#000; }
+  .misto-right { flex:1 1 auto; display:flex; flex-direction:column; min-width:0; }
+  .subtabs { display:flex; }
+  .subtab { padding:2px 14px; font-size:13px; border:1px solid #b9b9b9; border-bottom:0; background:#e0e0e0; margin-right:2px; cursor:default; }
+  .subtab.active { background:#fff; }
+  .parcel-grid { border:1px solid #9fb0c2; background:#fff; flex:1 1 auto; display:flex; flex-direction:column; min-height:230px; }
+  .parcel-grid table.grid { flex:0 0 auto; }
+  .parcel-grid table.grid thead th { background:linear-gradient(#fafafa,#e9e9e9); }
+  .parcel-empty { padding:14px; color:#444; flex:1 1 auto; }
+  .parcel-add { display:flex; gap:4px; padding:6px; border-top:1px solid #d6d6d6; background:#f6f6f6; }
+  .parcel-add .num { height:21px; border:1px solid #7f9db9; background:#fff; }
+
+  /* rich text editor (Název / Popis) */
+  .rt-toolbar { display:flex; align-items:center; gap:2px; background:#f3f3f3; border:1px solid #cfcfcf; padding:3px 6px; }
+  .rt-toolbar .rb { min-width:21px; height:20px; display:flex; align-items:center; justify-content:center; border:1px solid transparent; cursor:default; font-size:13px; }
+  .rt-toolbar .rb:hover { border-color:#7da2ce; background:#e9f2fb; }
+  .rt-toolbar .rsep { width:1px; height:18px; background:#cfcfcf; margin:0 5px; }
+  .rt-area { background:#fff; border:1px solid #9fb0c2; border-top:0; min-height:380px; padding:8px 10px; font-size:16px; outline:none; }
+
+  /* DSŘ */
+  .dsr-grid { display:grid; grid-template-columns:120px 240px auto; gap:14px 16px; align-items:center; }
+  .dsr-grid > label { color:#000; }
+  .dsr-grid input { height:23px; border:1px solid #7f9db9; background:#e7eaf0; color:#000; padding:0 5px; font-size:13px; }
+
+  /* vodoprávní evidence (předběžný návrh) */
+  .vodo-note { background:#fff8e1; border:1px solid #e6cf8a; padding:7px 10px; font-size:12px; color:#6b5a1f; margin-bottom:14px; }
+  .vodo-grid { display:grid; grid-template-columns:200px 300px; gap:10px 16px; align-items:center; }
+  .vodo-grid label { color:#000; }
+  .vodo-grid input, .vodo-grid select { height:23px; border:1px solid #7f9db9; background:#fff; padding:0 5px; font-size:13px; }
+
+  /* ====== Úvodní obrazovka (seznam zpráv / pracovní seznam) ====== */
+  .home-area { flex:1 1 auto; background:#ffffff; overflow:auto; }
+  .home-list { margin:84px 18px 0 16px; }
+  .hl-head { display:flex; height:22px; }
+  .hl-col { border:1px solid #c9c9c9; border-left:0; padding:2px 7px; font-size:13px;
+            background:#f1f1f1; display:flex; align-items:center; color:#111; }
+  .hl-col:first-child { border-left:1px solid #c9c9c9; }
+  .col-spis   { width:150px; }
+  .col-zprava { width:920px; }
+  .col-rest   { flex:1 1 auto; }
+  .hl-body { border:1px solid #c9c9c9; border-top:0; background:#ededed;
+             min-height:240px; padding:14px; font-size:13px; color:#222; }
