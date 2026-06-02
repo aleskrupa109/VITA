@@ -122,6 +122,7 @@
     </div>
 
     <div id="rizeniBody" style="display:none">
+    <div class="koord-bar" id="koordBar" style="display:none"></div>
     <div class="field-rows">
 
       <!-- ZÁMĚR (panel) -->
@@ -868,7 +869,7 @@ renderSummary();
   setVal('spisYear', yr);
   setVal('spisSz', 'SZ '+auth+'/'+num+'/'+yr);
   document.getElementById('crumbTab').innerHTML = '(??&nbsp;0)&nbsp;'+num+'/'+yr;
-  if(vec) setVal('zamerName', vec);
+  if(vec){ setVal('zamerName', vec); setVal('sum-zamer', vec); }
   if(od){ var n=od.replace(/^ISSŘ:\s*/,'').trim();
     if(n && n.toLowerCase()!=='vlastní záznam') setVal('stavebnikName', n); }
   window.__rz = { num:num, yr:yr, auth:auth };
@@ -1102,7 +1103,37 @@ let faze = 'zalozeno'; /* zalozeno → predano → prideleno → kontrola → vy
 
 function vpToggle(id){ var el=document.getElementById(id); if(el) el.classList.toggle('open'); }
 
-function setRole(v){ uiRole=v; renderDoPanel(); renderPrisp(); }
+var KV_KEY='vita_kv_state';
+function saveState(){ try{ localStorage.setItem(KV_KEY, JSON.stringify({faze:faze, coord:predState.coord, podRows:podRows})); }catch(e){} }
+function loadState(){ try{ var s=localStorage.getItem(KV_KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
+
+function setRole(v){
+  uiRole=v;
+  var rb=document.getElementById('rizeniBody'); if(rb) rb.classList.toggle('ro-mode', v==='koordinator');
+  renderKoordBar(); renderDoPanel(); renderPrisp();
+}
+function renderKoordBar(){
+  var bar=document.getElementById('koordBar'); if(!bar) return;
+  if(uiRole!=='koordinator'){ bar.style.display='none'; return; }
+  bar.style.display='flex';
+  var fi=['zalozeno','predano','prideleno','kontrola','vyjadreni'].indexOf(faze);
+  var html;
+  if(faze==='zalozeno'){
+    html='<span class="kb-stav kprevzeti">Řízení vám dosud nebylo předáno stavebním úředníkem</span>';
+  } else if(fi>=2){
+    html='<span class="kb-stav kekontrole">Stav: předáno ke kontrole</span><span class="sub">úkol „převzít a předat DO" splněn · běží kontrola úplnosti (1. lhůta)</span>';
+  } else {
+    html='<span class="kb-stav kprevzeti">Stav: k převzetí</span><button class="btn" onclick="predatVsemDO()">Předat všem integrovaným DO</button><span class="sub">převzetím a předáním všem DO splníte svůj první úkol</span>';
+  }
+  html+='<span class="kb-back" onclick="location.href=\'koordinator.html\'">\u2190 Přehled řízení</span>';
+  bar.innerHTML=html;
+}
+function predatVsemDO(){
+  if(faze==='zalozeno'){ toast('Řízení nebylo předáno stavebním úředníkem.'); return; }
+  faze='prideleno'; saveState();
+  toast('Předáno všem integrovaným DO. Vznikl úkol „Kontrola žádosti" (1. lhůta 10 dní). Stav: předáno ke kontrole.');
+  renderKoordBar(); renderPrisp(); renderDoPanel();
+}
 
 /* ---- PODKLADY ---- */
 let podRows=[];
@@ -1148,7 +1179,7 @@ function vlozitSsl(){
   if(!add.length){ toast('Vyberte alespoň jeden řádek ze SSL.'); return; }
   add.forEach(function(x){ if(!podRows.some(function(p){return p.f===x.f;})) podRows.push({f:x.f}); });
   SSL.forEach(function(x){x.sel=false;});
-  renderPod(); renderSsl();
+  renderPod(); renderSsl(); saveState();
   toast(add.length+' příloh(y) zkopírováno ze spisové služby do podkladů.');
 }
 
@@ -1165,7 +1196,7 @@ function ctxAt(e, items){
   m.style.left=e.clientX+'px'; m.style.top=e.clientY+'px'; m.classList.add('show');
 }
 function hideCtx(){ var m=document.getElementById('ctxMenu'); if(m) m.classList.remove('show'); }
-function podCtx(e){ ctxAt(e,[ {t:'Zobrazit',dis:true}, {t:'Odebrat',dis:!podRows.length}, {sep:true}, {t:'Přílohy ze SSL',fn:showSsl} ]); }
+function podCtx(e){ if(uiRole!=='uradnik'){ e.preventDefault(); return; } ctxAt(e,[ {t:'Zobrazit',dis:true}, {t:'Odebrat',dis:!podRows.length}, {sep:true}, {t:'Přílohy ze SSL',fn:showSsl} ]); }
 function sslCtx(e){ ctxAt(e,[ {t:'Zobrazit (SSL)',dis:true}, {sep:true}, {t:'\u2190 Vložit do podkladů (SSL)',fn:vlozitSsl} ]); }
 document.addEventListener('click', hideCtx);
 
@@ -1174,6 +1205,7 @@ function doPredej(){
   var c=document.getElementById('doCoord').value;
   if(!c){ toast('Vyberte koordinátora.'); return; }
   predState.handed=true; predState.coord=c; if(faze==='zalozeno') faze='predano';
+  saveState();
   toast('Řízení předáno koordinátorovi: '+c+'. Koordinátor následně zahájí přidělení příspěvků.');
   renderDoPanel(); renderPrisp();
 }
@@ -1265,7 +1297,7 @@ function renderPrisp(){
   if(uiRole==='koordinator'){
     tools.style.display='block';
     if(faze==='zalozeno') tools.innerHTML='<span class="sub">Řízení vám zatím nebylo předáno stavebním úředníkem.</span>';
-    else if(faze==='predano') tools.innerHTML='<button class="btn sm" onclick="zahajPrideleni()">Zahájit přidělení příspěvků</button> &nbsp;<span class="sub">přidělí pracovníky a vytvoří přispěvatelům úkol „Kontrola žádosti" (1. lhůta 10 dní).</span>';
+    else if(faze==='predano') tools.innerHTML='<span class="sub">Převezměte řízení a předejte všem integrovaným DO tlačítkem ve stavové liště nahoře.</span>';
     else tools.innerHTML='<span class="sub">Přiděleno. Běží kontrola úplnosti (1. lhůta). Další nástroje (urgovat, vypořádat rozpor, sestavit koordinované vyjádření) doplníme v dalším kroku.</span>';
   } else { tools.style.display='none'; tools.innerHTML=''; }
 
@@ -1282,12 +1314,6 @@ function renderPrisp(){
   var note=document.getElementById('prispNote');
   note.textContent = (uiRole==='do') ? 'Pohled přispěvatele (editor vyjádření za vlastní úsek) doplníme v dalším kroku.'
     : (uiRole==='uradnik' ? 'Náhled pro čtení – úředník sleduje průběh; podmínky DO se na konci převezmou do rozhodnutí.' : '');
-}
-function zahajPrideleni(){
-  if(faze==='zalozeno'){ toast('Řízení nebylo předáno stavebním úředníkem.'); return; }
-  faze='prideleno';
-  toast('Zahájeno přidělení příspěvků. Přispěvatelům přiděleni pracovníci a vytvořen úkol „Kontrola žádosti" (1. lhůta 10 dní).');
-  renderPrisp(); renderDoPanel();
 }
 function prispVyzva(){
   predState.prerus=true;
@@ -1374,7 +1400,25 @@ function pmTabText(r, tab){
   if(sp) sp.onclick=function(){ vpToggle('vp-zamer'); };
   var pc=document.getElementById('podCol');
   if(pc) pc.oncontextmenu=podCtx;
-  renderPod(); renderDoPanel(); renderPrisp();
+
+  /* role z URL + sdílený stav (kontinuita úředník → koordinátor) */
+  var q=new URLSearchParams(location.search);
+  var rp=q.get('role');
+  var st=loadState();
+  if(st && st.podRows && st.podRows.length && !podRows.length){ podRows=st.podRows; }
+  if(rp==='koordinator' || rp==='do'){
+    uiRole=rp;
+    var sel=document.getElementById('roleSel'); if(sel) sel.value=rp;
+  }
+  if(uiRole==='koordinator'){
+    var rb=document.getElementById('rizeniBody'); rb.style.display='block'; rb.classList.add('ro-mode');
+    if(st && st.faze){ faze=st.faze; } else if(faze==='zalozeno'){ faze='predano'; }
+    predState.handed=true; predState.coord=(st&&st.coord)||'Ing. Pavla Nováková';
+    if(!podRows.length) podRows=[{f:'o4_Zadost_platnost_povoleni.pdf'},{f:'o6_Priloha_zadosti_-_projednani_s_DO.pdf'},{f:'o8_Zadost_pripojeni_10.pdf'},{f:'o10_Ucastnici_rizeni_vse.pdf'}];
+    var tf=document.getElementById('typField'); if(tf) tf.value='KSVZ 6.3.1 – Stavební záměr';
+    var pt=document.querySelector('.panel-head .ph-title'); if(pt) pt.textContent='Koordinované vyjádření';
+  }
+  renderPod(); renderKoordBar(); renderDoPanel(); renderPrisp();
 })();
 </script>
 </body>
