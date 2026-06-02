@@ -146,9 +146,9 @@
 
       <!-- ===== NOVĚ INTEGROVANÝ ŘÁDEK DOTČENÝCH ORGÁNŮ ===== -->
       <div class="field-row do-row">
-        <div class="fld-label-btn" id="doLabel" title="Otevřít správu dotčených orgánů"><u>D</u>O</div>
-        <div class="val" id="doVal" onclick="openDO()">
-          <span id="doValContent"><span class="placeholder">Klikněte pro správu dotčených orgánů a vyžádání stanovisek…</span></span>
+        <div class="fld-label-btn" id="doLabel" title="Otevřít koordinované vyjádření (dotčené orgány)"><u>D</u>O</div>
+        <div class="val" id="doVal" onclick="openKV()">
+          <span id="doValContent"><span class="placeholder">Koordinované vyjádření – klikněte pro otevření…</span></span>
         </div>
       </div>
 
@@ -178,7 +178,7 @@
 
   <!-- STATUS BAR -->
   <div class="statusbar">
-    <div class="sb-left">Stavební úřad - VITA software</div>
+    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select id="roleSel" onchange="setRole(this.value)"><option value="uradnik">Stavební úředník</option><option value="koordinator">Koordinátor DO</option><option value="do">Přispěvatel (DO)</option></select></span></div>
     <div class="sb-right">
       <span>5.3.0.33</span>
       <span id="clock">20:40:54</span>
@@ -244,6 +244,94 @@
         <button class="btn" onclick="closeDO()">Zavřít</button>
         <button class="btn" onclick="saveDO()">Uložit a převzít do řízení</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WORKSPACE: KOORDINOVANÉ VYJÁDŘENÍ (role-aware) ============ -->
+<div class="overlay" id="kvOverlay">
+  <div class="modal kv">
+    <div class="m-title">
+      <span id="kvTitle">Koordinované vyjádření</span>
+      <div class="m-x" onclick="closeKV()" title="Zavřít">&#10005;</div>
+    </div>
+    <div class="m-body">
+      <div class="kv-rolebar">Pohled:&nbsp;<span class="kv-role-pill" id="kvRoleName">Stavební úředník</span><span id="kvRoleDesc"></span></div>
+
+      <!-- ÚŘEDNÍK: předání koordinátorovi -->
+      <div class="kv-pane" id="kvHandover">
+        <div class="kv-h-title">Předání řízení koordinátorovi</div>
+        <div class="kv-grid2">
+          <div class="kv-field">
+            <label>Koordinátor</label>
+            <select id="kvCoord" onchange="kvCheckReady()">
+              <option value="">— vyberte koordinátora —</option>
+              <option>Ing. Pavla Nováková</option>
+              <option>Mgr. Jan Dvořák</option>
+              <option>Ing. Petr Horák</option>
+              <option>Bc. Lucie Marková</option>
+            </select>
+            <div class="kv-hint">Na úřadě (150+ zaměstnanců) působí více koordinátorů – vyberte příslušného.</div>
+          </div>
+          <div class="kv-field">
+            <label>Podklady k předání</label>
+            <div class="kv-podklady">
+              <label><input type="checkbox" checked> Žádost o povolení záměru.pdf</label>
+              <label><input type="checkbox" checked> Dokumentace záměru (DSŘ) — přístupná přes ISSŘ</label>
+              <label><input type="checkbox" checked> Situační výkres C.3</label>
+              <label><input type="checkbox" checked> Souhrnná technická zpráva</label>
+              <label><input type="checkbox"> Plná moc zástupce</label>
+            </div>
+            <button class="btn-cmd" style="margin-top:8px;font-size:12px;padding:5px 14px" onclick="window.open('https://aleskrupa109.github.io/ISSR/pages/detail-zameru.html','_blank')">Zobrazit BPP (DSŘ)</button>
+          </div>
+        </div>
+        <div class="kv-field">
+          <label>Lhůty</label>
+          <div class="kv-lhuty">
+            <div class="kv-lhuta"><span class="kv-l-name">1. lhůta — kontrola úplnosti podkladů</span><span>10 dní od podání (14.5.2026) → <b>24.5.2026</b></span></div>
+            <div class="kv-lhuta"><span class="kv-l-name">2. lhůta — zpracování vyjádření</span><span><select id="kvL2" style="min-width:90px"><option value="30">30 dní</option><option value="60">60 dní</option></select>&nbsp;&nbsp;běží od vyrozumění o zahájení</span></div>
+          </div>
+          <label class="kv-confirm"><input type="checkbox" id="kvLhutyOk" onchange="kvCheckReady()"> Potvrzuji nastavení lhůt</label>
+        </div>
+        <div style="text-align:right;margin-top:6px">
+          <button class="btn" id="kvHandBtn" disabled onclick="kvHandover()">Předat koordinátorovi</button>
+        </div>
+      </div>
+
+      <!-- ÚŘEDNÍK (po předání) / KOORDINÁTOR: sledování příspěvků -->
+      <div class="kv-pane" id="kvMonitor" style="display:none">
+        <div class="kv-banner" id="kvBanner"></div>
+        <div class="kv-alert" id="kvAlert" style="display:none"></div>
+        <table class="grid" id="kvGrid">
+          <thead><tr>
+            <th style="width:46px">Úsek</th>
+            <th style="min-width:230px">Dotčený orgán / odbor</th>
+            <th>Podklady <span class="sub">(1. lhůta)</span></th>
+            <th>Stav vyjádření</th>
+            <th>2. lhůta</th>
+            <th>Výsledek <span class="sub">(veřejné zájmy)</span></th>
+            <th>Externí DO</th>
+            <th>Parafa</th>
+          </tr></thead>
+          <tbody id="kvBody"></tbody>
+        </table>
+        <div class="kv-note" id="kvMonNote"></div>
+      </div>
+
+      <!-- DO: zástupný text -->
+      <div class="kv-pane" id="kvDoNote" style="display:none">
+        <div class="kv-note">Pohled přispěvatele (integrovaného DO): kontrola úplnosti podkladů a editor vyjádření (veřejné zájmy, zmocnění, podmínky / odůvodnění / upozornění / negativní důvody) doplníme v dalším kroku.</div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <div class="legend">
+        <span class="status-badge s-none">Nezahájeno</span>
+        <span class="status-badge s-sent">Zpracovává se</span>
+        <span class="status-badge s-paraf">K parafě</span>
+        <span class="status-badge s-ok">Vyřízeno</span>
+        <span class="status-badge s-fiction">Fikce souhlasu</span>
+      </div>
+      <div class="right"><button class="btn" onclick="closeKV()">Zavřít</button></div>
     </div>
   </div>
 </div>
@@ -747,6 +835,161 @@ function pickType(code, label, fee, load){
   document.getElementById('rizeniBody').style.display = load ? 'block' : 'none';
   if(load) toast('Typ řízení nastaven: '+label);
 }
+</script>
+<script>
+/* =================== KOORDINOVANÉ VYJÁDŘENÍ (role-aware) =================== */
+let kvState = { role:'uradnik', handed:false, coord:'', l2:'30', prerus:false };
+
+let KVROWS = [
+  { usek:'PAK', do:'Odbor ŽP — ochrana přírody a krajiny', pod:'ok',      stav:'vyrizeno',   l2:'24.6.2026', res:'cond', ext:'',                              paraf:true  },
+  { usek:'OVZ', do:'Odbor ŽP — ochrana ovzduší',           pod:'ok',      stav:'vyrizeno',   l2:'24.6.2026', res:'na',   ext:'',                              paraf:true  },
+  { usek:'VOD', do:'Odbor ŽP — ochrana vod',               pod:'ok',      stav:'zpracovava', l2:'24.6.2026', res:'',     ext:'',                              paraf:false },
+  { usek:'ZPF', do:'Odbor ŽP — ochrana ZPF',               pod:'ok',      stav:'vyrizeno',   l2:'24.6.2026', res:'ok',   ext:'',                              paraf:true  },
+  { usek:'LES', do:'Odbor ŽP — ochrana lesa',              pod:'ok',      stav:'vyrizeno',   l2:'24.6.2026', res:'na',   ext:'',                              paraf:true  },
+  { usek:'ODP', do:'Odbor ŽP — odpadové hospodářství',     pod:'ok',      stav:'nezahajeno', l2:'24.6.2026', res:'',     ext:'',                              paraf:false },
+  { usek:'PAM', do:'Odbor památkové péče',                 pod:'neuplne', stav:'nezahajeno', l2:'24.6.2026', res:'',     ext:'ORP památky — záv. stanovisko', paraf:false },
+  { usek:'HYG', do:'Odbor hygieny (veř. zdraví)',          pod:'ok',      stav:'zpracovava', l2:'24.6.2026', res:'',     ext:'',                              paraf:false },
+  { usek:'PO',  do:'Odbor požární ochrany',                pod:'ok',      stav:'parafa',     l2:'24.6.2026', res:'cond', ext:'',                              paraf:false },
+  { usek:'DOP', do:'Odbor dopravy',                        pod:'ok',      stav:'fikce',      l2:'24.6.2026', res:'',     ext:'',                              paraf:false },
+  { usek:'UUP', do:'Odbor územního plánování',             pod:'ok',      stav:'vyrizeno',   l2:'24.6.2026', res:'ok',   ext:'',                              paraf:true  },
+];
+
+const KVSTAV = {
+  nezahajeno:{ cls:'s-none',    txt:'Nezahájeno' },
+  zpracovava:{ cls:'s-sent',    txt:'Zpracovává se' },
+  parafa:    { cls:'s-paraf',   txt:'K parafě (vedoucí)' },
+  vyrizeno:  { cls:'s-ok',      txt:'Vyřízeno' },
+  fikce:     { cls:'s-fiction', txt:'Fikce souhlasu' },
+};
+const KVRES = {
+  '':   { cls:'sub',        txt:'—' },
+  ok:   { cls:'kv-res-ok',   txt:'Souhlas' },
+  cond: { cls:'kv-res-cond', txt:'Souhlas s podmínkami' },
+  no:   { cls:'kv-res-no',   txt:'Nesouhlas' },
+  na:   { cls:'kv-res-na',   txt:'Nepodléhá' },
+};
+const ROLEMETA = {
+  uradnik:    { name:'Stavební úředník',            desc:' — předá řízení koordinátorovi a sleduje příspěvky.' },
+  koordinator:{ name:'Koordinátor DO',              desc:' — zapojí interní DO, hlídá lhůty a vypořádá rozpory.' },
+  do:         { name:'Přispěvatel (integrovaný DO)',desc:' — zpracovává vyjádření za svůj úsek.' },
+};
+
+function setRole(v){
+  kvState.role = v;
+  if(document.getElementById('kvOverlay').classList.contains('show')) kvRender();
+}
+
+function openKV(){
+  var rz = window.__rz || { num:'000206', yr:'25', auth:'DESU' };
+  document.getElementById('kvTitle').textContent = 'Koordinované vyjádření — SZ '+rz.auth+'/'+rz.num+'/'+rz.yr;
+  document.getElementById('kvOverlay').classList.add('show');
+  kvRender();
+}
+function closeKV(){ document.getElementById('kvOverlay').classList.remove('show'); }
+
+function kvCheckReady(){
+  var ok = document.getElementById('kvCoord').value && document.getElementById('kvLhutyOk').checked;
+  document.getElementById('kvHandBtn').disabled = !ok;
+}
+function kvHandover(){
+  kvState.coord = document.getElementById('kvCoord').value;
+  kvState.l2    = document.getElementById('kvL2').value;
+  kvState.handed = true;
+  toast('Řízení předáno koordinátorovi: '+kvState.coord+'. Koordinátor zapojí interní DO.');
+  kvRender(); kvRenderSummary();
+}
+function kvIssueVyzva(){
+  kvState.prerus = true;
+  toast('Vydána výzva k doplnění (vzor 3002) a řízení přerušeno. Po doplnění proběhne nová kontrola úplnosti.');
+  kvRender(); kvRenderSummary();
+}
+
+function kvRender(){
+  var role = kvState.role, m = ROLEMETA[role];
+  document.getElementById('kvRoleName').textContent = m.name;
+  document.getElementById('kvRoleDesc').textContent = m.desc;
+
+  var handover = document.getElementById('kvHandover');
+  var monitor  = document.getElementById('kvMonitor');
+  var doNote   = document.getElementById('kvDoNote');
+  handover.style.display='none'; monitor.style.display='none'; doNote.style.display='none';
+
+  if(role === 'do'){ doNote.style.display='block'; return; }
+  if(role === 'uradnik' && !kvState.handed){ handover.style.display='block'; return; }
+
+  monitor.style.display='block';
+  kvRenderGrid();
+
+  var banner = document.getElementById('kvBanner');
+  var coord = kvState.coord || 'Ing. Pavla Nováková';
+  if(role === 'koordinator'){
+    banner.className = 'kv-banner';
+    banner.innerHTML = 'Koordinujete vyjádření · zapojeno '+KVROWS.length+' interních DO · 1. lhůta (úplnost) do <b>24.5.2026</b> · 2. lhůta '+kvState.l2+' dní'+(kvState.prerus?' · <b>řízení přerušeno</b>':'');
+  } else {
+    banner.className = 'kv-banner' + (kvState.prerus?' prerus':'');
+    banner.innerHTML = 'Předáno koordinátorovi: <b>'+coord+'</b> · 25.5.2026 · 1. lhůta do <b>24.5.2026</b> · 2. lhůta '+kvState.l2+' dní'+(kvState.prerus?' · <b>ŘÍZENÍ PŘERUŠENO (výzva k doplnění)</b>':'');
+  }
+
+  var incomplete = KVROWS.filter(function(r){ return r.pod==='neuplne'; });
+  var alert = document.getElementById('kvAlert');
+  if(incomplete.length && !kvState.prerus){
+    var us = incomplete.map(function(r){ return r.usek; }).join(', ');
+    var btn = (role==='uradnik')
+      ? '<button class="btn sm" onclick="kvIssueVyzva()">Vydat výzvu k doplnění + přerušit řízení</button>'
+      : '<span class="sub">konsolidovat a předat stavebnímu úředníkovi</span>';
+    alert.style.display='flex';
+    alert.innerHTML = '⚠ DO hlásí neúplné podklady (1. lhůta): <b>'+us+'</b>. '+btn;
+  } else {
+    alert.style.display='none';
+  }
+
+  var note = document.getElementById('kvMonNote');
+  note.textContent = (role==='koordinator')
+    ? 'Nástroje koordinátora (urgovat, vypořádat rozpor, sestavit koordinované vyjádření) doplníme v dalším kroku – zatím náhled.'
+    : 'Náhled pouze pro čtení – úředník sleduje průběh; podmínky DO se na konci převezmou do rozhodnutí.';
+}
+
+function kvRenderGrid(){
+  var tb = document.getElementById('kvBody'); tb.innerHTML='';
+  KVROWS.forEach(function(r){
+    var st = KVSTAV[r.stav], res = KVRES[r.res||''];
+    var pod = r.pod==='ok' ? '<span class="kv-pod-ok">OK</span>'
+            : (r.pod==='neuplne' ? '<span class="kv-pod-no">Neúplné</span>' : '<span class="kv-pod-wait">čeká</span>');
+    var ext = r.ext ? '<span class="kv-ext">'+r.ext+'</span>' : '<span class="sub">—</span>';
+    var paraf = r.paraf ? '✓' : '<span class="sub">—</span>';
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><b>'+r.usek+'</b></td>'+
+      '<td>'+r.do+'</td>'+
+      '<td>'+pod+'</td>'+
+      '<td><span class="status-badge '+st.cls+'">'+st.txt+'</span></td>'+
+      '<td>'+r.l2+'</td>'+
+      '<td><span class="'+res.cls+'">'+res.txt+'</span></td>'+
+      '<td>'+ext+'</td>'+
+      '<td style="text-align:center">'+paraf+'</td>';
+    tb.appendChild(tr);
+  });
+}
+
+function kvRenderSummary(){
+  var el = document.getElementById('doValContent'); if(!el) return;
+  var total = KVROWS.length;
+  var done = KVROWS.filter(function(r){ return r.stav==='vyrizeno'||r.stav==='fikce'; }).length;
+  var running = KVROWS.filter(function(r){ return r.stav==='zpracovava'||r.stav==='parafa'; }).length;
+  var inc = KVROWS.filter(function(r){ return r.pod==='neuplne'; }).length;
+  if(!kvState.handed){
+    el.innerHTML = '<div class="do-summary-chips"><span>Nepředáno koordinátorovi</span><span class="chip none">'+total+' interních úseků</span></div>';
+    return;
+  }
+  var coordShort = (kvState.coord||'koordinátor').split(' ').slice(0,2).join(' ');
+  var chips = '<span class="chip cond">předáno: '+coordShort+'</span><span class="chip ok">vyřízeno '+done+'/'+total+'</span>';
+  if(running) chips += '<span class="chip req">zpracovává se '+running+'</span>';
+  if(inc) chips += '<span class="chip no">neúplné podklady '+inc+'</span>';
+  el.innerHTML = '<div class="do-summary-chips">'+chips+'</div>';
+}
+
+document.getElementById('doLabel').onclick = openKV;
+kvRenderSummary();
 </script>
 </body>
 </html>
