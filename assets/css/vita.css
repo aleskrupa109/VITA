@@ -435,12 +435,11 @@
   table.mail tbody tr.sel .ssl-arrow { color:#cfeccf; }
   .mail-ico { color:#8a8a8a; }
 
-  /* ====== Seznam typů řízení – orámovaný box pod polem „typ" (trvale zobrazený) ====== */
-  .type-tree { display:inline-block; vertical-align:top; background:#fff;
-    border:1px solid #9a9a9a; box-shadow:0 4px 14px rgba(0,0,0,.16);
-    padding:5px 8px; margin:3px 0 8px; font-size:15px;
-    max-height:52vh; overflow:auto; }
-  .type-tree.hidden { display:none; }
+  /* ====== Seznam typů řízení – rozbalovací box pod polem „typ" (otevře „…") ====== */
+  .type-tree { position:fixed; z-index:120; display:none; background:#fff;
+    border:1px solid #9a9a9a; box-shadow:0 6px 18px rgba(0,0,0,.20);
+    padding:5px 8px; font-size:15px; min-width:300px; max-height:60vh; overflow:auto; }
+  .type-tree.show { display:block; }
   .trow { padding:1px 8px; white-space:nowrap; line-height:1.45; color:#111; }
   .trow.leaf { cursor:pointer; }
   .trow.leaf:hover { background:#e9f2fb; }
