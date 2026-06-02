@@ -385,7 +385,9 @@
   .vodo-grid input, .vodo-grid select { height:23px; border:1px solid #7f9db9; background:#fff; padding:0 5px; font-size:13px; }
 
   /* ====== Úvodní obrazovka (seznam zpráv / pracovní seznam) ====== */
-  .home-area { flex:1 1 auto; background:#ffffff; overflow:auto; }
+  .home-area { flex:1 1 auto; background:#ffffff; display:flex; flex-direction:column; min-height:0; }
+  #viewHome { flex:1 1 auto; overflow:auto; }
+  #viewMail { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
   .home-list { margin:84px 18px 0 16px; }
   .hl-head { display:flex; height:22px; }
   .hl-col { border:1px solid #c9c9c9; border-left:0; padding:2px 7px; font-size:13px;
@@ -396,3 +398,38 @@
   .col-rest   { flex:1 1 auto; }
   .hl-body { border:1px solid #c9c9c9; border-top:0; background:#ededed;
              min-height:240px; padding:14px; font-size:13px; color:#222; }
+
+  /* ====== Rozbalovací a kontextové menu ====== */
+  .popup-menu { position:fixed; z-index:200; min-width:236px; background:#fff;
+    border:1px solid #b9b9b9; box-shadow:0 5px 16px rgba(0,0,0,.22); padding:5px 0;
+    font-size:14px; display:none; }
+  .popup-menu.show { display:block; }
+  .popup-menu .mi { display:flex; align-items:center; padding:5px 18px; color:#111;
+    cursor:default; white-space:nowrap; }
+  .popup-menu .mi:hover { background:#cde2f7; }
+  .popup-menu .mi .sc { margin-left:24px; color:#888; font-size:12px; }
+  .popup-menu .sep { height:1px; background:#e2e2e2; margin:5px 12px; }
+  .menubar .menu-item.open { background:#cde2f7; outline:1px solid #7da2ce; }
+
+  /* ====== Záložka obsahu + grid došlé pošty ====== */
+  .content-tabs { display:flex; align-items:center; height:24px; background:#fff;
+    border-bottom:1px solid #c9c9c9; padding-left:4px; flex:0 0 auto; }
+  .content-tabs .ctab { padding:2px 16px; font-size:13px; border:1px solid #c9c9c9;
+    border-bottom:0; background:#fff; margin-top:2px; }
+  .content-tabs .ctab-x { margin-left:auto; width:22px; height:20px; display:flex;
+    align-items:center; justify-content:center; color:#c0392b; cursor:pointer; }
+  .content-tabs .ctab-x:hover { background:#f3d6d3; }
+
+  .mail-area { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; background:#fff; }
+  .mail-grid-wrap { flex:1 1 auto; overflow:auto; }
+  table.mail { width:100%; border-collapse:collapse; font-size:13px; }
+  table.mail thead th { position:sticky; top:0; background:#f1f1f1; border:1px solid #c9c9c9;
+    border-left:0; padding:3px 8px; text-align:left; font-weight:normal; color:#111; white-space:nowrap; }
+  table.mail thead th:first-child { border-left:1px solid #c9c9c9; }
+  table.mail tbody td { border-bottom:1px solid #ededed; padding:3px 8px; white-space:nowrap; color:#111; }
+  table.mail tbody tr:hover { background:#eef5fd; }
+  table.mail tbody tr.sel { background:#1e6fd0; }
+  table.mail tbody tr.sel td { color:#fff; border-bottom-color:#1e6fd0; }
+  .ssl-arrow { color:#2faa4c; font-weight:bold; }
+  table.mail tbody tr.sel .ssl-arrow { color:#cfeccf; }
+  .mail-ico { color:#8a8a8a; }
