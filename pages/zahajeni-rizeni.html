@@ -82,43 +82,35 @@
       <button class="btn icon" title="Přiřadit do složky">&#128193;</button>
     </div>
 
-    <!-- Strom typů řízení (otevře tlačítko „…") -->
+    <!-- Inline seznam typů řízení (zobrazený rovnou, zůstává i po výběru) -->
     <div class="type-tree" id="typeTree">
-      <div class="tnode leaf selected" onclick="pickType('??','??  0 - Neurčeno','se nevyměřuje',false)">?? - Neurčeno</div>
-
-      <div class="tnode parent open" onclick="toggleNode(this)"><span class="tw">&#8722;</span>Stavební úřad - 283/2021</div>
-      <div class="tchildren">
-        <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Předběžná informace</div>
-        <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
-
-        <div class="tnode parent open" onclick="toggleNode(this)"><span class="tw">&#8722;</span>Povolení záměru</div>
-        <div class="tchildren">
-          <div class="tnode leaf" onclick="pickType('PS','PS 6.2.1 - Povolení stavby/zařízení','správní poplatek: 10000 Kč',true)">PS - Povolení stavby/zařízení</div>
-          <div class="tnode leaf" onclick="pickType('PSZ','PSZ 6.2.2 - Zrychlené řízení','správní poplatek: 10000 Kč',true)">PSZ - Zrychlené řízení</div>
-          <div class="tnode leaf" onclick="pickType('PZD','PZD 6.2.3 - Změna záměru před dokončením','se nevyměřuje',true)">PZD - Změna záměru před dokončením</div>
-          <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Změna využití území</div>
-          <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
-          <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Dělení a scelování pozemků</div>
-          <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
-          <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Ochranné pásmo</div>
-          <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
-          <div class="tnode leaf" onclick="pickType('SRP','SRP - Rámcové povolení [DESÚ,KÚ]','se nevyměřuje',true)">SRP - Rámcové povolení [DESÚ,KÚ]</div>
-          <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Mimořádné postupy</div>
-          <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
-        </div>
-
-        <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Užívání stavby</div>
-        <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
-        <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Odstranění stavby</div>
-        <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
-        <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Stavební kontrola</div>
-        <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
-        <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Další</div>
-        <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
-      </div>
-
-      <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Stavební úřad - 183/2006</div>
-      <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
+      <div class="trow leaf" onclick="pickType('??','??  0 - Neurčeno','se nevyměřuje',false)">?? - Neurčeno</div>
+      <div class="trow">&#8722;Stavební úřad - 283/2021</div>
+      <div class="trow">+Předběžná informace</div>
+      <div class="trow muted">(v mockupu zatím nenaplněno)</div>
+      <div class="trow">&#8722;Povolení záměru</div>
+      <div class="trow leaf" onclick="pickType('PS','PS 6.2.1 - Povolení stavby/zařízení','správní poplatek: 10000 Kč',true)">PS - Povolení stavby/zařízení</div>
+      <div class="trow leaf" onclick="pickType('PSZ','PSZ 6.2.2 - Zrychlené řízení','správní poplatek: 10000 Kč',true)">PSZ - Zrychlené řízení</div>
+      <div class="trow leaf" onclick="pickType('PZD','PZD 6.2.3 - Změna záměru před dokončením','se nevyměřuje',true)">PZD - Změna záměru před dokončením</div>
+      <div class="trow">+Změna využití území</div>
+      <div class="trow muted">(v mockupu zatím nenaplněno)</div>
+      <div class="trow">+Dělení a scelování pozemků</div>
+      <div class="trow muted">(v mockupu zatím nenaplněno)</div>
+      <div class="trow">+Ochranné pásmo</div>
+      <div class="trow muted">(v mockupu zatím nenaplněno)</div>
+      <div class="trow leaf" onclick="pickType('SRP','SRP - Rámcové povolení [DESÚ,KÚ]','se nevyměřuje',true)">SRP - Rámcové povolení [DESÚ,KÚ]</div>
+      <div class="trow">+Mimořádné postupy</div>
+      <div class="trow muted">(v mockupu zatím nenaplněno)</div>
+      <div class="trow">+Užívání stavby</div>
+      <div class="trow muted">(v mockupu zatím nenaplněno)</div>
+      <div class="trow">+Odstranění stavby</div>
+      <div class="trow muted">(v mockupu zatím nenaplněno)</div>
+      <div class="trow">+Stavební kontrola</div>
+      <div class="trow muted">(v mockupu zatím nenaplněno)</div>
+      <div class="trow">+Další</div>
+      <div class="trow muted">(v mockupu zatím nenaplněno)</div>
+      <div class="trow">+Stavební úřad - 183/2006</div>
+      <div class="trow muted">(v mockupu zatím nenaplněno)</div>
     </div>
 
     <div class="row">
@@ -716,21 +708,9 @@ renderSummary();
 
 function toggleTypeTree(e){
   if(e) e.stopPropagation();
-  var t=document.getElementById('typeTree');
-  if(t.classList.contains('show')){ t.classList.remove('show'); return; }
-  var r=document.getElementById('typField').getBoundingClientRect();
-  t.style.left = r.left+'px';
-  t.style.top  = (r.bottom+1)+'px';
-  t.classList.add('show');
-}
-function toggleNode(el){
-  el.classList.toggle('open');
-  var tw=el.querySelector('.tw');
-  if(tw) tw.textContent = el.classList.contains('open') ? '\u2212' : '+';
+  document.getElementById('typeTree').classList.toggle('hidden');   // „…" jen skryje/zobrazí seznam
 }
 function pickType(code, label, fee, load){
-  document.querySelectorAll('#typeTree .tnode.selected').forEach(function(n){ n.classList.remove('selected'); });
-  document.getElementById('typeTree').classList.remove('show');
   document.getElementById('typField').value = label;
   document.getElementById('feeText').textContent = fee;
   var rz = window.__rz || {num:'000206', yr:'25', auth:'DESU'};
@@ -742,16 +722,6 @@ function pickType(code, label, fee, load){
   document.getElementById('rizeniBody').style.display = load ? 'block' : 'none';
   if(load) toast('Typ řízení nastaven: '+label);
 }
-// zavření stromu klikem mimo / klávesou Esc
-document.addEventListener('click', function(e){
-  var t=document.getElementById('typeTree');
-  if(!t.classList.contains('show')) return;
-  if(t.contains(e.target) || e.target.id==='typPick') return;
-  t.classList.remove('show');
-});
-document.addEventListener('keydown', function(e){
-  if(e.key==='Escape'){ var t=document.getElementById('typeTree'); if(t.classList.contains('show')) t.classList.remove('show'); }
-});
 </script>
 </body>
 </html>
