@@ -706,23 +706,36 @@ renderSummary();
   window.__rz = { num:num, yr:yr, auth:auth };
 })();
 
+function positionTypeTree(){
+  var t=document.getElementById('typeTree'), tf=document.getElementById('typField');
+  if(!t||!tf) return;
+  var r=tf.getBoundingClientRect();
+  t.style.left = r.left + 'px';
+  t.style.top  = (r.bottom + 1) + 'px';
+}
 function toggleTypeTree(e){
   if(e) e.stopPropagation();
-  document.getElementById('typeTree').classList.toggle('hidden');   // „…" jen skryje/zobrazí box
+  var t=document.getElementById('typeTree');
+  if(t.classList.contains('show')){ t.classList.remove('show'); return; }
+  positionTypeTree();
+  t.classList.add('show');
 }
-// posun boxu se seznamem typů přesně pod pole „typ"
-function alignTypeTree(){
-  var tt=document.getElementById('typeTree'), tf=document.getElementById('typField');
-  if(!tt||!tf) return;
-  var fa=tt.parentElement, faR=fa.getBoundingClientRect();
-  var padL=parseFloat(getComputedStyle(fa).paddingLeft)||0;
-  var left=tf.getBoundingClientRect().left - (faR.left + padL);
-  tt.style.marginLeft = Math.max(0, Math.round(left)) + 'px';
-  tt.style.maxWidth = Math.max(260, Math.round(faR.width - padL*2 - left)) + 'px';
-}
-window.addEventListener('resize', alignTypeTree);
-alignTypeTree();
+window.addEventListener('resize', function(){
+  var t=document.getElementById('typeTree');
+  if(t && t.classList.contains('show')) positionTypeTree();
+});
+// zavření klikem mimo box (kromě tlačítka „…") nebo klávesou Esc
+document.addEventListener('click', function(e){
+  var t=document.getElementById('typeTree');
+  if(!t || !t.classList.contains('show')) return;
+  if(t.contains(e.target) || e.target.id==='typPick') return;
+  t.classList.remove('show');
+});
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){ var t=document.getElementById('typeTree'); if(t && t.classList.contains('show')) t.classList.remove('show'); }
+});
 function pickType(code, label, fee, load){
+  document.getElementById('typeTree').classList.remove('show');   // po výběru se box zavře
   document.getElementById('typField').value = label;
   document.getElementById('feeText').textContent = fee;
   var rz = window.__rz || {num:'000206', yr:'25', auth:'DESU'};
