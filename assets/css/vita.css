@@ -541,3 +541,11 @@
   .pm-empty { color:#999; }
   #prispModal .htabs { margin-top:0; }
   #prispModal .m-body { padding:0; background:#fff; }
+
+  /* ====== Koordinátor – stavová lišta + read-only režim ====== */
+  .koord-bar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; background:#eef3f9; border:1px solid #2c5aa0; padding:7px 12px; margin-bottom:10px; font-size:13px; }
+  .koord-bar .kb-stav { font-weight:bold; }
+  .koord-bar .kb-stav.kprevzeti { color:#8a5a00; }
+  .koord-bar .kb-stav.kekontrole { color:#1f6b1f; }
+  .koord-bar .kb-back { margin-left:auto; color:#1f4e88; cursor:pointer; text-decoration:underline; }
+  #rizeniBody.ro-mode input, #rizeniBody.ro-mode select, #rizeniBody.ro-mode textarea, #rizeniBody.ro-mode [contenteditable] { pointer-events:none; background:#f4f4f4; color:#555; }
