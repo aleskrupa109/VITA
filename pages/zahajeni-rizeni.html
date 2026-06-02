@@ -1156,8 +1156,9 @@ function podWord(n){ return n+' soubor'+(n===1?'':((n>=2&&n<=4)?'y':'ů')); }
 function renderPod(){
   var tb=document.getElementById('podkladyBody'); tb.innerHTML='';
   document.getElementById('podkladyEmpty').style.display = podRows.length? 'none':'block';
-  podRows.forEach(function(r){
+  podRows.forEach(function(r, idx){
     var tr=document.createElement('tr');
+    tr.oncontextmenu=function(e){ podRowCtx(e, idx); };
     tr.innerHTML='<td>'+r.f+'</td><td>'+SSL_CJ+'</td><td>'+SSL_DT+'</td><td><span class="sub">—</span></td>';
     tb.appendChild(tr);
   });
@@ -1197,6 +1198,18 @@ function ctxAt(e, items){
 }
 function hideCtx(){ var m=document.getElementById('ctxMenu'); if(m) m.classList.remove('show'); }
 function podCtx(e){ if(uiRole!=='uradnik'){ e.preventDefault(); return; } ctxAt(e,[ {t:'Zobrazit',dis:true}, {t:'Odebrat',dis:!podRows.length}, {sep:true}, {t:'Přílohy ze SSL',fn:showSsl} ]); }
+function podRowCtx(e, idx){
+  e.stopPropagation();
+  var items=[ {t:'Zobrazit', fn:function(){ zobrazPodklad(idx); }} ];
+  if(uiRole==='uradnik'){
+    items.push({t:'Odebrat', fn:function(){ odebratPodklad(idx); }});
+    items.push({sep:true});
+    items.push({t:'Přílohy ze SSL', fn:showSsl});
+  }
+  ctxAt(e, items);
+}
+function zobrazPodklad(idx){ var r=podRows[idx]; if(r) toast('Zobrazení dokumentu: '+r.f+' (otevře se v prohlížeči dokumentů).'); }
+function odebratPodklad(idx){ podRows.splice(idx,1); renderPod(); saveState(); toast('Podklad odebrán.'); }
 function sslCtx(e){ ctxAt(e,[ {t:'Zobrazit (SSL)',dis:true}, {sep:true}, {t:'\u2190 Vložit do podkladů (SSL)',fn:vlozitSsl} ]); }
 document.addEventListener('click', hideCtx);
 

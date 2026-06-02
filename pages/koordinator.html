@@ -62,7 +62,7 @@
   </div>
 
   <div class="wl-area">
-    <div class="wl-head">Přihlášen: <b>Ing. Pavla Nováková</b> — koordinátorka dotčených orgánů. Řízení ve stavu „k převzetí" převezmete a předáte všem integrovaným DO.</div>
+    <div class="wl-head" id="wlWho">Přihlášen: koordinátor dotčených orgánů.</div>
     <table class="grid wl">
       <thead><tr>
         <th style="width:90px">Č. spisu</th>
@@ -83,7 +83,7 @@
       <span>5.3.0.33</span>
       <span id="clock">0:00:00</span>
       <span class="sb-dots"><span class="sb-dot" style="background:#e74c3c"></span><span class="sb-dot" style="background:#2980b9"></span><span class="sb-dot" style="background:#27ae60"></span></span>
-      <span>Nováková Pavla</span>
+      <span id="sbCoord">Nováková Pavla</span>
       <span>Koordinace DO</span>
       <span>https://test-vita.desu.gov.cz/VITA/APP/</span>
     </div>
@@ -94,12 +94,27 @@
 <script src="../assets/js/vita.js"></script>
 <script>
 /* stav aktivního řízení ze sdíleného úložiště */
-function kvFaze(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ var o=JSON.parse(s); return o.faze||'predano'; } }catch(e){} return 'predano'; }
+function kvStore(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s) return JSON.parse(s); }catch(e){} return null; }
+function kvFaze(){ var o=kvStore(); return (o&&o.faze)||'predano'; }
 function aktivniStav(){
   var f=kvFaze();
   var fi=['zalozeno','predano','prideleno','kontrola','vyjadreni'].indexOf(f);
   return (fi>=2) ? {cls:'wl-stav-ke', txt:'předáno ke kontrole'} : {cls:'wl-stav-k', txt:'k převzetí'};
 }
+
+/* přihlášený koordinátor = ten, kterému úředník předal řízení */
+var __st = kvStore();
+var COORD = (__st && __st.coord) ? __st.coord : 'Ing. Pavla Nováková';
+function stripTitle(n){ return n.replace(/^(Ing\.|Mgr\.|Bc\.|JUDr\.|MUDr\.|PhDr\.)\s*/,'').trim(); }
+function initials(n){
+  var p=stripTitle(n).split(/\s+/);
+  function two(w){ return w ? (w.charAt(0).toUpperCase()+(w.charAt(1)||'').toLowerCase()) : ''; }
+  return two(p[0])+two(p[1]||'');
+}
+function surnameFirst(n){ var p=stripTitle(n).split(/\s+/); return p.length>=2 ? (p[p.length-1]+' '+p[0]) : stripTitle(n); }
+var PRAC = initials(COORD);
+document.getElementById('wlWho').innerHTML='Přihlášen: <b>'+COORD+'</b> — koordinátor dotčených orgánů. Řízení ve stavu „k převzetí" převezmete a předáte všem integrovaným DO.';
+document.getElementById('sbCoord').textContent=surnameFirst(COORD);
 
 /* ilustrační (neaktivní) řízení + jedno aktivní (předané úředníkem) */
 var ROWS = [
@@ -118,11 +133,11 @@ function render(){
       var s=aktivniStav();
       tr.className='active';
       tr.onclick=function(){ location.href='zahajeni-rizeni.html?role=koordinator&cj=DESU/013304/26&vec='+encodeURIComponent(r.nazev); };
-      tr.innerHTML='<td><b>'+r.sp+'</b></td><td>'+r.prac+'</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
+      tr.innerHTML='<td><b>'+r.sp+'</b></td><td>'+PRAC+'</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
         '<td><span class="'+s.cls+'">'+s.txt+'</span></td><td>'+r.termin+'</td>';
     } else {
       tr.className='inactive';
-      tr.innerHTML='<td>'+r.sp+'</td><td>'+r.prac+'</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
+      tr.innerHTML='<td>'+r.sp+'</td><td>'+PRAC+'</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
         '<td><span class="wl-stav-x">'+r.stav+'</span></td><td>'+r.termin+'</td>';
     }
     tb.appendChild(tr);
