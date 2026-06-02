@@ -123,10 +123,98 @@
 
     <div id="rizeniBody" style="display:none">
     <div class="field-rows">
-      <div class="field-row stavba-row">
-        <div class="fld-label-btn" id="stavbaLabel" title="Otevřít detail záměru" onclick="openStavba()"><u>z</u>áměr</div>
-        <div class="val" id="zamerName" onclick="openStavba()">Povolení záměru - testovací zpráva mail 14.5.26</div>
+
+      <!-- ZÁMĚR (panel) -->
+      <div class="vpanel" id="vp-zamer">
+        <div class="vp-bar" onclick="vpToggle('vp-zamer')"><span class="vp-bar-lbl">záměr</span><span class="vp-bar-sum" id="sum-zamer">Povolení záměru - testovací zpráva mail 14.5.26</span></div>
+        <div class="vp-exp" id="host-zamer"><!-- sem se za běhu přesune detail záměru --></div>
       </div>
+
+      <!-- PODKLADY (panel) -->
+      <div class="vpanel" id="vp-podklady">
+        <div class="vp-bar" onclick="vpToggle('vp-podklady')"><span class="vp-bar-lbl">podklady</span><span class="vp-bar-sum" id="sum-podklady">0 souborů</span></div>
+        <div class="vp-exp">
+          <div class="vp-row">
+            <div class="spine" onclick="vpToggle('vp-podklady')"><span>podklady</span></div>
+            <div class="vp-content">
+              <div class="pod-grids">
+                <div class="pod-col" id="podCol">
+                  <table class="grid" id="podkladyGrid"><thead><tr><th style="min-width:260px">Soubor</th><th>Č.j.</th><th>Ze dne</th><th>Velikost</th></tr></thead><tbody id="podkladyBody"></tbody></table>
+                  <div class="pod-empty" id="podkladyEmpty">Seznam neobsahuje žádné záznamy</div>
+                </div>
+                <div class="pod-col" id="sslWrap" style="display:none">
+                  <table class="grid" id="sslGrid"><thead><tr><th style="min-width:260px">Soubor (SSL)</th><th>Č.j.</th><th>Ze dne</th><th>Velikost</th></tr></thead><tbody id="sslBody"></tbody></table>
+                </div>
+              </div>
+              <div class="pod-hint">Pravým tlačítkem nad seznamem → „Přílohy ze SSL" načte žádost a její přílohy ze spisové služby; vybrané řádky vložíte do podkladů (pak jsou dostupné koordinátorovi i přispěvatelům). Dokumentaci (BPP) otevřete přes „Zobrazit BPP" v záměru / DO.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DO – předání koordinátorovi + termíny (panel) -->
+      <div class="vpanel" id="vp-do">
+        <div class="vp-bar" onclick="vpToggle('vp-do')"><span class="vp-bar-lbl">DO</span><span class="vp-bar-sum" id="sum-do"></span></div>
+        <div class="vp-exp">
+          <div class="vp-row">
+            <div class="spine" onclick="vpToggle('vp-do')"><span>DO</span></div>
+            <div class="vp-content">
+              <div id="doPredejBox">
+                <div class="pred-row">
+                  <label>Koordinátor</label>
+                  <select id="doCoord">
+                    <option value="">— vyberte koordinátora —</option>
+                    <option>Ing. Pavla Nováková</option>
+                    <option>Mgr. Jan Dvořák</option>
+                    <option>Ing. Petr Horák</option>
+                    <option>Bc. Lucie Marková</option>
+                  </select>
+                  <button class="btn-cmd" style="font-size:12px;padding:5px 14px" onclick="window.open('https://aleskrupa109.github.io/ISSR/pages/detail-zameru.html','_blank')">Zobrazit BPP (DSŘ)</button>
+                  <button class="btn" id="doPredejBtn" onclick="doPredej()">Předat koordinátorovi</button>
+                </div>
+                <div class="kv-hint" style="margin-bottom:6px">Při předání koordinátor zapojí všechny interní DO plošně; o dotčenosti (a případném externím DO) rozhodne každý DO sám.</div>
+              </div>
+              <div class="pred-done" id="doPredanoBox" style="display:none"></div>
+
+              <h3 class="section" style="margin-top:6px">Termíny</h3>
+              <div class="term-row"><label>podáno</label><input type="text" class="readonly" style="width:110px" value="14.5.2026" readonly></div>
+              <div class="term-row"><label>termín vyřízení</label><input type="text" class="readonly" style="width:110px" value="13.7.2026" readonly><span style="color:#444">(pro přispěvatele 13.6.2026)</span></div>
+              <div class="term-row"><label>termín pro přispěvatele</label><input type="text" class="readonly" style="width:110px" value="13.6.2026" readonly><span style="color:#888;font-size:12px">zadáno v administraci · kratší než termín vyřízení (čas na zapracování koordinovaného vyjádření)</span></div>
+              <div class="term-row"><label>archiv</label><input type="text" style="width:240px" value=""></div>
+              <div class="prisp-note" id="doRoleNote" style="display:none"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PŘISPĚVATELÉ (panel) -->
+      <div class="vpanel" id="vp-prisp">
+        <div class="vp-bar" onclick="vpToggle('vp-prisp')"><span class="vp-bar-lbl">přispěvatelé</span><span class="vp-bar-sum" id="sum-prisp"></span></div>
+        <div class="vp-exp">
+          <div class="vp-row">
+            <div class="spine" onclick="vpToggle('vp-prisp')"><span>přispěvatelé</span></div>
+            <div class="vp-content">
+              <div class="prisp-alert" id="prispAlert" style="display:none"></div>
+              <table class="grid" id="prispGrid">
+                <thead><tr>
+                  <th style="width:42px">Úsek</th>
+                  <th style="min-width:230px">Odbor</th>
+                  <th>Pracovník</th>
+                  <th>Podklady</th>
+                  <th>Termín</th>
+                  <th style="width:64px">Vyřízeno</th>
+                  <th>Veřejné zájmy</th>
+                  <th>Externí DO</th>
+                </tr></thead>
+                <tbody id="prispBody"></tbody>
+              </table>
+              <div class="prisp-note" id="prispNote"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- jednoduché řádky -->
       <div class="field-row">
         <div class="fld-label-btn"><u>z</u>ástupci</div>
         <div class="val empty"></div>
@@ -143,15 +231,6 @@
         <div class="fld-label-btn"><u>ú</u>častníci</div>
         <div class="val empty"></div>
       </div>
-
-      <!-- ===== NOVĚ INTEGROVANÝ ŘÁDEK DOTČENÝCH ORGÁNŮ ===== -->
-      <div class="field-row do-row">
-        <div class="fld-label-btn" id="doLabel" title="Otevřít koordinované vyjádření (dotčené orgány)"><u>D</u>O</div>
-        <div class="val" id="doVal" onclick="openKV()">
-          <span id="doValContent"><span class="placeholder">Koordinované vyjádření – klikněte pro otevření…</span></span>
-        </div>
-      </div>
-
       <div class="field-row">
         <div class="fld-label-btn"><u>o</u>statní</div>
         <div class="val empty"></div>
@@ -634,6 +713,7 @@ function renderGrid(){
 /* =================== SHRNUTÍ NA HLAVNÍM FORMULÁŘI =================== */
 function renderSummary(){
   const el = document.getElementById('doValContent');
+  if(!el) return;
   if(rows.length === 0){
     el.innerHTML = '<span class="placeholder">Klikněte pro správu dotčených orgánů a vyžádání stanovisek…</span>';
     return;
@@ -755,14 +835,14 @@ function confirmRecord(){
 }
 
 
-document.getElementById('doLabel').onclick = openDO;
+/* doLabel zrušen – nahrazeno panely */
 
 /* ---- STAVBA modál ---- */
 function openStavba(){ document.getElementById('stavbaOverlay').classList.add('show'); }
 function closeStavba(){ document.getElementById('stavbaOverlay').classList.remove('show'); }
 function stavbaTab(id){
-  document.querySelectorAll('#stavbaOverlay .htab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
-  document.querySelectorAll('#stavbaOverlay .pane').forEach(p=>p.style.display = (p.id==='pane-'+id)?'block':'none');
+  document.querySelectorAll('#host-zamer .htab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
+  document.querySelectorAll('#host-zamer .pane').forEach(p=>p.style.display = (p.id==='pane-'+id)?'block':'none');
 }
 function subTab(el){
   el.parentElement.querySelectorAll('.subtab').forEach(s=>s.classList.remove('active'));
@@ -988,8 +1068,194 @@ function kvRenderSummary(){
   el.innerHTML = '<div class="do-summary-chips">'+chips+'</div>';
 }
 
-document.getElementById('doLabel').onclick = openKV;
+/* doLabel zrušen – nahrazeno panely */
 kvRenderSummary();
+</script>
+<div class="ctx-menu" id="ctxMenu"></div>
+<script>
+/* =================== Rozbalovací panely + role (přepracováno) =================== */
+let uiRole = 'uradnik';
+let predState = { handed:false, coord:'', prerus:false };
+
+function vpToggle(id){ var el=document.getElementById(id); if(el) el.classList.toggle('open'); }
+
+function setRole(v){ uiRole=v; renderDoPanel(); renderPrisp(); }
+
+/* ---- PODKLADY ---- */
+let podRows=[];
+const SSL=[
+ {f:'o1_2023_0099_povereni_novakova_podpis_HBH.pdf'},
+ {f:'o2_2023_0099_plna_moc_pro_HBH_na_MPV_a_IC.pdf'},
+ {f:'o3_Sprava_Zlin_Chudarek_povereni_reditele.pdf'},
+ {f:'o4_Zadost_platnost_povoleni.pdf'},
+ {f:'o5_Doklad_o_podani_zadosti_o_verifikaci.pdf'},
+ {f:'o6_Priloha_zadosti_-_projednani_s_DO.pdf'},
+ {f:'o7_Zadost_odstraneni__248_vcetne_priloh.pdf'},
+ {f:'o8_Zadost_pripojeni_10.pdf'},
+ {f:'o9_podle_casti_F_k_bodu_B.pdf'},
+ {f:'o10_Ucastnici_rizeni_vse.pdf'},
+ {f:'o11_build-application-04_20250903150046371.pdf'},
+];
+const SSL_CJ='DESU/001/013304/26', SSL_DT='28.4.2026';
+
+function podWord(n){ return n+' soubor'+(n===1?'':((n>=2&&n<=4)?'y':'ů')); }
+function renderPod(){
+  var tb=document.getElementById('podkladyBody'); tb.innerHTML='';
+  document.getElementById('podkladyEmpty').style.display = podRows.length? 'none':'block';
+  podRows.forEach(function(r){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+r.f+'</td><td>'+SSL_CJ+'</td><td>'+SSL_DT+'</td><td><span class="sub">—</span></td>';
+    tb.appendChild(tr);
+  });
+  document.getElementById('sum-podklady').textContent = podWord(podRows.length);
+}
+function renderSsl(){
+  var tb=document.getElementById('sslBody'); tb.innerHTML='';
+  SSL.forEach(function(r,i){
+    var tr=document.createElement('tr'); if(r.sel) tr.className='sel-multi';
+    tr.onclick=function(){ SSL[i].sel=!SSL[i].sel; renderSsl(); };
+    tr.oncontextmenu=function(e){ if(!SSL[i].sel){ SSL.forEach(function(x){x.sel=false;}); SSL[i].sel=true; renderSsl(); } sslCtx(e); };
+    tr.innerHTML='<td>'+r.f+'</td><td>'+SSL_CJ+'</td><td>'+SSL_DT+'</td><td><span class="sub">—</span></td>';
+    tb.appendChild(tr);
+  });
+}
+function showSsl(){ document.getElementById('sslWrap').style.display='flex'; renderSsl(); }
+function vlozitSsl(){
+  var add=SSL.filter(function(x){return x.sel;});
+  if(!add.length){ toast('Vyberte alespoň jeden řádek ze SSL.'); return; }
+  add.forEach(function(x){ if(!podRows.some(function(p){return p.f===x.f;})) podRows.push({f:x.f}); });
+  SSL.forEach(function(x){x.sel=false;});
+  renderPod(); renderSsl();
+  toast(add.length+' příloh(y) zkopírováno ze spisové služby do podkladů.');
+}
+
+/* kontextová menu */
+function ctxAt(e, items){
+  e.preventDefault();
+  var m=document.getElementById('ctxMenu'); m.innerHTML='';
+  items.forEach(function(it){
+    if(it.sep){ var s=document.createElement('div'); s.className='cisep'; m.appendChild(s); return; }
+    var d=document.createElement('div'); d.className='ci'+(it.dis?' disabled':''); d.textContent=it.t;
+    if(!it.dis) d.onclick=function(){ hideCtx(); it.fn&&it.fn(); };
+    m.appendChild(d);
+  });
+  m.style.left=e.clientX+'px'; m.style.top=e.clientY+'px'; m.classList.add('show');
+}
+function hideCtx(){ var m=document.getElementById('ctxMenu'); if(m) m.classList.remove('show'); }
+function podCtx(e){ ctxAt(e,[ {t:'Zobrazit',dis:true}, {t:'Odebrat',dis:!podRows.length}, {sep:true}, {t:'Přílohy ze SSL',fn:showSsl} ]); }
+function sslCtx(e){ ctxAt(e,[ {t:'Zobrazit (SSL)',dis:true}, {sep:true}, {t:'\u2190 Vložit do podkladů (SSL)',fn:vlozitSsl} ]); }
+document.addEventListener('click', hideCtx);
+
+/* ---- DO panel (předání + role) ---- */
+function doPredej(){
+  var c=document.getElementById('doCoord').value;
+  if(!c){ toast('Vyberte koordinátora.'); return; }
+  predState.handed=true; predState.coord=c;
+  toast('Řízení předáno koordinátorovi: '+c+'. Koordinátor zapojí interní DO.');
+  renderDoPanel(); renderPrisp();
+}
+function renderDoPanel(){
+  var box=document.getElementById('doPredejBox'), done=document.getElementById('doPredanoBox');
+  var note=document.getElementById('doRoleNote'), sum=document.getElementById('sum-do');
+  if(uiRole!=='uradnik'){
+    box.style.display='none'; note.style.display='block';
+    note.textContent = (uiRole==='koordinator')
+      ? 'Předání řízení provádí stavební úředník. Vy jako koordinátor po předání zapojíte interní DO a hlídáte lhůty.'
+      : 'Předání řízení provádí stavební úředník.';
+  } else {
+    note.style.display='none';
+    box.style.display = predState.handed? 'none':'block';
+  }
+  if(predState.handed){
+    done.style.display='block';
+    done.className='pred-done'+(predState.prerus?' prerus':'');
+    done.innerHTML='Předáno koordinátorovi: <b>'+predState.coord+'</b> · dne 14.5.2026. Kontrola úplnosti podkladů (10 dní od podání) běží do <b>24.5.2026</b>.'+(predState.prerus?' <b>· ŘÍZENÍ PŘERUŠENO (výzva k doplnění)</b>':'');
+    sum.innerHTML='<span class="chip cond">předáno: '+predState.coord.split(' ').slice(0,2).join(' ')+'</span>'+(predState.prerus?'<span class="chip req">přerušeno</span>':'');
+  } else {
+    done.style.display='none';
+    sum.innerHTML='<span class="chip none">Nepředáno koordinátorovi</span>';
+  }
+}
+
+/* ---- PŘISPĚVATELÉ panel ---- */
+const PRISP = [
+  { usek:'PAK', odbor:'Odbor ŽP — ochrana přírody a krajiny',      prac:'Dobisík Ondřej',      pod:'ok',      stav:'vyrizeno',   vz:'cond', ext:'' },
+  { usek:'OVZ', odbor:'Odbor ŽP — ochrana ovzduší',                prac:'Dobisík Ondřej',      pod:'ok',      stav:'vyrizeno',   vz:'na',   ext:'' },
+  { usek:'VOD', odbor:'Odbor ŽP — ochrana vod',                    prac:'Herbrychová Jarmila', pod:'ok',      stav:'zpracovava', vz:'',     ext:'' },
+  { usek:'ZPF', odbor:'Odbor ŽP — ochrana ZPF',                    prac:'Herbrychová Jarmila', pod:'ok',      stav:'vyrizeno',   vz:'ok',   ext:'' },
+  { usek:'LES', odbor:'Odbor ŽP — ochrana lesa',                   prac:'Herbrychová Jarmila', pod:'ok',      stav:'vyrizeno',   vz:'cond', ext:'' },
+  { usek:'ODP', odbor:'Odbor ŽP — odpadové hospodářství',          prac:'',                    pod:'ok',      stav:'nezahajeno', vz:'',     ext:'' },
+  { usek:'PAM', odbor:'Odbor památkové péče',                      prac:'Krupa Aleš',          pod:'neuplne', stav:'nezahajeno', vz:'',     ext:'ORP památky (ZS)' },
+  { usek:'HYG', odbor:'Samostatné oddělení ochrany veř. zdraví',   prac:'Marková Lucie',       pod:'ok',      stav:'zpracovava', vz:'',     ext:'' },
+  { usek:'PO',  odbor:'Odbor požární ochrany',                     prac:'Horák Petr',          pod:'ok',      stav:'parafa',     vz:'cond', ext:'' },
+  { usek:'DOP', odbor:'Odbor dopravy',                             prac:'Krupa Aleš',          pod:'ok',      stav:'fikce',      vz:'',     ext:'' },
+  { usek:'UUP', odbor:'Odbor územního plánování',                  prac:'Janovský Martin',     pod:'ok',      stav:'vyrizeno',   vz:'ok',   ext:'' },
+];
+const PSTAV = {
+  nezahajeno:{cls:'s-none',txt:'Nezahájeno'}, zpracovava:{cls:'s-sent',txt:'Zpracovává se'},
+  parafa:{cls:'s-paraf',txt:'K parafě'}, vyrizeno:{cls:'s-ok',txt:'Vyřízeno'}, fikce:{cls:'s-fiction',txt:'Fikce souhlasu'}
+};
+const PVZ = {
+  '':{cls:'vz-na',txt:'—'}, na:{cls:'vz-na',txt:'nejsou dotčeny - podle zákona'},
+  ok:{cls:'vz-ok',txt:'jsou dotčeny - bez připomínek'}, cond:{cls:'vz-cond',txt:'jsou dotčeny - souhlas za podmínek'},
+  no:{cls:'vz-no',txt:'jsou dotčeny - nesouhlas'}
+};
+function renderPrisp(){
+  var tb=document.getElementById('prispBody'); tb.innerHTML='';
+  PRISP.forEach(function(r){
+    var st=PSTAV[r.stav], vz=PVZ[r.vz||''];
+    var pod = r.pod==='ok'?'<span class="kv-pod-ok">OK</span>':(r.pod==='neuplne'?'<span class="kv-pod-no">Neúplné</span>':'<span class="kv-pod-wait">čeká</span>');
+    var done = (r.stav==='vyrizeno'||r.stav==='fikce')?'✓':'';
+    var ext = r.ext?'<span class="ext-flag">'+r.ext+'</span>':'<span class="sub">—</span>';
+    var tr=document.createElement('tr');
+    tr.onclick=function(){ toast('Náhled příspěvku – úsek '+r.usek+' ('+st.txt+'). Detailní náhled doplníme v dalším kroku.'); };
+    tr.innerHTML='<td><b>'+r.usek+'</b></td><td>'+r.odbor+'</td><td>'+(r.prac||'<span class="sub">—</span>')+'</td>'+
+      '<td>'+pod+'</td><td>13.6.2026</td><td style="text-align:center">'+done+'</td>'+
+      '<td><span class="'+vz.cls+'">'+vz.txt+'</span></td><td>'+ext+'</td>';
+    tb.appendChild(tr);
+  });
+  var total=PRISP.length;
+  var doneN=PRISP.filter(function(r){return r.stav==='vyrizeno'||r.stav==='fikce';}).length;
+  var run=PRISP.filter(function(r){return r.stav==='zpracovava'||r.stav==='parafa';}).length;
+  var inc=PRISP.filter(function(r){return r.pod==='neuplne';}).length;
+  var chips='<span class="chip ok">vyřízeno '+doneN+'/'+total+'</span>';
+  if(run) chips+='<span class="chip req">zpracovává se '+run+'</span>';
+  if(inc) chips+='<span class="chip no">neúplné podklady '+inc+'</span>';
+  document.getElementById('sum-prisp').innerHTML=chips;
+
+  var al=document.getElementById('prispAlert');
+  if(predState.prerus){
+    al.style.display='flex';
+    al.innerHTML='Řízení přerušeno – vydána výzva k doplnění (vzor 3002). Po doplnění proběhne nová kontrola úplnosti.';
+  } else if(inc){
+    var us=PRISP.filter(function(r){return r.pod==='neuplne';}).map(function(r){return r.usek;}).join(', ');
+    var btn=(uiRole==='uradnik')?'<button class="btn sm" onclick="prispVyzva()">Vydat výzvu k doplnění + přerušit řízení</button>':'<span class="sub">koordinátor konsoliduje a předá úředníkovi</span>';
+    al.style.display='flex'; al.innerHTML='⚠ DO hlásí neúplné podklady (1. lhůta): <b>'+us+'</b>. '+btn;
+  } else al.style.display='none';
+
+  var note=document.getElementById('prispNote');
+  note.textContent = (uiRole==='koordinator')
+    ? 'Nástroje koordinátora (urgovat, vypořádat rozpor, sestavit koordinované vyjádření) doplníme v dalším kroku – zatím náhled.'
+    : (uiRole==='do' ? 'Pohled přispěvatele (editor vyjádření za vlastní úsek) doplníme v dalším kroku.'
+    : 'Náhled pro čtení – úředník sleduje průběh; podmínky DO se na konci převezmou do rozhodnutí.');
+}
+function prispVyzva(){
+  predState.prerus=true;
+  toast('Vydána výzva k doplnění (vzor 3002) a řízení přerušeno. Po doplnění proběhne nová kontrola úplnosti.');
+  renderPrisp(); renderDoPanel();
+}
+
+/* ---- INIT: přesun detailu záměru do panelu + úvodní render ---- */
+(function(){
+  var mb=document.querySelector('#stavbaOverlay .m-body');
+  var host=document.getElementById('host-zamer');
+  if(mb && host) host.appendChild(mb);
+  var sp=document.querySelector('#host-zamer .spine');
+  if(sp) sp.onclick=function(){ vpToggle('vp-zamer'); };
+  var pc=document.getElementById('podCol');
+  if(pc) pc.oncontextmenu=podCtx;
+  renderPod(); renderDoPanel(); renderPrisp();
+})();
 </script>
 </body>
 </html>
