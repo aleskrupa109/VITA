@@ -221,12 +221,13 @@ function showMail(){ closeMenus(); document.getElementById('viewHome').style.dis
 function closeMail(){ document.getElementById('viewMail').style.display='none'; document.getElementById('viewHome').style.display='block'; }
 
 // --- výběr + kontextové menu na řádcích ---
+let ctxRow = null;
 function selectRow(tr){ document.querySelectorAll('#mailBody tr').forEach(r=>r.classList.remove('sel')); tr.classList.add('sel'); }
 document.querySelectorAll('#mailBody tr').forEach(tr=>{
   tr.addEventListener('click', ()=> selectRow(tr));
   tr.addEventListener('contextmenu', e=>{
     e.preventDefault();
-    selectRow(tr);
+    selectRow(tr); ctxRow = tr;
     closeMenus();
     ctxMenu.style.left = Math.min(e.clientX, window.innerWidth - 250) + 'px';
     ctxMenu.style.top  = Math.min(e.clientY, window.innerHeight - 300) + 'px';
@@ -235,7 +236,15 @@ document.querySelectorAll('#mailBody tr').forEach(tr=>{
 });
 function ctxAction(name){
   closeMenus();
-  if(name === 'vec'){ location.href = 'pages/zahajeni-rizeni.html'; return; }
+  if(name === 'vec'){
+    let url = 'pages/zahajeni-rizeni.html';
+    if(ctxRow){
+      const c = ctxRow.cells;
+      const p = new URLSearchParams({ cj:c[1].textContent.trim(), od:c[5].textContent.trim(), vec:c[6].textContent.trim() });
+      url += '?' + p.toString();
+    }
+    location.href = url; return;
+  }
   toast('„'+name+'" – v mockupu zatím nepodporováno.');
 }
 
