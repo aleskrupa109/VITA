@@ -1071,6 +1071,28 @@ function kvRenderSummary(){
 /* doLabel zrušen – nahrazeno panely */
 kvRenderSummary();
 </script>
+<div class="overlay" id="prispModal">
+  <div class="modal" style="width:1000px;max-width:96vw">
+    <div class="m-title"><span id="pmTitle">Koordinované stanovisko</span><div class="m-x" onclick="closePrispevek()" title="Zavřít">&#10005;</div></div>
+    <div class="m-body" style="padding:0;background:#fff">
+      <div class="pm-head"><span class="pm-usek" id="pmUsek">ZPF</span><label>veřejné zájmy</label><select id="pmVz" disabled></select></div>
+      <div class="pm-zmoc"><label>Zmocnění</label><input type="text" id="pmZmoc" class="readonly" readonly></div>
+      <div class="htabs" id="pmTabs">
+        <div class="htab active" data-pt="podminky" onclick="prispTab('podminky')">Podmínky</div>
+        <div class="htab" data-pt="oduvodneni" onclick="prispTab('oduvodneni')">Odůvodnění</div>
+        <div class="htab" data-pt="upozorneni" onclick="prispTab('upozorneni')">Upozornění</div>
+        <div class="htab" data-pt="negativni" onclick="prispTab('negativni')">Negativní - důvody</div>
+      </div>
+      <div class="rt-toolbar">
+        <div class="rb" style="font-weight:bold">B</div><div class="rb" style="font-style:italic">I</div><div class="rb" style="text-decoration:underline">U</div>
+        <div class="rb">A<sup>2</sup></div><div class="rb">A<sub>2</sub></div><div class="rsep"></div>
+        <div class="rb" title="Vyjmout">&#9986;</div><div class="rb" title="Kopírovat">&#128203;</div><div class="rb" title="Vložit">&#128204;</div>
+      </div>
+      <div class="pm-content" id="pmContent"></div>
+    </div>
+    <div class="m-foot"><div class="right"><button class="btn" onclick="closePrispevek()">OK</button></div></div>
+  </div>
+</div>
 <div class="ctx-menu" id="ctxMenu"></div>
 <script>
 /* =================== Rozbalovací panely + role (přepracováno) =================== */
@@ -1211,7 +1233,7 @@ function renderPrisp(){
   var vyjVisible= fi>=4;   // zpracování vyjádření
 
   var tb=document.getElementById('prispBody'); tb.innerHTML='';
-  PRISP.forEach(function(r){
+  PRISP.forEach(function(r, idx){
     var vz=PVZ[r.vz||''];
     var prac = assigned ? (r.prac||'<span class="sub">nepřiděleno</span>') : '';
     var pod  = podDone ? (r.pod==='ok'?'<span class="kv-pod-ok">OK</span>':'<span class="kv-pod-no">Neúplné</span>')
@@ -1220,7 +1242,8 @@ function renderPrisp(){
     var vzCell = vyjVisible ? '<span class="'+vz.cls+'">'+vz.txt+'</span>' : '';
     var ext = (vyjVisible && r.ext) ? '<span class="ext-flag">'+r.ext+'</span>' : '';
     var tr=document.createElement('tr');
-    if(vyjVisible) tr.onclick=function(){ toast('Náhled příspěvku – úsek '+r.usek+'. Detailní náhled doplníme v dalším kroku.'); };
+    tr.oncontextmenu=function(e){ prispCtx(e, idx); };
+    tr.ondblclick=function(){ openPrispevek(idx); };
     tr.innerHTML='<td><b>'+r.usek+'</b></td><td>'+r.odbor+'</td><td>'+prac+'</td>'+
       '<td>'+pod+'</td><td>13.6.2026</td><td style="text-align:center">'+done+'</td>'+
       '<td>'+vzCell+'</td><td>'+ext+'</td>';
@@ -1270,6 +1293,76 @@ function prispVyzva(){
   predState.prerus=true;
   toast('Vydána výzva k doplnění (vzor 3002) a řízení přerušeno. Po doplnění proběhne nová kontrola úplnosti.');
   renderPrisp(); renderDoPanel();
+}
+
+/* ---- náhled příspěvku (Koordinované stanovisko) ---- */
+let pmRow=null;
+const ZMOC = {
+  PAK:'§ 77 odst. 1 písm. q) zákona č. 114/1992 Sb., o ochraně přírody a krajiny, ve znění pozdějších předpisů',
+  OVZ:'§ 11 odst. 2 písm. b) zákona č. 201/2012 Sb., o ochraně ovzduší, ve znění pozdějších předpisů',
+  VOD:'§ 104 odst. 9 zákona č. 254/2001 Sb., o vodách, ve znění pozdějších předpisů',
+  ZPF:'§ 15 písm. p) zákona č. 334/1992 Sb., o ochraně zemědělského půdního fondu, ve znění pozdějších předpisů',
+  LES:'§ 14 odst. 2 zákona č. 289/1995 Sb., o lesích, ve znění pozdějších předpisů',
+  ODP:'§ 146 zákona č. 541/2020 Sb., o odpadech, ve znění pozdějších předpisů',
+  PAM:'§ 11 odst. 3 zákona č. 20/1987 Sb., o státní památkové péči, ve znění pozdějších předpisů',
+  HYG:'§ 77 zákona č. 258/2000 Sb., o ochraně veřejného zdraví, ve znění pozdějších předpisů',
+  PO:'§ 31 odst. 1 písm. b) zákona č. 133/1985 Sb., o požární ochraně, ve znění pozdějších předpisů',
+  DOP:'§ 40 zákona č. 13/1997 Sb., o pozemních komunikacích, ve znění pozdějších předpisů',
+  UUP:'§ 88 zákona č. 283/2021 Sb., stavební zákon, ve znění pozdějších předpisů'
+};
+const PODTEXT = {
+  PAK:'práce provádět mimo vegetační období; stávající dřeviny chránit dle ČSN 83 9061',
+  LES:'po dobu stavby zachovat přístup k sousedním lesním pozemkům',
+  PO:'před zahájením užívání doložit požárně bezpečnostní řešení'
+};
+const VZ_OPTS = ['','nejsou dotčeny','nejsou dotčeny - podle zákona','jsou dotčeny - bez připomínek','jsou dotčeny - souhlas za podmínek','jsou dotčeny - nesouhlas'];
+
+function prispCtx(e, idx){
+  ctxAt(e, [
+    {t:'Příspěvek', fn:function(){ openPrispevek(idx); }},
+    {t:'Přidat úsek \u25B8', fn:function(){ toast('Přidat úsek – doplníme v dalším kroku.'); }},
+    {t:'Zprávy', fn:function(){ toast('Zprávy – doplníme v dalším kroku.'); }},
+    {sep:true},
+    {t:'Termín', fn:function(){ toast('Termín – doplníme v dalším kroku.'); }},
+    {sep:true},
+    {t:'Zrušit (Ctrl+Del)', fn:function(){ toast('Zrušit úsek – doplníme v dalším kroku.'); }},
+    {t:'Historie', fn:function(){ toast('Historie – doplníme v dalším kroku.'); }}
+  ]);
+}
+function openPrispevek(idx){
+  var r=PRISP[idx]; pmRow=r;
+  document.getElementById('pmUsek').textContent=r.usek;
+  document.getElementById('pmTitle').textContent='Koordinované stanovisko — '+r.usek;
+  var worked = (faze==='vyjadreni');
+  var cur = (worked && r.vz && PVZ[r.vz]) ? PVZ[r.vz].txt : '';
+  document.getElementById('pmVz').innerHTML = VZ_OPTS.map(function(o){
+    return '<option'+(o===cur?' selected':'')+'>'+(o||'<vyberte>')+'</option>';
+  }).join('');
+  document.getElementById('pmZmoc').value = ZMOC[r.usek]||'';
+  prispTab('podminky');
+  document.getElementById('prispModal').classList.add('show');
+}
+function closePrispevek(){ document.getElementById('prispModal').classList.remove('show'); }
+function prispTab(name){
+  document.querySelectorAll('#pmTabs .htab').forEach(function(t){ t.classList.toggle('active', t.dataset.pt===name); });
+  document.getElementById('pmContent').innerHTML = pmTabText(pmRow, name);
+}
+function pmTabText(r, tab){
+  if(!r) return '';
+  var worked = (faze==='vyjadreni');
+  if(tab==='podminky'){
+    if(!worked) return '<ul><li>&nbsp;</li></ul>';
+    if(r.vz==='cond') return '<ul><li>'+(PODTEXT[r.usek]||'splnit podmínky uvedené ve vyjádření')+'</li></ul>';
+    if(r.vz==='na')   return '<ul><li>nejsou dotčeny</li></ul>';
+    if(r.vz==='ok')   return '<ul><li>jsou dotčeny, bez připomínek</li></ul>';
+    if(r.vz==='no')   return '<div class="pm-empty">(viz Negativní - důvody)</div>';
+    return '<ul><li>&nbsp;</li></ul>';
+  }
+  if(tab==='negativni'){
+    if(worked && r.vz==='no') return '<ul><li>'+(r.negtext||'záměr je v rozporu s chráněným veřejným zájmem')+'</li></ul>';
+    return '<div class="pm-empty">(bez textu)</div>';
+  }
+  return '<div class="pm-empty">(bez textu)</div>';
 }
 
 /* ---- INIT: přesun detailu záměru do panelu + úvodní render ---- */
