@@ -193,6 +193,7 @@
           <div class="vp-row">
             <div class="spine" onclick="vpToggle('vp-prisp')"><span>přispěvatelé</span></div>
             <div class="vp-content">
+              <div id="prispTools" style="margin-bottom:8px;font-size:12px;display:none"></div>
               <div class="prisp-alert" id="prispAlert" style="display:none"></div>
               <table class="grid" id="prispGrid">
                 <thead><tr>
@@ -1075,6 +1076,7 @@ kvRenderSummary();
 /* =================== Rozbalovací panely + role (přepracováno) =================== */
 let uiRole = 'uradnik';
 let predState = { handed:false, coord:'', prerus:false };
+let faze = 'zalozeno'; /* zalozeno → predano → prideleno → kontrola → vyjadreni */
 
 function vpToggle(id){ var el=document.getElementById(id); if(el) el.classList.toggle('open'); }
 
@@ -1149,8 +1151,8 @@ document.addEventListener('click', hideCtx);
 function doPredej(){
   var c=document.getElementById('doCoord').value;
   if(!c){ toast('Vyberte koordinátora.'); return; }
-  predState.handed=true; predState.coord=c;
-  toast('Řízení předáno koordinátorovi: '+c+'. Koordinátor zapojí interní DO.');
+  predState.handed=true; predState.coord=c; if(faze==='zalozeno') faze='predano';
+  toast('Řízení předáno koordinátorovi: '+c+'. Koordinátor následně zahájí přidělení příspěvků.');
   renderDoPanel(); renderPrisp();
 }
 function renderDoPanel(){
@@ -1168,7 +1170,8 @@ function renderDoPanel(){
   if(predState.handed){
     done.style.display='block';
     done.className='pred-done'+(predState.prerus?' prerus':'');
-    done.innerHTML='Předáno koordinátorovi: <b>'+predState.coord+'</b> · dne 14.5.2026. Kontrola úplnosti podkladů (10 dní od podání) běží do <b>24.5.2026</b>.'+(predState.prerus?' <b>· ŘÍZENÍ PŘERUŠENO (výzva k doplnění)</b>':'');
+    var fazeTxt = (faze==='predano') ? ' Čeká na zahájení přidělení koordinátorem.' : ' Přidělení zahájeno; kontrola úplnosti (1. lhůta) běží do 24.5.2026.';
+    done.innerHTML='Předáno koordinátorovi: <b>'+predState.coord+'</b> · dne 14.5.2026.'+fazeTxt+(predState.prerus?' <b>· ŘÍZENÍ PŘERUŠENO (výzva k doplnění)</b>':'');
     sum.textContent='předáno: '+predState.coord.split(' ').slice(0,2).join(' ')+(predState.prerus?' · řízení přerušeno':'');
   } else {
     done.style.display='none';
@@ -1183,7 +1186,7 @@ const PRISP = [
   { usek:'VOD', odbor:'Odbor ŽP — ochrana vod',                    prac:'Herbrychová Jarmila', pod:'ok',      stav:'zpracovava', vz:'',     ext:'' },
   { usek:'ZPF', odbor:'Odbor ŽP — ochrana ZPF',                    prac:'Herbrychová Jarmila', pod:'ok',      stav:'vyrizeno',   vz:'ok',   ext:'' },
   { usek:'LES', odbor:'Odbor ŽP — ochrana lesa',                   prac:'Herbrychová Jarmila', pod:'ok',      stav:'vyrizeno',   vz:'cond', ext:'' },
-  { usek:'ODP', odbor:'Odbor ŽP — odpadové hospodářství',          prac:'',                    pod:'ok',      stav:'nezahajeno', vz:'',     ext:'' },
+  { usek:'ODP', odbor:'Odbor ŽP — odpadové hospodářství',          prac:'Herbrychová Jarmila', pod:'ok',      stav:'nezahajeno', vz:'',     ext:'' },
   { usek:'PAM', odbor:'Odbor památkové péče',                      prac:'Krupa Aleš',          pod:'neuplne', stav:'nezahajeno', vz:'',     ext:'ORP památky (ZS)' },
   { usek:'HYG', odbor:'Samostatné oddělení ochrany veř. zdraví',   prac:'Marková Lucie',       pod:'ok',      stav:'zpracovava', vz:'',     ext:'' },
   { usek:'PO',  odbor:'Odbor požární ochrany',                     prac:'Horák Petr',          pod:'ok',      stav:'parafa',     vz:'cond', ext:'' },
@@ -1200,43 +1203,68 @@ const PVZ = {
   no:{cls:'vz-no',txt:'jsou dotčeny - nesouhlas'}
 };
 function renderPrisp(){
+  var fOrder=['zalozeno','predano','prideleno','kontrola','vyjadreni'];
+  var fi=fOrder.indexOf(faze);
+  var assigned  = fi>=2;   // přiděleni pracovníci
+  var podPending= fi===2;  // přiděleno – kontrola úplnosti běží
+  var podDone   = fi>=3;   // kontrola úplnosti vyhodnocena
+  var vyjVisible= fi>=4;   // zpracování vyjádření
+
   var tb=document.getElementById('prispBody'); tb.innerHTML='';
   PRISP.forEach(function(r){
-    var st=PSTAV[r.stav], vz=PVZ[r.vz||''];
-    var pod = r.pod==='ok'?'<span class="kv-pod-ok">OK</span>':(r.pod==='neuplne'?'<span class="kv-pod-no">Neúplné</span>':'<span class="kv-pod-wait">čeká</span>');
-    var done = (r.stav==='vyrizeno'||r.stav==='fikce')?'✓':'';
-    var ext = r.ext?'<span class="ext-flag">'+r.ext+'</span>':'<span class="sub">—</span>';
+    var vz=PVZ[r.vz||''];
+    var prac = assigned ? (r.prac||'<span class="sub">nepřiděleno</span>') : '';
+    var pod  = podDone ? (r.pod==='ok'?'<span class="kv-pod-ok">OK</span>':'<span class="kv-pod-no">Neúplné</span>')
+             : podPending ? '<span class="kv-pod-wait">čeká</span>' : '';
+    var done = (vyjVisible && (r.stav==='vyrizeno'||r.stav==='fikce')) ? '✓' : '';
+    var vzCell = vyjVisible ? '<span class="'+vz.cls+'">'+vz.txt+'</span>' : '';
+    var ext = (vyjVisible && r.ext) ? '<span class="ext-flag">'+r.ext+'</span>' : '';
     var tr=document.createElement('tr');
-    tr.onclick=function(){ toast('Náhled příspěvku – úsek '+r.usek+' ('+st.txt+'). Detailní náhled doplníme v dalším kroku.'); };
-    tr.innerHTML='<td><b>'+r.usek+'</b></td><td>'+r.odbor+'</td><td>'+(r.prac||'<span class="sub">—</span>')+'</td>'+
+    if(vyjVisible) tr.onclick=function(){ toast('Náhled příspěvku – úsek '+r.usek+'. Detailní náhled doplníme v dalším kroku.'); };
+    tr.innerHTML='<td><b>'+r.usek+'</b></td><td>'+r.odbor+'</td><td>'+prac+'</td>'+
       '<td>'+pod+'</td><td>13.6.2026</td><td style="text-align:center">'+done+'</td>'+
-      '<td><span class="'+vz.cls+'">'+vz.txt+'</span></td><td>'+ext+'</td>';
+      '<td>'+vzCell+'</td><td>'+ext+'</td>';
     tb.appendChild(tr);
   });
-  var total=PRISP.length;
-  var doneN=PRISP.filter(function(r){return r.stav==='vyrizeno'||r.stav==='fikce';}).length;
-  var run=PRISP.filter(function(r){return r.stav==='zpracovava'||r.stav==='parafa';}).length;
-  var inc=PRISP.filter(function(r){return r.pod==='neuplne';}).length;
-  var parts=['vyřízeno '+doneN+'/'+total];
-  if(run) parts.push('zpracovává se '+run);
-  if(inc) parts.push('neúplné podklady '+inc);
-  document.getElementById('sum-prisp').textContent=parts.join(' · ');
+
+  var total=PRISP.length, sumtxt;
+  if(fi<=1) sumtxt = total+' úseků'+(fi===1?' · předáno koordinátorovi':' · nepřiděleno');
+  else if(fi===2) sumtxt = 'přiděleno '+total+' · kontrola úplnosti běží';
+  else {
+    var doneN=PRISP.filter(function(r){return r.stav==='vyrizeno'||r.stav==='fikce';}).length;
+    var inc0=PRISP.filter(function(r){return r.pod==='neuplne';}).length;
+    sumtxt = vyjVisible ? ('vyřízeno '+doneN+'/'+total) : ('přiděleno '+total+' · kontrola dokončena');
+    if(podDone && inc0) sumtxt += ' · neúplné podklady '+inc0;
+  }
+  document.getElementById('sum-prisp').textContent = sumtxt;
+
+  var tools=document.getElementById('prispTools');
+  if(uiRole==='koordinator'){
+    tools.style.display='block';
+    if(faze==='zalozeno') tools.innerHTML='<span class="sub">Řízení vám zatím nebylo předáno stavebním úředníkem.</span>';
+    else if(faze==='predano') tools.innerHTML='<button class="btn sm" onclick="zahajPrideleni()">Zahájit přidělení příspěvků</button> &nbsp;<span class="sub">přidělí pracovníky a vytvoří přispěvatelům úkol „Kontrola žádosti" (1. lhůta 10 dní).</span>';
+    else tools.innerHTML='<span class="sub">Přiděleno. Běží kontrola úplnosti (1. lhůta). Další nástroje (urgovat, vypořádat rozpor, sestavit koordinované vyjádření) doplníme v dalším kroku.</span>';
+  } else { tools.style.display='none'; tools.innerHTML=''; }
 
   var al=document.getElementById('prispAlert');
+  var inc=PRISP.filter(function(r){return r.pod==='neuplne';}).length;
   if(predState.prerus){
-    al.style.display='flex';
-    al.innerHTML='Řízení přerušeno – vydána výzva k doplnění (vzor 3002). Po doplnění proběhne nová kontrola úplnosti.';
-  } else if(inc){
+    al.style.display='flex'; al.innerHTML='Řízení přerušeno – vydána výzva k doplnění (vzor 3002). Po doplnění proběhne nová kontrola úplnosti.';
+  } else if(podDone && inc){
     var us=PRISP.filter(function(r){return r.pod==='neuplne';}).map(function(r){return r.usek;}).join(', ');
     var btn=(uiRole==='uradnik')?'<button class="btn sm" onclick="prispVyzva()">Vydat výzvu k doplnění + přerušit řízení</button>':'<span class="sub">koordinátor konsoliduje a předá úředníkovi</span>';
     al.style.display='flex'; al.innerHTML='⚠ DO hlásí neúplné podklady (1. lhůta): <b>'+us+'</b>. '+btn;
   } else al.style.display='none';
 
   var note=document.getElementById('prispNote');
-  note.textContent = (uiRole==='koordinator')
-    ? 'Nástroje koordinátora (urgovat, vypořádat rozpor, sestavit koordinované vyjádření) doplníme v dalším kroku – zatím náhled.'
-    : (uiRole==='do' ? 'Pohled přispěvatele (editor vyjádření za vlastní úsek) doplníme v dalším kroku.'
-    : 'Náhled pro čtení – úředník sleduje průběh; podmínky DO se na konci převezmou do rozhodnutí.');
+  note.textContent = (uiRole==='do') ? 'Pohled přispěvatele (editor vyjádření za vlastní úsek) doplníme v dalším kroku.'
+    : (uiRole==='uradnik' ? 'Náhled pro čtení – úředník sleduje průběh; podmínky DO se na konci převezmou do rozhodnutí.' : '');
+}
+function zahajPrideleni(){
+  if(faze==='zalozeno'){ toast('Řízení nebylo předáno stavebním úředníkem.'); return; }
+  faze='prideleno';
+  toast('Zahájeno přidělení příspěvků. Přispěvatelům přiděleni pracovníci a vytvořen úkol „Kontrola žádosti" (1. lhůta 10 dní).');
+  renderPrisp(); renderDoPanel();
 }
 function prispVyzva(){
   predState.prerus=true;
