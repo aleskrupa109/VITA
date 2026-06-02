@@ -56,8 +56,8 @@
 
   <!-- ZÁLOŽKA -->
   <div class="tabstrip">
-    <div class="crumb">Oprav</div>
-    <div class="tab active">(PSZ&nbsp;6.2.2)&nbsp;000138/26</div>
+    <div class="crumb">Došlá pošta</div>
+    <div class="tab active" id="crumbTab">(??&nbsp;0)&nbsp;000206/25</div>
   </div>
 
   <!-- HLAVIČKA PANELU -->
@@ -71,29 +71,69 @@
 
     <div class="row">
       <span class="lbl-plain">spis. zn.</span>
-      <input type="text" class="readonly" style="width:88px" value="000138" readonly>
+      <input type="text" class="readonly" style="width:88px" id="spisNum" value="000206" readonly>
       <span>/</span>
-      <input type="text" class="readonly" style="width:48px" value="26" readonly>
-      <input type="text" class="readonly" style="width:170px" value="SZ DESU_skol/000138/26" readonly>
+      <input type="text" class="readonly" style="width:48px" id="spisYear" value="25" readonly>
+      <input type="text" class="readonly" style="width:170px" id="spisSz" value="SZ DESU/000206/25" readonly>
       <span class="lbl-plain" style="margin-left:8px">typ</span>
-      <input type="text" class="readonly" style="flex:1 1 auto" value="PSZ 6.2.2 - Zrychlené řízení" readonly>
-      <button class="btn icon">…</button>
+      <input type="text" class="readonly" style="flex:1 1 auto" id="typField" value="??  0 - Neurčeno" readonly>
+      <button class="btn icon" id="typPick" onclick="toggleTypeTree(event)" title="Vybrat typ řízení">…</button>
       <button class="btn icon">+</button>
       <button class="btn icon" title="Přiřadit do složky">&#128193;</button>
+    </div>
+
+    <!-- Strom typů řízení (otevře tlačítko „…") -->
+    <div class="type-tree" id="typeTree">
+      <div class="tnode leaf selected" onclick="pickType('??','??  0 - Neurčeno','se nevyměřuje',false)">?? - Neurčeno</div>
+
+      <div class="tnode parent open" onclick="toggleNode(this)"><span class="tw">&#8722;</span>Stavební úřad - 283/2021</div>
+      <div class="tchildren">
+        <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Předběžná informace</div>
+        <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
+
+        <div class="tnode parent open" onclick="toggleNode(this)"><span class="tw">&#8722;</span>Povolení záměru</div>
+        <div class="tchildren">
+          <div class="tnode leaf" onclick="pickType('PS','PS 6.2.1 - Povolení stavby/zařízení','správní poplatek: 10000 Kč',true)">PS - Povolení stavby/zařízení</div>
+          <div class="tnode leaf" onclick="pickType('PSZ','PSZ 6.2.2 - Zrychlené řízení','správní poplatek: 10000 Kč',true)">PSZ - Zrychlené řízení</div>
+          <div class="tnode leaf" onclick="pickType('PZD','PZD 6.2.3 - Změna záměru před dokončením','se nevyměřuje',true)">PZD - Změna záměru před dokončením</div>
+          <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Změna využití území</div>
+          <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
+          <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Dělení a scelování pozemků</div>
+          <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
+          <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Ochranné pásmo</div>
+          <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
+          <div class="tnode leaf" onclick="pickType('SRP','SRP - Rámcové povolení [DESÚ,KÚ]','se nevyměřuje',true)">SRP - Rámcové povolení [DESÚ,KÚ]</div>
+          <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Mimořádné postupy</div>
+          <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
+        </div>
+
+        <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Užívání stavby</div>
+        <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
+        <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Odstranění stavby</div>
+        <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
+        <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Stavební kontrola</div>
+        <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
+        <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Další</div>
+        <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
+      </div>
+
+      <div class="tnode parent" onclick="toggleNode(this)"><span class="tw">+</span>Stavební úřad - 183/2006</div>
+      <div class="tchildren"><div class="tnode muted">(v mockupu zatím nenaplněno)</div></div>
     </div>
 
     <div class="row">
       <button class="btn">souv. řízení</button>
       <button class="btn">poplatek</button>
-      <span class="fee">správní poplatek: 10000 Kč</span>
+      <span class="fee" id="feeText">se nevyměřuje</span>
       <span class="lbl-right">archiv</span>
       <input type="text" style="width:240px" value="">
     </div>
 
+    <div id="rizeniBody" style="display:none">
     <div class="field-rows">
       <div class="field-row stavba-row">
         <div class="fld-label-btn" id="stavbaLabel" title="Otevřít detail záměru" onclick="openStavba()"><u>z</u>áměr</div>
-        <div class="val" onclick="openStavba()">Povolení záměru - testovací zpráva mail 14.5.26</div>
+        <div class="val" id="zamerName" onclick="openStavba()">Povolení záměru - testovací zpráva mail 14.5.26</div>
       </div>
       <div class="field-row">
         <div class="fld-label-btn"><u>z</u>ástupci</div>
@@ -101,7 +141,7 @@
       </div>
       <div class="field-row">
         <div class="fld-label-btn">stavebník</div>
-        <div class="val">ALMANI s.r.o.</div>
+        <div class="val" id="stavebnikName">ALMANI s.r.o.</div>
       </div>
       <div class="field-row">
         <div class="fld-label-btn"><u>h</u>lavní účastníci</div>
@@ -141,6 +181,7 @@
     </div>
 
     <div class="signature">Dne 25.5.2026, zapsal ales.krupa</div>
+    </div><!-- /#rizeniBody -->
   </div>
 
   <!-- STATUS BAR -->
@@ -165,7 +206,7 @@
 <div class="overlay" id="doOverlay">
   <div class="modal">
     <div class="m-title">
-      <span>Dotčené orgány&nbsp;&nbsp;—&nbsp;&nbsp;SZ DESU_skol/000138/26&nbsp;&nbsp;(PSZ 6.2.2 – Zrychlené řízení)</span>
+      <span id="doTitle">Dotčené orgány&nbsp;&nbsp;—&nbsp;&nbsp;SZ DESU_skol/000138/26&nbsp;&nbsp;(PSZ 6.2.2 – Zrychlené řízení)</span>
       <div class="m-x" onclick="closeDO()" title="Zavřít">&#10005;</div>
     </div>
 
@@ -219,7 +260,7 @@
 <div class="overlay" id="stavbaOverlay">
   <div class="modal stavba">
     <div class="m-title">
-      <span>Záměr&nbsp;&nbsp;—&nbsp;&nbsp;SZ DESU_skol/000138/26&nbsp;&nbsp;(PSZ 6.2.2 – Zrychlené řízení)</span>
+      <span id="stavbaTitle">Záměr&nbsp;&nbsp;—&nbsp;&nbsp;SZ DESU_skol/000138/26&nbsp;&nbsp;(PSZ 6.2.2 – Zrychlené řízení)</span>
       <div class="m-x" onclick="closeStavba()" title="Zavřít">&#10005;</div>
     </div>
 
@@ -651,6 +692,66 @@ function subTab(el){
 
 
 renderSummary();
+
+/* ====== Předvyplnění z Došlé pošty + výběr typu řízení (gate) ====== */
+(function(){
+  var q = new URLSearchParams(location.search);
+  var cj = q.get('cj'), od = q.get('od'), vec = q.get('vec');
+  var num='000206', yr='25', auth='DESU';
+  if(cj){
+    var m = cj.match(/([A-Za-zÁ-Žá-ž]*)\/?(\d{4,6})\/(\d{2})/);
+    if(m){ if(m[1]) auth=m[1]; num=m[2]; yr=m[3]; }
+  }
+  function setVal(id,v){ var el=document.getElementById(id); if(!el) return;
+    if(el.tagName==='INPUT') el.value=v; else el.textContent=v; }
+  setVal('spisNum', num);
+  setVal('spisYear', yr);
+  setVal('spisSz', 'SZ '+auth+'/'+num+'/'+yr);
+  document.getElementById('crumbTab').innerHTML = '(??&nbsp;0)&nbsp;'+num+'/'+yr;
+  if(vec) setVal('zamerName', vec);
+  if(od){ var n=od.replace(/^ISSŘ:\s*/,'').trim();
+    if(n && n.toLowerCase()!=='vlastní záznam') setVal('stavebnikName', n); }
+  window.__rz = { num:num, yr:yr, auth:auth };
+})();
+
+function toggleTypeTree(e){
+  if(e) e.stopPropagation();
+  var t=document.getElementById('typeTree');
+  if(t.classList.contains('show')){ t.classList.remove('show'); return; }
+  var r=document.getElementById('typField').getBoundingClientRect();
+  t.style.left = r.left+'px';
+  t.style.top  = (r.bottom+1)+'px';
+  t.classList.add('show');
+}
+function toggleNode(el){
+  el.classList.toggle('open');
+  var tw=el.querySelector('.tw');
+  if(tw) tw.textContent = el.classList.contains('open') ? '\u2212' : '+';
+}
+function pickType(code, label, fee, load){
+  document.querySelectorAll('#typeTree .tnode.selected').forEach(function(n){ n.classList.remove('selected'); });
+  document.getElementById('typeTree').classList.remove('show');
+  document.getElementById('typField').value = label;
+  document.getElementById('feeText').textContent = fee;
+  var rz = window.__rz || {num:'000206', yr:'25', auth:'DESU'};
+  document.getElementById('crumbTab').innerHTML = '('+code+')&nbsp;'+rz.num+'/'+rz.yr;
+  var sz = 'SZ '+rz.auth+'/'+rz.num+'/'+rz.yr;
+  var suffix = sz+'&nbsp;&nbsp;('+label.replace(/&/g,'&amp;')+')';
+  var st=document.getElementById('stavbaTitle'); if(st) st.innerHTML='Záměr&nbsp;&nbsp;—&nbsp;&nbsp;'+suffix;
+  var dt=document.getElementById('doTitle');    if(dt) dt.innerHTML='Dotčené orgány&nbsp;&nbsp;—&nbsp;&nbsp;'+suffix;
+  document.getElementById('rizeniBody').style.display = load ? 'block' : 'none';
+  if(load) toast('Typ řízení nastaven: '+label);
+}
+// zavření stromu klikem mimo / klávesou Esc
+document.addEventListener('click', function(e){
+  var t=document.getElementById('typeTree');
+  if(!t.classList.contains('show')) return;
+  if(t.contains(e.target) || e.target.id==='typPick') return;
+  t.classList.remove('show');
+});
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){ var t=document.getElementById('typeTree'); if(t.classList.contains('show')) t.classList.remove('show'); }
+});
 </script>
 </body>
 </html>
