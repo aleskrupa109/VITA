@@ -444,3 +444,39 @@
   .trow.leaf { cursor:pointer; }
   .trow.leaf:hover { background:#e9f2fb; }
   .trow.muted { color:#9a9a9a; }
+
+  /* ====== Přepínač role (mockup) ve stavovém řádku ====== */
+  .role-switch { display:inline-flex; align-items:center; gap:5px; }
+  .role-switch select { font-family: inherit; font-size: 11px; padding: 0 2px; border: 1px solid #9a9a9a; background: #fff; }
+
+  /* ====== Koordinované vyjádření – workspace ====== */
+  .modal.kv { width: 1120px; }
+  .kv-rolebar { display:flex; align-items:center; gap:6px; padding:6px 12px; background:#eef3f9; border-bottom:1px solid #d3d3d3; font-size:12px; color:#244; }
+  .kv-rolebar .kv-role-pill { background:#3a6ea5; color:#fff; border-radius:10px; padding:1px 9px; font-weight:bold; }
+  .kv-pane { padding:12px 14px; }
+  .kv-h-title { font-size:14px; font-weight:bold; color:#1f4e88; margin-bottom:10px; }
+  .kv-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .kv-field { margin-bottom:12px; }
+  .kv-field > label { display:block; font-weight:bold; font-size:12px; color:#333; margin-bottom:4px; }
+  .kv-hint { font-size:11px; color:#888; margin-top:3px; }
+  .kv-field select { font-family:inherit; font-size:13px; padding:2px 4px; border:1px solid #9a9a9a; min-width:230px; }
+  .kv-podklady { display:flex; flex-direction:column; gap:3px; font-size:12px; }
+  .kv-podklady label { display:flex; align-items:center; gap:6px; font-weight:normal; }
+  .kv-lhuty { display:flex; flex-direction:column; gap:6px; }
+  .kv-lhuta { display:flex; gap:10px; align-items:center; font-size:12px; background:#fafcff; border:1px solid #e0e6ee; padding:5px 8px; }
+  .kv-l-name { min-width:280px; color:#444; }
+  .kv-confirm { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:normal; margin-top:8px; }
+  .kv-banner { font-size:12px; background:#eef6ee; border:1px solid #bfe0bf; color:#225522; padding:6px 10px; margin:0 0 8px; }
+  .kv-banner.prerus { background:#fdeee0; border-color:#e7c08a; color:#8a5a00; }
+  .kv-alert { font-size:12px; background:#fbe9e7; border:1px solid #e0a59a; color:#8a2f1f; padding:7px 10px; margin:0 0 8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .kv-alert .btn { margin-left:auto; }
+  .kv-note { font-size:12px; color:#666; background:#f7f7f4; border:1px dashed #c9c9c0; padding:7px 10px; margin:8px 0 0; }
+  .s-paraf { background:#e9eefb; border-color:#6f86c4; color:#33408a; }
+  .kv-res-ok { color:#1f6b1f; font-weight:bold; }
+  .kv-res-cond { color:#1f4e88; font-weight:bold; }
+  .kv-res-no { color:#8a1f1f; font-weight:bold; }
+  .kv-res-na { color:#888; font-style:italic; }
+  .kv-pod-ok { color:#1f6b1f; font-weight:bold; }
+  .kv-pod-no { color:#b21f1f; font-weight:bold; }
+  .kv-pod-wait { color:#999; }
+  .kv-ext { color:#6a3da0; }
