@@ -1170,10 +1170,10 @@ function renderDoPanel(){
     done.style.display='block';
     done.className='pred-done'+(predState.prerus?' prerus':'');
     done.innerHTML='Předáno koordinátorovi: <b>'+predState.coord+'</b> · dne 14.5.2026. Kontrola úplnosti podkladů (10 dní od podání) běží do <b>24.5.2026</b>.'+(predState.prerus?' <b>· ŘÍZENÍ PŘERUŠENO (výzva k doplnění)</b>':'');
-    sum.innerHTML='<span class="chip cond">předáno: '+predState.coord.split(' ').slice(0,2).join(' ')+'</span>'+(predState.prerus?'<span class="chip req">přerušeno</span>':'');
+    sum.textContent='předáno: '+predState.coord.split(' ').slice(0,2).join(' ')+(predState.prerus?' · řízení přerušeno':'');
   } else {
     done.style.display='none';
-    sum.innerHTML='<span class="chip none">Nepředáno koordinátorovi</span>';
+    sum.textContent='Nepředáno koordinátorovi';
   }
 }
 
@@ -1218,10 +1218,10 @@ function renderPrisp(){
   var doneN=PRISP.filter(function(r){return r.stav==='vyrizeno'||r.stav==='fikce';}).length;
   var run=PRISP.filter(function(r){return r.stav==='zpracovava'||r.stav==='parafa';}).length;
   var inc=PRISP.filter(function(r){return r.pod==='neuplne';}).length;
-  var chips='<span class="chip ok">vyřízeno '+doneN+'/'+total+'</span>';
-  if(run) chips+='<span class="chip req">zpracovává se '+run+'</span>';
-  if(inc) chips+='<span class="chip no">neúplné podklady '+inc+'</span>';
-  document.getElementById('sum-prisp').innerHTML=chips;
+  var parts=['vyřízeno '+doneN+'/'+total];
+  if(run) parts.push('zpracovává se '+run);
+  if(inc) parts.push('neúplné podklady '+inc);
+  document.getElementById('sum-prisp').textContent=parts.join(' · ');
 
   var al=document.getElementById('prispAlert');
   if(predState.prerus){
