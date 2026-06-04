@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Přispěvatel (DO) – přehled (mockup)</title>
+<link rel="stylesheet" href="../assets/css/vita.css">
+<style>
+  .wl-area { flex:1 1 auto; overflow:auto; background:#fff; }
+  .wl-head { padding:8px 12px 4px; font-size:13px; color:#333; }
+  table.grid.wl tbody tr.active { cursor:pointer; }
+  table.grid.wl tbody tr.active:hover { background:#eef5fd; }
+  table.grid.wl tbody tr.inactive td { color:#999; }
+  .wl-stav-k { color:#1f4e88; font-weight:bold; }
+  .wl-stav-x { color:#666; }
+  .wl-stav-w { color:#8a5a00; }
+</style>
+</head>
+<body>
+<div class="app-window">
+
+  <div class="titlebar">
+    <div class="logo"></div>
+    <div class="title">Stavební úřad</div>
+    <div class="win-controls">
+      <button title="Minimalizovat">&#xE921;</button>
+      <button title="Maximalizovat">&#xE922;</button>
+      <button class="close" title="Zavřít">&#xE8BB;</button>
+    </div>
+  </div>
+
+  <div class="menubar">
+    <div class="menu-item"><u>V</u>ěc</div>
+    <div class="menu-item"><u>Z</u>obrazit</div>
+    <div class="menu-item"><u>H</u>ledej</div>
+    <div class="menu-item"><u>Ú</u>daje</div>
+    <div class="menu-item"><u>K</u>artotéky</div>
+    <div class="menu-item"><u>P</u>ošta</div>
+    <div class="menu-item disabled">Mapa</div>
+    <div class="menu-item">Zákony</div>
+    <div class="menu-item">Program</div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tbtn"><svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="#2f6fb0" stroke-width="2"/><line x1="14.5" y1="14.5" x2="21" y2="21" stroke="#2f6fb0" stroke-width="3" stroke-linecap="round"/></svg><span class="lbl">Hledej</span></div>
+    <div class="tbtn"><svg viewBox="0 0 24 24"><path d="M2 6 h7 l2 2 h11 v12 H2 Z" fill="#f4c542" stroke="#caa02b"/><path d="M4 11 h18 l-2 9 H2 Z" fill="#ffd766" stroke="#caa02b"/></svg><span class="lbl">Oprav</span></div>
+    <div class="tb-drop">&#9660;</div>
+    <div class="tbtn" title="Úkoly"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="19" rx="1" fill="#fff" stroke="#888"/><rect x="8" y="2" width="8" height="3" rx="1" fill="#cfcfcf" stroke="#888"/><path d="M8 10 l2 2 4-5" fill="none" stroke="#2faa4c" stroke-width="2"/></svg><span class="lbl">Úkoly</span></div>
+    <div class="tb-drop">&#9660;</div>
+    <div class="tb-sep"></div>
+    <div class="tbtn" title="Soupis"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" fill="#fff" stroke="#888"/><line x1="7" y1="7" x2="17" y2="7" stroke="#3a6e95" stroke-width="1.5"/></svg><span class="lbl">Soupis</span></div>
+  </div>
+
+  <div class="tabstrip">
+    <div class="crumb">Příspěvky DO</div>
+    <div class="tab active">k vyjádření</div>
+  </div>
+
+  <div class="panel-head">
+    <div class="ph-title">Řízení k mému vyjádření</div>
+    <div class="ph-close" title="Zpět na úvod" onclick="location.href='../index.html'">&#10005;</div>
+  </div>
+
+  <div class="wl-area">
+    <div class="wl-head">Přihlášen: <b>Dobisík Ondřej</b> — úsek <b>PAK</b> (Odbor ŽP – ochrana přírody a krajiny). Řízení předaná koordinátorem zpracujte ve své lhůtě.</div>
+    <table class="grid wl">
+      <thead><tr>
+        <th style="width:90px">Č. spisu</th>
+        <th style="width:60px">Prac.</th>
+        <th style="min-width:150px">Žadatel / povinný</th>
+        <th style="min-width:300px">Název</th>
+        <th style="width:90px">Typ</th>
+        <th style="width:140px">Stav</th>
+        <th style="width:100px">Zahájení</th>
+        <th style="width:120px">Termín vyřízení</th>
+      </tr></thead>
+      <tbody id="wlBody"></tbody>
+    </table>
+  </div>
+
+  <div class="statusbar">
+    <div class="sb-left">Stavební úřad – VITA software · příspěvky DO</div>
+    <div class="sb-right">
+      <span>5.3.0.33</span>
+      <span id="clock">0:00:00</span>
+      <span class="sb-dots"><span class="sb-dot" style="background:#e74c3c"></span><span class="sb-dot" style="background:#2980b9"></span><span class="sb-dot" style="background:#27ae60"></span></span>
+      <span>Dobisík Ondřej</span>
+      <span>Odbor ŽP – ochrana přírody a krajiny</span>
+      <span>https://test-vita.desu.gov.cz/VITA/APP/</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="../assets/js/vita.js"></script>
+<script>
+function kvFaze(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ var o=JSON.parse(s); return o.faze||'zalozeno'; } }catch(e){} return 'zalozeno'; }
+function aktivni(){ var fi=['zalozeno','predano','prideleno','kontrola','vyjadreni'].indexOf(kvFaze()); return fi>=2; }
+
+var ROWS = [
+  { aktiv:true,  sp:'013304/26', zad:'ALMANI s.r.o.',       nazev:'Povolení záměru - testovací zpráva mail 14.5.26', typ:'KSVZ 6.3.1', zah:'14.5.2026', termin:'13.7.2026' },
+  { aktiv:false, sp:'333333/26',  zad:'—',                  nazev:'PS_D55, úsek 7 — provizorní přejezd',             typ:'KSVZ 6.3.1', stav:'příspěvek', zah:'1.6.2026',  termin:'1.7.2026' },
+  { aktiv:false, sp:'022222/26',  zad:'ALMANI s.r.o.',      nazev:'PS_D55, 5510 BZENEC – BZENEC PŘÍVOZ',             typ:'KSVZ 6.3.1', stav:'příspěvek', zah:'27.4.2026', termin:'27.5.2026' },
+  { aktiv:false, sp:'001775/25',  zad:'ALMANI s.r.o.',      nazev:'Výstavba PZS v km 5,8 trati 340',                 typ:'KSVZ 6.3.1', stav:'příspěvek', zah:'17.1.2025', termin:'16.2.2025' }
+];
+
+function render(){
+  var tb=document.getElementById('wlBody'); tb.innerHTML='';
+  var akt=aktivni();
+  ROWS.forEach(function(r){
+    var tr=document.createElement('tr');
+    if(r.aktiv){
+      if(akt){
+        tr.className='active';
+        tr.onclick=function(){ location.href='prispevatel-detail.html'; };
+        tr.innerHTML='<td><b>'+r.sp+'</b></td><td>OnDo</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
+          '<td><span class="wl-stav-k">k vyjádření</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
+      } else {
+        tr.className='inactive';
+        tr.innerHTML='<td>'+r.sp+'</td><td>OnDo</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
+          '<td><span class="wl-stav-w">čeká na předání koordinátorem</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
+      }
+    } else {
+      tr.className='inactive';
+      tr.innerHTML='<td>'+r.sp+'</td><td>OnDo</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
+        '<td><span class="wl-stav-x">'+r.stav+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
+    }
+    tb.appendChild(tr);
+  });
+}
+render();
+</script>
+</body>
+</html>
