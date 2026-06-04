@@ -26,6 +26,12 @@
   .ed-fld input[type=text] { flex:1 1 auto; }
   .ed-fld select { min-width:320px; }
   .ed-save { margin-top:10px; text-align:right; }
+  .pod-kontrola { display:flex; align-items:center; gap:10px; margin:10px 0 6px; }
+  .pod-kontrola label { font-weight:bold; color:#333; }
+  .pod-kontrola select { min-width:150px; }
+  .doplnit-wrap { display:flex; gap:10px; margin:0 0 12px; }
+  .doplnit-wrap > label { font-weight:bold; color:#333; width:60px; flex:0 0 60px; padding-top:4px; }
+  .doplnit-wrap textarea { flex:1 1 auto; border:1px solid #9fb0c2; border-left:3px solid #1f6fc9; padding:6px 8px; font-family:inherit; font-size:14px; min-height:90px; resize:vertical; }
 </style>
 </head>
 <body>
@@ -107,6 +113,20 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- kontrola úplnosti podkladů (1. lhůta) -->
+    <div class="pod-kontrola">
+      <label><u>P</u>odklad</label>
+      <select id="podStav" onchange="podStavChange()">
+        <option value="">&lt;vyberte&gt;</option>
+        <option value="ok">OK</option>
+        <option value="neuplne">Neúplné</option>
+      </select>
+    </div>
+    <div class="doplnit-wrap" id="doplnitWrap" style="display:none">
+      <label>Doplnit</label>
+      <textarea id="doplnitText" placeholder="Popište, které podklady chybí / je třeba doplnit…" oninput="persistKontrola()"></textarea>
     </div>
 
     <!-- editor příspěvku za úsek PAK -->
@@ -211,12 +231,30 @@ function initEditor(){
     document.getElementById('ed-upozorneni').innerHTML = p.upozorneni || '<ul><li><br></li></ul>';
     document.getElementById('ed-negativni').innerHTML = p.negativni || '<ul><li><br></li></ul>';
   }
+  if(p && p.pod){ document.getElementById('podStav').value=p.pod; }
+  if(p && p.doplnit){ document.getElementById('doplnitText').value=p.doplnit; }
+  document.getElementById('doplnitWrap').style.display = (p && p.pod==='neuplne')?'flex':'none';
+}
+function podStavChange(){
+  var v=document.getElementById('podStav').value;
+  document.getElementById('doplnitWrap').style.display = (v==='neuplne')?'flex':'none';
+  persistKontrola();
+}
+function persistKontrola(){
+  var cur=loadState() || {};
+  cur.prisp = cur.prisp || {};
+  var p = cur.prisp.PAK || {};
+  p.pod = document.getElementById('podStav').value;
+  p.doplnit = document.getElementById('doplnitText').value;
+  cur.prisp.PAK = p;
+  saveState(cur);
 }
 function ulozit(){
   var sel=document.getElementById('edVz');
   if(sel.value==='<vyberte>'){ toast('Vyberte hodnotu „veřejné zájmy".'); return; }
   var cur=loadState() || {};
   cur.prisp = cur.prisp || {};
+  var prev = cur.prisp.PAK || {};
   cur.prisp.PAK = {
     vz: sel.value,
     zmoc: document.getElementById('edZmoc').value,
@@ -224,6 +262,8 @@ function ulozit(){
     oduvodneni: document.getElementById('ed-oduvodneni').innerHTML,
     upozorneni: document.getElementById('ed-upozorneni').innerHTML,
     negativni: document.getElementById('ed-negativni').innerHTML,
+    pod: document.getElementById('podStav').value || prev.pod || '',
+    doplnit: document.getElementById('doplnitText').value,
     hotovo: true
   };
   saveState(cur);

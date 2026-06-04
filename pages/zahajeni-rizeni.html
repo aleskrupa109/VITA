@@ -1094,6 +1094,13 @@ kvRenderSummary();
     <div class="m-foot"><div class="right"><button class="btn" onclick="closePrispevek()">OK</button></div></div>
   </div>
 </div>
+<div class="overlay" id="doplnitModal">
+  <div class="modal" style="width:760px;max-width:94vw">
+    <div class="m-title"><span id="dmTitle">Doplnění podkladů</span><div class="m-x" onclick="closeDoplnit()" title="Zavřít">&#10005;</div></div>
+    <div class="m-body" style="background:#fff"><div id="dmBody" style="font-size:14px;min-height:120px"></div></div>
+    <div class="m-foot"><div class="right"><button class="btn" onclick="closeDoplnit()">OK</button></div></div>
+  </div>
+</div>
 <div class="ctx-menu" id="ctxMenu"></div>
 <script>
 /* =================== Rozbalovací panely + role (přepracováno) =================== */
@@ -1277,12 +1284,16 @@ function renderPrisp(){
   var podDone   = fi>=3;   // kontrola úplnosti vyhodnocena
   var vyjVisible= fi>=4;   // zpracování vyjádření
 
+  var ov = (loadState()||{}).prisp || {};
+  function effPodOf(r){ var o=ov[r.usek]; return (o&&o.pod)?o.pod:(podDone?r.pod:(podPending?'ceka':'')); }
   var tb=document.getElementById('prispBody'); tb.innerHTML='';
   PRISP.forEach(function(r, idx){
+    var effPod = effPodOf(r);
     var vz=PVZ[r.vz||''];
     var prac = assigned ? (r.prac||'<span class="sub">nepřiděleno</span>') : '';
-    var pod  = podDone ? (r.pod==='ok'?'<span class="kv-pod-ok">OK</span>':'<span class="kv-pod-no">Neúplné</span>')
-             : podPending ? '<span class="kv-pod-wait">čeká</span>' : '';
+    var pod  = effPod==='ok' ? '<span class="kv-pod-ok">OK</span>'
+             : effPod==='neuplne' ? '<span class="kv-pod-no">Neúplné</span>'
+             : effPod==='ceka' ? '<span class="kv-pod-wait">čeká</span>' : '';
     var done = (vyjVisible && (r.stav==='vyrizeno'||r.stav==='fikce')) ? '✓' : '';
     var vzCell = vyjVisible ? '<span class="'+vz.cls+'">'+vz.txt+'</span>' : '';
     var ext = (vyjVisible && r.ext) ? '<span class="ext-flag">'+r.ext+'</span>' : '';
@@ -1296,13 +1307,13 @@ function renderPrisp(){
   });
 
   var total=PRISP.length, sumtxt;
+  var neup = PRISP.filter(function(r){ return effPodOf(r)==='neuplne'; });
   if(fi<=1) sumtxt = total+' úseků'+(fi===1?' · předáno koordinátorovi':' · nepřiděleno');
-  else if(fi===2) sumtxt = 'přiděleno '+total+' · kontrola úplnosti běží';
+  else if(fi===2) sumtxt = 'přiděleno '+total+' · kontrola úplnosti běží'+(neup.length?(' · neúplné '+neup.length):'');
   else {
     var doneN=PRISP.filter(function(r){return r.stav==='vyrizeno'||r.stav==='fikce';}).length;
-    var inc0=PRISP.filter(function(r){return r.pod==='neuplne';}).length;
     sumtxt = vyjVisible ? ('vyřízeno '+doneN+'/'+total) : ('přiděleno '+total+' · kontrola dokončena');
-    if(podDone && inc0) sumtxt += ' · neúplné podklady '+inc0;
+    if(neup.length) sumtxt += ' · neúplné podklady '+neup.length;
   }
   document.getElementById('sum-prisp').textContent = sumtxt;
 
@@ -1315,11 +1326,10 @@ function renderPrisp(){
   } else { tools.style.display='none'; tools.innerHTML=''; }
 
   var al=document.getElementById('prispAlert');
-  var inc=PRISP.filter(function(r){return r.pod==='neuplne';}).length;
   if(predState.prerus){
     al.style.display='flex'; al.innerHTML='Řízení přerušeno – vydána výzva k doplnění (vzor 3002). Po doplnění proběhne nová kontrola úplnosti.';
-  } else if(podDone && inc){
-    var us=PRISP.filter(function(r){return r.pod==='neuplne';}).map(function(r){return r.usek;}).join(', ');
+  } else if(neup.length){
+    var us=neup.map(function(r){return r.usek;}).join(', ');
     var btn=(uiRole==='uradnik')?'<button class="btn sm" onclick="prispVyzva()">Vydat výzvu k doplnění + přerušit řízení</button>':'<span class="sub">koordinátor konsoliduje a předá úředníkovi</span>';
     al.style.display='flex'; al.innerHTML='⚠ DO hlásí neúplné podklady (1. lhůta): <b>'+us+'</b>. '+btn;
   } else al.style.display='none';
@@ -1357,17 +1367,29 @@ const PODTEXT = {
 const VZ_OPTS = ['','nejsou dotčeny','nejsou dotčeny - podle zákona','jsou dotčeny - bez připomínek','jsou dotčeny - souhlas za podmínek','jsou dotčeny - nesouhlas'];
 
 function prispCtx(e, idx){
-  ctxAt(e, [
-    {t:'Příspěvek', fn:function(){ openPrispevek(idx); }},
-    {t:'Přidat úsek \u25B8', fn:function(){ toast('Přidat úsek – doplníme v dalším kroku.'); }},
-    {t:'Zprávy', fn:function(){ toast('Zprávy – doplníme v dalším kroku.'); }},
-    {sep:true},
-    {t:'Termín', fn:function(){ toast('Termín – doplníme v dalším kroku.'); }},
-    {sep:true},
-    {t:'Zrušit (Ctrl+Del)', fn:function(){ toast('Zrušit úsek – doplníme v dalším kroku.'); }},
-    {t:'Historie', fn:function(){ toast('Historie – doplníme v dalším kroku.'); }}
-  ]);
+  var r=PRISP[idx];
+  var ov=(loadState()||{}).prisp||{}; var o=ov[r.usek];
+  var items=[ {t:'Příspěvek', fn:function(){ openPrispevek(idx); }} ];
+  if(o && o.pod==='neuplne' && o.doplnit && (uiRole==='uradnik'||uiRole==='koordinator')){
+    items.push({t:'Doplnit (zobrazit)', fn:function(){ openDoplnit(idx); }});
+  }
+  items.push({t:'Přidat úsek \u25B8', fn:function(){ toast('Přidat úsek – doplníme v dalším kroku.'); }});
+  items.push({t:'Zprávy', fn:function(){ toast('Zprávy – doplníme v dalším kroku.'); }});
+  items.push({sep:true});
+  items.push({t:'Termín', fn:function(){ toast('Termín – doplníme v dalším kroku.'); }});
+  items.push({sep:true});
+  items.push({t:'Zrušit (Ctrl+Del)', fn:function(){ toast('Zrušit úsek – doplníme v dalším kroku.'); }});
+  items.push({t:'Historie', fn:function(){ toast('Historie – doplníme v dalším kroku.'); }});
+  ctxAt(e, items);
 }
+function openDoplnit(idx){
+  var r=PRISP[idx];
+  var ov=(loadState()||{}).prisp||{}; var o=ov[r.usek]||{};
+  document.getElementById('dmTitle').textContent='Doplnění podkladů — úsek '+r.usek;
+  document.getElementById('dmBody').innerHTML = (o.doplnit||'').trim() ? o.doplnit.replace(/\n/g,'<br>') : '<span class="sub">(bez textu)</span>';
+  document.getElementById('doplnitModal').classList.add('show');
+}
+function closeDoplnit(){ document.getElementById('doplnitModal').classList.remove('show'); }
 function openPrispevek(idx){
   var r=PRISP[idx]; pmRow=r;
   document.getElementById('pmUsek').textContent=r.usek;
