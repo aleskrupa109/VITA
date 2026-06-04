@@ -32,6 +32,27 @@
   .doplnit-wrap { display:flex; gap:10px; margin:0 0 12px; }
   .doplnit-wrap > label { font-weight:bold; color:#333; width:60px; flex:0 0 60px; padding-top:4px; }
   .doplnit-wrap textarea { flex:1 1 auto; border:1px solid #9fb0c2; border-left:3px solid #1f6fc9; padding:6px 8px; font-family:inherit; font-size:14px; min-height:90px; resize:vertical; }
+  /* ostatní přispěvatelé – read-only rozbalovací panely */
+  .others-head { font-weight:bold; color:#333; margin:18px 0 8px; padding-top:10px; border-top:2px solid #d8d8d8; }
+  .others-head .others-sub { font-weight:normal; color:#777; font-size:12px; }
+  .opanel { border:1px solid #c9c9c9; margin-bottom:6px; background:#fff; }
+  .op-bar { display:flex; align-items:center; background:#ececec; cursor:default; }
+  .op-bar:hover { background:#e4eef9; }
+  .op-usek { width:120px; flex:0 0 120px; text-align:center; padding:7px 4px; border-right:1px solid #c9c9c9; font-weight:bold; color:#1f4e88; background:#f4f4f4; }
+  .op-fill { flex:1 1 auto; align-self:stretch; }
+  .op-prac { flex:0 0 auto; padding:0 16px; color:#333; }
+  .opanel.open > .op-bar { display:none; }
+  .op-exp { display:none; align-items:stretch; }
+  .opanel.open > .op-exp { display:flex; }
+  .op-exp > .spine { flex:0 0 26px; cursor:default; }
+  .op-body { flex:1 1 auto; min-width:0; }
+  .op-fld { display:flex; align-items:center; gap:10px; padding:8px 12px; border-bottom:1px solid #e6e6e6; }
+  .op-fld > label { font-weight:bold; color:#333; }
+  .op-usek-lbl { font-weight:bold; color:#1f4e88; min-width:40px; }
+  .op-fld input[type=text] { flex:1 1 auto; }
+  .op-fld select { min-width:300px; }
+  .op-prac-r { margin-left:auto; color:#333; padding-left:12px; white-space:nowrap; }
+  .op-ro { background:#fcfcfc; min-height:150px; }
 </style>
 </head>
 <body>
@@ -158,6 +179,10 @@
       <span class="sub" id="edLockNote" style="display:none">Příspěvek byl vyřízen a odeslán koordinátorovi – nelze měnit. &nbsp;</span>
       <button class="btn" id="btnOdeslat" onclick="odeslat()">Uložit a odeslat vyjádření koordinátorovi</button>
     </div>
+
+    <!-- Další přispěvatelé (read-only) -->
+    <div class="others-head">Další <span class="others-sub">— příspěvky ostatních úseků (jen pro čtení; rozbalíte kliknutím)</span></div>
+    <div id="othersWrap"></div>
   </div>
 
   <div class="statusbar">
@@ -340,7 +365,76 @@ function zavritObrazovku(){
   }
 }
 
-renderPod(); initEditor();
+/* ===== Další přispěvatelé (read-only) ===== */
+var VZP={'':'<vyberte>','na':'nejsou dotčeny - podle zákona','ok':'jsou dotčeny - bez připomínek','cond':'jsou dotčeny - souhlas za podmínek','no':'jsou dotčeny - nesouhlas'};
+var OTHERS=[
+  {u:'OVZ',odbor:'Odbor ŽP — ochrana ovzduší',          p:'Dobisík Ondřej',      vz:'na'},
+  {u:'VOD',odbor:'Odbor ŽP — ochrana vod',              p:'Kozák Martin',        vz:''},
+  {u:'ZPF',odbor:'Odbor ŽP — ochrana ZPF',              p:'Herbrychová Jarmila', vz:'ok'},
+  {u:'LES',odbor:'Odbor ŽP — ochrana lesa',             p:'Herbrychová Jarmila', vz:'cond'},
+  {u:'ODP',odbor:'Odbor ŽP — odpadové hospodářství',    p:'Čížková Jiřina',      vz:''},
+  {u:'PAM',odbor:'Odbor památkové péče',                p:'Hynková Petra',       vz:''},
+  {u:'HYG',odbor:'Sam. odd. ochrany veř. zdraví',       p:'Marková Lucie',       vz:''},
+  {u:'PO', odbor:'Odbor požární ochrany',               p:'Horák Petr',          vz:'cond'},
+  {u:'DOP',odbor:'Odbor dopravy',                       p:'Krupa Aleš',          vz:''},
+  {u:'UUP',odbor:'Odbor územního plánování',            p:'Janovský Martin',     vz:'ok'}
+];
+var OSAMPLE={
+  LES:'Zásah do pozemků určených k plnění funkcí lesa bude omezen na nezbytný rozsah a předem projednán.',
+  PO:'Ke kolaudaci bude předložena zpráva o provedení a kontrole požárně bezpečnostních zařízení stavby.'
+};
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function rtToolbar(){
+  return '<div class="rt-toolbar" style="opacity:.7"><div class="rb" style="font-weight:bold">B</div><div class="rb" style="font-style:italic">I</div>'+
+    '<div class="rb" style="text-decoration:underline">U</div><div class="rb">A<sup>2</sup></div><div class="rb">A<sub>2</sub></div>'+
+    '<div class="rsep"></div><div class="rb">&#9986;</div><div class="rb">&#128203;</div><div class="rb">&#128204;</div></div>';
+}
+function renderOthers(){
+  var prispState=(loadState()||{}).prisp||{};
+  var wrap=document.getElementById('othersWrap'); wrap.innerHTML='';
+  OTHERS.forEach(function(o){
+    var saved=prispState[o.u]||null;
+    var vzPhrase=(saved && saved.vz && saved.vz!=='<vyberte>') ? saved.vz : VZP[o.vz];
+    var zmoc=(saved && saved.zmoc) ? saved.zmoc : '<vyberte>';
+    var panes={
+      podminky: (saved&&saved.podminky)?saved.podminky:(OSAMPLE[o.u]?'<ul><li>'+esc(OSAMPLE[o.u])+'</li></ul>':'<ul><li><br></li></ul>'),
+      oduvodneni:(saved&&saved.oduvodneni)?saved.oduvodneni:'<ul><li><br></li></ul>',
+      upozorneni:(saved&&saved.upozorneni)?saved.upozorneni:'<ul><li><br></li></ul>',
+      negativni:(saved&&saved.negativni)?saved.negativni:'<ul><li><br></li></ul>'
+    };
+    var html=''+
+      '<div class="opanel" id="op-'+o.u+'">'+
+        '<div class="op-bar" onclick="opToggle(\''+o.u+'\')"><div class="op-usek">'+o.u+'</div><div class="op-fill"></div><div class="op-prac">'+o.p+'</div></div>'+
+        '<div class="op-exp">'+
+          '<div class="spine" onclick="opToggle(\''+o.u+'\')"><span>'+o.u+'</span></div>'+
+          '<div class="op-body">'+
+            '<div class="op-fld"><label>Zmocnění</label><input type="text" value="'+esc(zmoc)+'" readonly></div>'+
+            '<div class="op-fld"><span class="op-usek-lbl">'+o.u+'</span><label>veřejné zájmy</label>'+
+              '<select disabled><option>'+esc(vzPhrase)+'</option></select><span class="op-prac-r">'+o.p+'</span></div>'+
+            '<div class="htabs" id="opTabs-'+o.u+'">'+
+              '<div class="htab active" data-pt="podminky" onclick="opTab(\''+o.u+'\',\'podminky\')">Podmínky</div>'+
+              '<div class="htab" data-pt="oduvodneni" onclick="opTab(\''+o.u+'\',\'oduvodneni\')">Odůvodnění</div>'+
+              '<div class="htab" data-pt="upozorneni" onclick="opTab(\''+o.u+'\',\'upozorneni\')">Upozornění</div>'+
+              '<div class="htab" data-pt="negativni" onclick="opTab(\''+o.u+'\',\'negativni\')">Negativní - důvody</div>'+
+            '</div>'+
+            rtToolbar()+
+            '<div class="rt-area op-ro" id="op-'+o.u+'-podminky">'+panes.podminky+'</div>'+
+            '<div class="rt-area op-ro" id="op-'+o.u+'-oduvodneni" style="display:none">'+panes.oduvodneni+'</div>'+
+            '<div class="rt-area op-ro" id="op-'+o.u+'-upozorneni" style="display:none">'+panes.upozorneni+'</div>'+
+            '<div class="rt-area op-ro" id="op-'+o.u+'-negativni" style="display:none">'+panes.negativni+'</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    wrap.insertAdjacentHTML('beforeend', html);
+  });
+}
+function opToggle(u){ var el=document.getElementById('op-'+u); if(el) el.classList.toggle('open'); }
+function opTab(u,name){
+  document.querySelectorAll('#opTabs-'+u+' .htab').forEach(function(t){ t.classList.toggle('active', t.dataset.pt===name); });
+  ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ document.getElementById('op-'+u+'-'+n).style.display=(n===name)?'block':'none'; });
+}
+
+renderPod(); initEditor(); renderOthers();
 </script>
 </body>
 </html>
