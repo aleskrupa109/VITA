@@ -319,7 +319,12 @@ function saveForm(status){
   if(status==='vyrizeno'){ p.vyrizeno=true; p.rozprac=false; p.hotovo=true; }
   else if(status==='rozprac'){ p.rozprac=true; p.vyrizeno=false; p.hotovo=false; }
   cur.prisp.PAK = p;
+  // PRO DEMO: výsledek z PAK okamžitě replikujeme do všech ostatních úseků (stejné stavy i texty)
+  ['OVZ','VOD','ZPF','LES','ODP','PAM','HYG','PO','DOP','UUP'].forEach(function(u){
+    cur.prisp[u] = JSON.parse(JSON.stringify(p));
+  });
   saveState(cur);
+  if(document.getElementById('othersWrap')) renderOthers();
 }
 function ulozitWip(){ saveForm('rozprac'); toast('Rozpracovaný příspěvek uložen.'); }
 function odeslat(){
