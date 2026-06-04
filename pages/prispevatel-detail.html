@@ -74,7 +74,7 @@
 
   <div class="panel-head">
     <div class="ph-title">Příspěvek do koordinovaného vyjádření — úsek PAK</div>
-    <div class="ph-close" title="Zpět na přehled" onclick="location.href='prispevatel.html'">&#10005;</div>
+    <div class="ph-close" title="Zavřít okno" onclick="zavritObrazovku()">&#10005;</div>
   </div>
 
   <div class="pd-area">
@@ -126,7 +126,7 @@
     </div>
     <div class="doplnit-wrap" id="doplnitWrap" style="display:none">
       <label>Doplnit</label>
-      <textarea id="doplnitText" placeholder="Popište, které podklady chybí / je třeba doplnit…" oninput="persistKontrola()"></textarea>
+      <textarea id="doplnitText" placeholder="Popište, které podklady chybí / je třeba doplnit…"></textarea>
     </div>
 
     <!-- editor příspěvku za úsek PAK -->
@@ -170,6 +170,17 @@
   </div>
 </div>
 
+<div class="overlay" id="confirmDlg">
+  <div class="msgbox">
+    <div class="mb-title"><span>Správní úřad VITA software</span><div class="mb-x" onclick="cfStorno()" title="Storno">&#10005;</div></div>
+    <div class="mb-body"><div class="mb-icon">?</div><div class="mb-text" id="cfText">Potvrdit stav podkladů?</div></div>
+    <div class="mb-foot">
+      <button class="btn mb-btn" onclick="cfAno()"><u>A</u>no</button>
+      <button class="btn mb-btn" onclick="cfNe()"><u>N</u>e</button>
+      <button class="btn mb-btn" onclick="cfStorno()">Storno</button>
+    </div>
+  </div>
+</div>
 <div class="ctx-menu" id="ctxMenu"></div>
 <div class="toast" id="toast"></div>
 <script src="../assets/js/vita.js"></script>
@@ -238,36 +249,51 @@ function initEditor(){
 function podStavChange(){
   var v=document.getElementById('podStav').value;
   document.getElementById('doplnitWrap').style.display = (v==='neuplne')?'flex':'none';
-  persistKontrola();
 }
-function persistKontrola(){
+/* uloží aktuální stav formuláře (kontrola podkladů vždy; vyjádření, pokud je vyplněné) */
+function persistAll(){
   var cur=loadState() || {};
   cur.prisp = cur.prisp || {};
   var p = cur.prisp.PAK || {};
   p.pod = document.getElementById('podStav').value;
   p.doplnit = document.getElementById('doplnitText').value;
+  var vz=document.getElementById('edVz').value;
+  if(vz!=='<vyberte>'){
+    p.vz=vz;
+    p.zmoc=document.getElementById('edZmoc').value;
+    p.podminky=document.getElementById('ed-podminky').innerHTML;
+    p.oduvodneni=document.getElementById('ed-oduvodneni').innerHTML;
+    p.upozorneni=document.getElementById('ed-upozorneni').innerHTML;
+    p.negativni=document.getElementById('ed-negativni').innerHTML;
+    p.hotovo=true;
+  }
   cur.prisp.PAK = p;
   saveState(cur);
 }
 function ulozit(){
   var sel=document.getElementById('edVz');
   if(sel.value==='<vyberte>'){ toast('Vyberte hodnotu „veřejné zájmy".'); return; }
-  var cur=loadState() || {};
-  cur.prisp = cur.prisp || {};
-  var prev = cur.prisp.PAK || {};
-  cur.prisp.PAK = {
-    vz: sel.value,
-    zmoc: document.getElementById('edZmoc').value,
-    podminky: document.getElementById('ed-podminky').innerHTML,
-    oduvodneni: document.getElementById('ed-oduvodneni').innerHTML,
-    upozorneni: document.getElementById('ed-upozorneni').innerHTML,
-    negativni: document.getElementById('ed-negativni').innerHTML,
-    pod: document.getElementById('podStav').value || prev.pod || '',
-    doplnit: document.getElementById('doplnitText').value,
-    hotovo: true
-  };
-  saveState(cur);
+  persistAll();
   toast('Vyjádření za úsek PAK uloženo a odesláno koordinátorovi.');
+}
+
+/* ===== VITA potvrzovací dialog (Ano / Ne / Storno) ===== */
+var cfAnoFn=null, cfNeFn=null;
+function vitaConfirm(text, onAno, onNe){
+  document.getElementById('cfText').textContent=text;
+  cfAnoFn=onAno||null; cfNeFn=onNe||null;
+  document.getElementById('confirmDlg').classList.add('show');
+}
+function cfStorno(){ document.getElementById('confirmDlg').classList.remove('show'); }
+function cfAno(){ cfStorno(); if(cfAnoFn) cfAnoFn(); }
+function cfNe(){ cfStorno(); if(cfNeFn) cfNeFn(); }
+
+/* křížek okna – jako ve VITA: zavřít okno → dotaz na uložení → zpět na přehled */
+function zavritObrazovku(){
+  vitaConfirm('Potvrdit stav podkladů?',
+    function(){ persistAll(); location.href='prispevatel.html'; },   // Ano = uložit a zavřít
+    function(){ location.href='prispevatel.html'; }                  // Ne = zavřít bez uložení
+  );                                                                  // Storno = zůstat
 }
 
 renderPod(); initEditor();
