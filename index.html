@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stavební úřad – VITA (mockup)</title>
 <link rel="stylesheet" href="assets/css/vita.css">
+<style>
+  .wl-head { padding:8px 4px 6px; font-size:13px; color:#333; }
+  table.grid.wl tbody tr.active { cursor:pointer; }
+  table.grid.wl tbody tr.active:hover { background:#eef5fd; }
+  table.grid.wl tbody tr.inactive td { color:#999; }
+  .wl-stav-k { color:#1f4e88; font-weight:bold; }
+  .wl-stav-x { color:#666; }
+  .wl-stav-w { color:#8a5a00; }
+  .wl-stav-ok { color:#1c7a3a; font-weight:bold; }
+</style>
 </head>
 <body>
 <div class="app-window">
@@ -51,18 +61,22 @@
   <!-- OBSAH -->
   <div class="home-area">
 
-    <!-- výchozí prázdný seznam -->
+    <!-- seznam řízení úředníka -->
     <div id="viewHome">
-      <div class="home-list">
-        <div class="hl-head">
-          <div class="hl-col col-spis">Spis. zn.</div>
-          <div class="hl-col col-zprava">Zpráva</div>
-          <div class="hl-col col-rest"></div>
-        </div>
-        <div class="hl-body">Seznam neobsahuje žádné záznamy</div>
-      </div>
-      <div style="padding:10px 4px;font-size:13px"><a href="pages/koordinator.html" style="color:#1f4e88">→ Pohled koordinátora (přehled řízení k mé koordinaci)</a></div>
-      <div style="padding:0 4px 10px;font-size:13px"><a href="pages/prispevatel.html" style="color:#1f4e88">→ Pohled přispěvatele (PAK – Ondřej Dobisík)</a></div>
+      <div class="wl-head">Přihlášen: <b>Krupa Aleš</b> — Oddělení staveb drah. Klikněte na řízení pro otevření.</div>
+      <table class="grid wl">
+        <thead><tr>
+          <th style="width:90px">Č. spisu</th>
+          <th style="width:60px">Prac.</th>
+          <th style="min-width:150px">Žadatel / povinný</th>
+          <th style="min-width:300px">Název</th>
+          <th style="width:90px">Typ</th>
+          <th style="width:170px">Stav</th>
+          <th style="width:100px">Zahájení</th>
+          <th style="width:120px">Termín vyřízení</th>
+        </tr></thead>
+        <tbody id="wlBody"></tbody>
+      </table>
     </div>
 
     <!-- Došlá pošta (Pošta → Došlá pošta) -->
@@ -142,7 +156,7 @@
 
   <!-- STATUS BAR -->
   <div class="statusbar">
-    <div class="sb-left">Stavební úřad - VITA software</div>
+    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select onchange="vitaRoleSwitch(this.value)"><option value="uradnik" selected>Stavební úředník</option><option value="koordinator">Koordinátor</option><option value="prispevatel">Přispěvatel (PAK)</option></select></span></div>
     <div class="sb-right">
       <span>5.3.0.33</span>
       <span id="clock">9:05:40</span>
@@ -249,6 +263,38 @@ function ctxAction(name){
   }
   toast('„'+name+'" – v mockupu zatím nepodporováno.');
 }
+
+// --- seznam řízení úředníka ---
+function kvFaze(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return (JSON.parse(s).faze)||'zalozeno'; } }catch(e){} return 'zalozeno'; }
+function uStav(){
+  var f=kvFaze();
+  if(f==='predano')   return ['předáno koordinátorovi','wl-stav-w'];
+  if(f==='prideleno' || f==='kontrola') return ['u dotčených orgánů','wl-stav-w'];
+  if(f==='vyjadreni') return ['vyjádření DO – ke zpracování','wl-stav-k'];
+  return ['k vyřízení','wl-stav-k'];
+}
+var URZ=[
+  {aktiv:true,  sp:'013304/26', zad:'ALMANI s.r.o.',   nazev:'Povolení záměru - testovací zpráva mail 14.5.26', typ:'KSVZ 6.3.1', zah:'14.5.2026', termin:'13.7.2026'},
+  {aktiv:false, sp:'000205/25',  zad:'STEHLÍKOVÁ EVA',  nazev:'Test 21/08 - 1',                                  typ:'KSVZ 6.3.1', stav:'vyřízeno',            zah:'20.8.2025', termin:'19.9.2025'},
+  {aktiv:false, sp:'001775/25',  zad:'ALMANI s.r.o.',   nazev:'Výstavba PZS v km 5,8 trati 340',                 typ:'KSVZ 6.3.1', stav:'u dotčených orgánů',  zah:'17.1.2025', termin:'16.2.2025'},
+  {aktiv:false, sp:'000225/25',  zad:'—',               nazev:'Žádost postoupení AK',                            typ:'KSVZ 6.3.1', stav:'k vyřízení',          zah:'2.9.2025',  termin:'2.10.2025'}
+];
+function renderUrz(){
+  var tb=document.getElementById('wlBody'); if(!tb) return; tb.innerHTML='';
+  URZ.forEach(function(r){
+    var tr=document.createElement('tr');
+    if(r.aktiv){
+      var s=uStav(); tr.className='active';
+      tr.onclick=function(){ location.href='pages/zahajeni-rizeni.html?role=uradnik&cj=DESU/'+r.sp+'&vec='+encodeURIComponent(r.nazev); };
+      tr.innerHTML='<td><b>'+r.sp+'</b></td><td>AlKr</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td><td><span class="'+s[1]+'">'+s[0]+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
+    } else {
+      tr.className='inactive';
+      tr.innerHTML='<td>'+r.sp+'</td><td>AlKr</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td><td><span class="wl-stav-x">'+r.stav+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
+    }
+    tb.appendChild(tr);
+  });
+}
+renderUrz();
 
 // zavření menu klikem mimo / klávesou Esc
 document.addEventListener('click', closeMenus);
