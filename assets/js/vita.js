@@ -44,3 +44,12 @@ function vitaHomeHref(){
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindLogo);
   else bindLogo();
 })();
+
+/* ===== Globální přepínač rolí: přepne na landing page dané role ===== */
+function vitaRoleSwitch(role){
+  var inPages = /\/pages\//.test(location.pathname);
+  var map = inPages
+    ? { uradnik:'../index.html', koordinator:'koordinator.html', prispevatel:'prispevatel.html' }
+    : { uradnik:'index.html', koordinator:'pages/koordinator.html', prispevatel:'pages/prispevatel.html' };
+  if(map[role]) location.href = map[role];
+}
