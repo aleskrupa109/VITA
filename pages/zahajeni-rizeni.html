@@ -258,7 +258,7 @@
 
   <!-- STATUS BAR -->
   <div class="statusbar">
-    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select id="roleSel" onchange="setRole(this.value)"><option value="uradnik">Stavební úředník</option><option value="koordinator">Koordinátor DO</option><option value="do">Přispěvatel (DO)</option></select></span></div>
+    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select id="roleSel" onchange="vitaRoleSwitch(this.value)"><option value="uradnik">Stavební úředník</option><option value="koordinator">Koordinátor</option><option value="prispevatel">Přispěvatel (PAK)</option></select></span></div>
     <div class="sb-right">
       <span>5.3.0.33</span>
       <span id="clock">20:40:54</span>
@@ -1451,7 +1451,7 @@ function pmTabText(r, tab){
   if(st && st.podRows && st.podRows.length && !podRows.length){ podRows=st.podRows; }
   if(rp==='koordinator' || rp==='do'){
     uiRole=rp;
-    var sel=document.getElementById('roleSel'); if(sel) sel.value=rp;
+    var sel=document.getElementById('roleSel'); if(sel) sel.value=(rp==='koordinator')?'koordinator':'prispevatel';
   }
   if(uiRole==='koordinator'){
     var rb=document.getElementById('rizeniBody'); rb.style.display='block'; rb.classList.add('ro-mode');
@@ -1460,6 +1460,15 @@ function pmTabText(r, tab){
     if(!podRows.length) podRows=[{f:'o4_Zadost_platnost_povoleni.pdf'},{f:'o6_Priloha_zadosti_-_projednani_s_DO.pdf'},{f:'o8_Zadost_pripojeni_10.pdf'},{f:'o10_Ucastnici_rizeni_vse.pdf'}];
     var tf=document.getElementById('typField'); if(tf) tf.value='KSVZ 6.3.1 – Stavební záměr';
     var pt=document.querySelector('.panel-head .ph-title'); if(pt) pt.textContent='Koordinované vyjádření';
+  }
+  if(rp==='uradnik'){
+    // úředník otevírá založené řízení ze svého přehledu (editovatelně)
+    var rbu=document.getElementById('rizeniBody'); if(rbu) rbu.style.display='block';
+    if(st && st.faze){ faze=st.faze; }
+    predState.handed = (['predano','prideleno','kontrola','vyjadreni'].indexOf(faze)>=0);
+    if(predState.handed) predState.coord=(st&&st.coord)||'Ing. Pavla Nováková';
+    if(!podRows.length && st && st.podRows && st.podRows.length) podRows=st.podRows;
+    var tfu=document.getElementById('typField'); if(tfu) tfu.value='KSVZ 6.3.1 – Stavební záměr';
   }
   renderPod(); renderKoordBar(); renderDoPanel(); renderPrisp();
 })();
