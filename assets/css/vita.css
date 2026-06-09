@@ -561,3 +561,12 @@
   .msgbox .mb-text { font-size:15px; color:#000; }
   .msgbox .mb-foot { display:flex; justify-content:center; gap:14px; padding:12px; background:#f0f0f0; }
   .msgbox .mb-btn { min-width:84px; min-height:26px; }
+
+  /* varianta message-boxu se stohovanými tlačítky, vystředěná (Uložit? …) */
+  .msgbox.mb-stack { width:300px; }
+  .msgbox .mb-title-green { background:#e9f3e9; }
+  .msgbox .mb-logo { width:16px; height:16px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #cfe0f5, #2f5a8a); margin-right:8px; flex:0 0 auto; }
+  .msgbox .mb-foot-col { display:flex; flex-direction:column; align-items:stretch; gap:8px; padding:18px 22px; background:#f0f0f0; }
+  .msgbox .mb-btn-wide { width:100%; min-height:32px; text-align:center; justify-content:center; }
+  .msgbox .mb-btn-wide.is-default { outline:1px dotted #555; outline-offset:-4px; }
+  .msgbox .mb-gap { height:12px; }
