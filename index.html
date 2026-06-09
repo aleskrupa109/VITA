@@ -266,7 +266,9 @@ function ctxAction(name){
 
 // --- seznam řízení úředníka ---
 function kvFaze(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return (JSON.parse(s).faze)||'zalozeno'; } }catch(e){} return 'zalozeno'; }
+function kvPrerus(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return !!JSON.parse(s).prerus; } }catch(e){} return false; }
 function uStav(){
+  if(kvPrerus()) return ['výzva','wl-stav-w'];
   var f=kvFaze();
   if(f==='predano')   return ['předáno koordinátorovi','wl-stav-w'];
   if(f==='prideleno' || f==='kontrola') return ['u dotčených orgánů','wl-stav-w'];
