@@ -49,8 +49,8 @@ function vitaHomeHref(){
 function vitaRoleSwitch(role){
   var inPages = /\/pages\//.test(location.pathname);
   var map = inPages
-    ? { uradnik:'../index.html', koordinator:'koordinator.html', prispevatel:'prispevatel.html' }
-    : { uradnik:'index.html', koordinator:'pages/koordinator.html', prispevatel:'pages/prispevatel.html' };
+    ? { uradnik:'../index.html', koordinator:'koordinator.html', prispevatel:'prispevatel.html', prispevatel2:'prispevatel2.html' }
+    : { uradnik:'index.html', koordinator:'pages/koordinator.html', prispevatel:'pages/prispevatel.html', prispevatel2:'pages/prispevatel2.html' };
   if(map[role]) location.href = map[role];
 }
 
