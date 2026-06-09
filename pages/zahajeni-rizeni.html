@@ -1311,11 +1311,14 @@ function renderPrisp(){
 
   var total=PRISP.length, sumtxt;
   var neup = PRISP.filter(function(r){ return effPodOf(r)==='neuplne'; });
+  var okN  = PRISP.filter(function(r){ return effPodOf(r)==='ok'; }).length;
   var doneN = PRISP.filter(function(r){ var o=ov[r.usek]; return (o&&o.vyrizeno) || (vyjVisible&&(r.stav==='vyrizeno'||r.stav==='fikce')); }).length;
   if(fi<=1) sumtxt = total+' úseků'+(fi===1?' · předáno koordinátorovi':' · nepřiděleno');
   else if(doneN>0) sumtxt = 'vyřízeno '+doneN+'/'+total + (neup.length?(' · neúplné '+neup.length):'');
-  else if(fi===2) sumtxt = 'přiděleno '+total+' · kontrola úplnosti běží'+(neup.length?(' · neúplné '+neup.length):'');
-  else sumtxt = 'přiděleno '+total+' · kontrola dokončena'+(neup.length?(' · neúplné podklady '+neup.length):'');
+  else if(neup.length) sumtxt = 'přiděleno '+total+' · neúplné ('+neup.length+')';
+  else if(okN>0) sumtxt = 'přiděleno '+total+' · kontrola podkladů OK';
+  else if(fi===2) sumtxt = 'přiděleno '+total+' · kontrola úplnosti běží';
+  else sumtxt = 'přiděleno '+total+' · kontrola dokončena';
   document.getElementById('sum-prisp').textContent = sumtxt;
 
   var tools=document.getElementById('prispTools');
