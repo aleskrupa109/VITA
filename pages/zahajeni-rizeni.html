@@ -1326,6 +1326,22 @@ const PVZ = {
   ok:{cls:'vz-ok',txt:'jsou dotčeny - bez připomínek'}, cond:{cls:'vz-cond',txt:'jsou dotčeny - souhlas za podmínek'},
   no:{cls:'vz-no',txt:'jsou dotčeny - nesouhlas'}
 };
+// --- MVP1: lhůty + urgence (koordinátor) ---
+function _pcz(s){ var a=String(s).split('.'); return new Date(+a[2], +a[1]-1, +a[0]); }
+function _fcz(d){ return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear(); }
+function _add(d,n){ var x=new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
+var DNES_BASE=_pcz('9.6.2026'), TERMIN_BASE=_pcz('13.6.2026');
+var KVSIM=0;
+function _diffUsek(o){ var plus=(o&&o.terminPlus)||0; var term=_add(TERMIN_BASE,plus); var dnes=_add(DNES_BASE,KVSIM); return Math.round((term-dnes)/86400000); }
+function lhutaCell(o){
+  if(o && o.fikce) return '<span class="sub">fikce souhlasu</span>';
+  if(o && o.vyrizeno) return '<span class="kv-pod-ok">vyřízeno</span>';
+  var plus=(o&&o.terminPlus)||0; var term=_add(TERMIN_BASE,plus);
+  var diff=_diffUsek(o);
+  var urg=(o&&o.urg)?(' <span class="sub">· urgováno '+o.urg+'×</span>'):'';
+  if(diff>=0) return 'do '+_fcz(term)+' <span class="sub">· zbývá '+diff+' dní</span>'+urg;
+  return '<span class="kv-pod-no">po termínu ('+(-diff)+' dní)</span>'+urg;
+}
 function renderPrisp(){
   var fOrder=['zalozeno','predano','prideleno','kontrola','vyjadreni'];
   var fi=fOrder.indexOf(faze);
@@ -1334,8 +1350,12 @@ function renderPrisp(){
   var podDone   = fi>=3;   // kontrola úplnosti vyhodnocena
   var vyjVisible= fi>=4;   // zpracování vyjádření
 
-  var ov = (loadState()||{}).prisp || {};
+  var stAll = loadState()||{};
+  var ov = stAll.prisp || {};
+  KVSIM = stAll.simDays || 0;
   function effPodOf(r){ var o=ov[r.usek]; return (o&&o.pod)?o.pod:(podDone?r.pod:(podPending?'ceka':'')); }
+  function isDone(r){ var o=ov[r.usek]; return (o&&(o.vyrizeno||o.fikce)) || (vyjVisible&&(r.stav==='vyrizeno'||r.stav==='fikce')); }
+  function isOverdue(r){ var o=ov[r.usek]; return !isDone(r) && _diffUsek(o)<0; }
   var tb=document.getElementById('prispBody'); tb.innerHTML='';
   PRISP.forEach(function(r, idx){
     var effPod = effPodOf(r);
@@ -1345,9 +1365,11 @@ function renderPrisp(){
     var pod  = effPod==='ok' ? '<span class="kv-pod-ok">OK</span>'
              : effPod==='neuplne' ? '<span class="kv-pod-no">Neúplné</span>'
              : effPod==='ceka' ? '<span class="kv-pod-wait">čeká</span>' : '';
-    var done = ((o&&o.vyrizeno) || (vyjVisible && (r.stav==='vyrizeno'||r.stav==='fikce'))) ? '✓' : '';
+    var fikce = o && o.fikce;
+    var done = (fikce || (o&&o.vyrizeno) || (vyjVisible && (r.stav==='vyrizeno'||r.stav==='fikce'))) ? '✓' : '';
     var vzCell;
-    if(o && o.vyrizeno && o.vz && o.vz!=='<vyberte>') vzCell='<span>'+o.vz+'</span>';
+    if(fikce) vzCell='<span class="sub">nevydáno – fikce souhlasu</span>';
+    else if(o && o.vyrizeno && o.vz && o.vz!=='<vyberte>') vzCell='<span>'+o.vz+'</span>';
     else vzCell = vyjVisible ? '<span class="'+vz.cls+'">'+vz.txt+'</span>' : '';
     var edf=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:'',zdu:''};
     var em=(o&&o.extMode)?o.extMode:edf.mode;
@@ -1359,7 +1381,7 @@ function renderPrisp(){
     tr.oncontextmenu=function(e){ prispCtx(e, idx); };
     tr.ondblclick=function(){ openPrispevek(idx); };
     tr.innerHTML='<td><b>'+r.usek+'</b></td><td>'+r.odbor+'</td><td>'+prac+'</td>'+
-      '<td>'+pod+'</td><td>13.6.2026</td><td style="text-align:center">'+done+'</td>'+
+      '<td>'+pod+'</td><td>'+lhutaCell(o)+'</td><td style="text-align:center">'+done+'</td>'+
       '<td>'+vzCell+'</td><td>'+ext+'</td>';
     tb.appendChild(tr);
   });
@@ -1367,7 +1389,7 @@ function renderPrisp(){
   var total=PRISP.length, sumtxt;
   var neup = PRISP.filter(function(r){ return effPodOf(r)==='neuplne'; });
   var okN  = PRISP.filter(function(r){ return effPodOf(r)==='ok'; }).length;
-  var doneN = PRISP.filter(function(r){ var o=ov[r.usek]; return (o&&o.vyrizeno) || (vyjVisible&&(r.stav==='vyrizeno'||r.stav==='fikce')); }).length;
+  var doneN = PRISP.filter(function(r){ var o=ov[r.usek]; return (o&&(o.vyrizeno||o.fikce)) || (vyjVisible&&(r.stav==='vyrizeno'||r.stav==='fikce')); }).length;
   if(fi<=1) sumtxt = total+' úseků'+(fi===1?' · předáno koordinátorovi':' · nepřiděleno');
   else if(doneN>0) sumtxt = 'vyřízeno '+doneN+'/'+total + (neup.length?(' · neúplné '+neup.length):'');
   else if(neup.length) sumtxt = 'přiděleno '+total+' · neúplné ('+neup.length+')';
@@ -1381,7 +1403,16 @@ function renderPrisp(){
     tools.style.display='block';
     if(faze==='zalozeno') tools.innerHTML='<span class="sub">Řízení vám zatím nebylo předáno stavebním úředníkem.</span>';
     else if(faze==='predano') tools.innerHTML='<span class="sub">Převezměte řízení a předejte všem integrovaným DO tlačítkem ve stavové liště nahoře.</span>';
-    else tools.innerHTML='<span class="sub">Přiděleno. Běží kontrola úplnosti (1. lhůta). Další nástroje (urgovat, vypořádat rozpor, sestavit koordinované vyjádření) doplníme v dalším kroku.</span>';
+    else {
+      var nevyr=0, poterm=0;
+      PRISP.forEach(function(r){ if(!isDone(r)){ nevyr++; if(isOverdue(r)) poterm++; } });
+      var s='Sběr vyjádření: vyřízeno '+doneN+'/'+total+' · nevyřízeno '+nevyr;
+      if(poterm) s+=' · <span class="kv-pod-no">po termínu '+poterm+'</span>';
+      s+=' &nbsp; <button class="btn sm" onclick="urgovatVse()"'+(nevyr?'':' disabled')+'>Urgovat nevyřízené</button>';
+      s+=' <button class="btn sm" onclick="simPosun()">Posunout lhůtu +7 dní (simulace)</button>';
+      if(KVSIM) s+=' <span class="sub">simulace: dnes '+_fcz(_add(DNES_BASE,KVSIM))+'</span> <button class="btn sm" onclick="simReset()">zpět</button>';
+      tools.innerHTML=s;
+    }
   } else { tools.style.display='none'; tools.innerHTML=''; }
 
   var al=document.getElementById('prispAlert');
@@ -1529,6 +1560,13 @@ function prispCtx(e, idx){
   if((em==='externi'||em==='oba') && ez && (uiRole==='uradnik'||uiRole==='koordinator')){
     items.push({t:'Externí DO – zdůvodnění', fn:function(){ openExtZdu(idx); }});
   }
+  if(uiRole==='koordinator' && !(o&&(o.vyrizeno||o.fikce))){
+    var overdue = _diffUsek(o)<0;
+    items.push({sep:true});
+    items.push({t:'Urgovat', fn:function(){ urgovat(r.usek); }});
+    items.push({t:'Prodloužit termín o 14 dní', fn:function(){ prodlouzit(r.usek); }});
+    if(overdue) items.push({t:'Označit fikci souhlasu', fn:function(){ oznacitFikci(r.usek); }});
+  }
   items.push({t:'Přidat úsek \u25B8', fn:function(){ toast('Přidat úsek – doplníme v dalším kroku.'); }});
   items.push({t:'Zprávy', fn:function(){ toast('Zprávy – doplníme v dalším kroku.'); }});
   items.push({sep:true});
@@ -1537,6 +1575,43 @@ function prispCtx(e, idx){
   items.push({t:'Zrušit (Ctrl+Del)', fn:function(){ toast('Zrušit úsek – doplníme v dalším kroku.'); }});
   items.push({t:'Historie', fn:function(){ toast('Historie – doplníme v dalším kroku.'); }});
   ctxAt(e, items);
+}
+// --- MVP1: zápis do sdíleného stavu (urgence / lhůty / fikce / simulace) ---
+function kvPatchUsek(usek, fn){
+  var s=loadState()||{}; s.prisp=s.prisp||{}; var p=s.prisp[usek]||{}; fn(p); s.prisp[usek]=p;
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){}
+}
+function urgovat(usek){
+  kvPatchUsek(usek, function(p){ p.urg=(p.urg||0)+1; });
+  toast('Urgováno: '+usek+' – výzva přispěvateli odeslána (zapsáno do historie).');
+  renderPrisp();
+}
+function urgovatVse(){
+  var ov=(loadState()||{}).prisp||{}, n=0;
+  PRISP.forEach(function(r){ var o=ov[r.usek]; if(!(o&&(o.vyrizeno||o.fikce))){ kvPatchUsek(r.usek, function(p){ p.urg=(p.urg||0)+1; }); n++; } });
+  toast(n? ('Urgováno nevyřízených úseků: '+n+'.') : 'Žádné nevyřízené úseky k urgenci.');
+  renderPrisp();
+}
+function prodlouzit(usek){
+  kvPatchUsek(usek, function(p){ p.terminPlus=(p.terminPlus||0)+14; });
+  toast('Termín úseku '+usek+' prodloužen o 14 dní.');
+  renderPrisp();
+}
+function oznacitFikci(usek){
+  // EIA / ZS je z fikce vyloučena (v této sadě úseků se nevyskytuje)
+  kvPatchUsek(usek, function(p){ p.fikce=true; });
+  toast('Úsek '+usek+': marné uplynutí lhůty – nastupuje fikce souhlasu (mimo EIA).');
+  renderPrisp();
+}
+function simPosun(){
+  var s=loadState()||{}; s.simDays=(s.simDays||0)+7;
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){}
+  renderPrisp();
+}
+function simReset(){
+  var s=loadState()||{}; s.simDays=0;
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){}
+  renderPrisp();
 }
 function openDoplnit(idx){
   var r=PRISP[idx];
