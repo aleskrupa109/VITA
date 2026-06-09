@@ -570,3 +570,25 @@
   .msgbox .mb-btn-wide { width:100%; min-height:32px; text-align:center; justify-content:center; }
   .msgbox .mb-btn-wide.is-default { outline:1px dotted #555; outline-offset:-4px; }
   .msgbox .mb-gap { height:12px; }
+
+/* ===== Příspěvky – sbalené read-only panely (koordinátor i přispěvatel) ===== */
+.others-head { font-weight:bold; color:#333; margin:14px 0 8px; padding-top:10px; border-top:2px solid #d8d8d8; }
+.others-head .others-sub { font-weight:normal; color:#777; font-size:12px; }
+.opanel { border:1px solid #c9c9c9; margin-bottom:6px; background:#fff; }
+.op-bar { display:flex; align-items:center; background:#ececec; cursor:default; }
+.op-bar:hover { background:#e4eef9; }
+.op-usek { width:120px; flex:0 0 120px; text-align:center; padding:7px 4px; border-right:1px solid #c9c9c9; font-weight:bold; color:#1f4e88; background:#f4f4f4; }
+.op-fill { flex:1 1 auto; align-self:stretch; }
+.op-prac { flex:0 0 auto; padding:0 16px; color:#333; }
+.opanel.open > .op-bar { display:none; }
+.op-exp { display:none; align-items:stretch; }
+.opanel.open > .op-exp { display:flex; }
+.op-exp > .spine { flex:0 0 26px; cursor:default; }
+.op-body { flex:1 1 auto; min-width:0; }
+.op-fld { display:flex; align-items:center; gap:10px; padding:8px 12px; border-bottom:1px solid #e6e6e6; }
+.op-fld > label { font-weight:bold; color:#333; }
+.op-usek-lbl { font-weight:bold; color:#1f4e88; min-width:40px; }
+.op-fld input[type=text] { flex:1 1 auto; }
+.op-fld select { min-width:300px; }
+.op-prac-r { margin-left:auto; color:#333; padding-left:12px; white-space:nowrap; }
+.op-ro { background:#fcfcfc; min-height:120px; }
