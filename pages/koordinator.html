@@ -78,7 +78,7 @@
   </div>
 
   <div class="statusbar">
-    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select onchange="vitaRoleSwitch(this.value)"><option value="uradnik">Stavební úředník</option><option value="koordinator" selected>Koordinátor</option><option value="prispevatel">Přispěvatel (PAK)</option></select></span></div>
+    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select onchange="vitaRoleSwitch(this.value)"><option value="uradnik">Stavební úředník</option><option value="koordinator" selected>Koordinátor</option><option value="prispevatel">Přispěvatel (PAK)</option><option value="prispevatel2">Přispěvatel 2 (HYG)</option></select></span></div>
     <div class="sb-right">
       <span>5.3.0.33</span>
       <span id="clock">0:00:00</span>
@@ -99,6 +99,7 @@ function kvFaze(){ var o=kvStore(); return (o&&o.faze)||'predano'; }
 function aktivniStav(){
   var o=kvStore();
   if(o && o.prerus) return {cls:'wl-stav-k', txt:'výzva'};
+  if(o && o.zahajeniZpusob) return {cls:'wl-stav-ke', txt:'příspěvky'};
   var f=kvFaze();
   var fi=['zalozeno','predano','prideleno','kontrola','vyjadreni'].indexOf(f);
   return (fi>=2) ? {cls:'wl-stav-ke', txt:'předáno ke kontrole'} : {cls:'wl-stav-k', txt:'k převzetí'};

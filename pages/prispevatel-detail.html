@@ -156,7 +156,7 @@
 
     <!-- editor příspěvku za úsek PAK -->
     <div class="ed-wrap">
-      <div class="spine"><span>PAK</span></div>
+      <div class="spine"><span id="edSpine">PAK</span></div>
       <div class="ed-body">
         <div class="sub" id="edGateNote" style="padding:6px 12px;color:#8a3a00;display:none;border-bottom:1px solid #eee"></div>
         <div class="ed-fld"><label>Zmocnění</label><input type="text" id="edZmoc"><button class="btn sm" title="Vybrat zmocnění">…</button></div>
@@ -202,13 +202,13 @@
   </div>
 
   <div class="statusbar">
-    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select onchange="vitaRoleSwitch(this.value)"><option value="uradnik">Stavební úředník</option><option value="koordinator">Koordinátor</option><option value="prispevatel" selected>Přispěvatel (PAK)</option></select></span></div>
+    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select onchange="vitaRoleSwitch(this.value)"><option value="uradnik">Stavební úředník</option><option value="koordinator">Koordinátor</option><option value="prispevatel">Přispěvatel (PAK)</option><option value="prispevatel2">Přispěvatel 2 (HYG)</option></select></span></div>
     <div class="sb-right">
       <span>5.3.0.33</span>
       <span id="clock">0:00:00</span>
       <span class="sb-dots"><span class="sb-dot" style="background:#e74c3c"></span><span class="sb-dot" style="background:#2980b9"></span><span class="sb-dot" style="background:#27ae60"></span></span>
-      <span>Dobisík Ondřej</span>
-      <span>Odbor ŽP – ochrana přírody a krajiny</span>
+      <span id="sbPrac">Dobisík Ondřej</span>
+      <span id="sbOdbor">Odbor ŽP – ochrana přírody a krajiny</span>
     </div>
   </div>
 </div>
@@ -243,6 +243,24 @@
 var KV_KEY='vita_kv_state';
 function loadState(){ try{ var s=localStorage.getItem(KV_KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
 function saveState(st){ try{ localStorage.setItem(KV_KEY, JSON.stringify(st)); }catch(e){} }
+
+// --- identita přispěvatele (parametr ?usek=, default PAK) ---
+var USEKINFO={
+  PAK:{odbor:'Odbor ŽP – ochrana přírody a krajiny', prac:'Dobisík Ondřej', zmoc:'§ 77 odst. 1 písm. q) zákona č. 114/1992 Sb., o ochraně přírody a krajiny, ve znění pozdějších předpisů', land:'prispevatel.html', roleVal:'prispevatel'},
+  HYG:{odbor:'Odbor hygieny (ochrana veř. zdraví)', prac:'Marková Lucie', zmoc:'§ 77 zákona č. 258/2000 Sb., o ochraně veřejného zdraví, ve znění pozdějších předpisů', land:'prispevatel2.html', roleVal:'prispevatel2'}
+};
+var MYUSEK=(new URLSearchParams(location.search).get('usek')||'PAK').toUpperCase();
+if(!USEKINFO[MYUSEK]) MYUSEK='PAK';
+var MY=USEKINFO[MYUSEK];
+var LANDING=MY.land;
+function applyIdentity(){
+  var t=document.querySelector('.ph-title'); if(t) t.textContent='Příspěvek do koordinovaného vyjádření — úsek '+MYUSEK;
+  var sp=document.getElementById('edSpine'); if(sp) sp.textContent=MYUSEK;
+  Array.prototype.forEach.call(document.querySelectorAll('.ed-usek'), function(x){ x.textContent=MYUSEK; });
+  var pr=document.getElementById('sbPrac'); if(pr) pr.textContent=MY.prac;
+  var od=document.getElementById('sbOdbor'); if(od) od.textContent=MY.odbor;
+  var rs=document.querySelector('.role-switch select'); if(rs) rs.value=MY.roleVal;
+}
 
 function vpToggle(id){ var el=document.getElementById(id); if(el) el.classList.toggle('open'); }
 
@@ -288,8 +306,8 @@ function edTab(name){
 function initEditor(){
   var sel=document.getElementById('edVz');
   sel.innerHTML=VZ_OPTS.map(function(o){ return '<option>'+o+'</option>'; }).join('');
-  var p=(st.prisp && st.prisp.PAK) ? st.prisp.PAK : null;
-  document.getElementById('edZmoc').value = p && p.zmoc!=null ? p.zmoc : PAK_ZMOC;
+  var p=(st.prisp && st.prisp[MYUSEK]) ? st.prisp[MYUSEK] : null;
+  document.getElementById('edZmoc').value = p && p.zmoc!=null ? p.zmoc : MY.zmoc;
   if(p){
     sel.value = p.vz || '<vyberte>';
     document.getElementById('ed-podminky').innerHTML = p.podminky || '<ul><li><br></li></ul>';
@@ -303,7 +321,7 @@ function initEditor(){
   if(p){
     if(p.extZduvodneni!=null) document.getElementById('edExtZdu').value = p.extZduvodneni;
   }
-  var pakDef=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT.PAK)?VITA_EXT_DEFAULT.PAK:{mode:'',zdu:''};
+  var pakDef=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT[MYUSEK])?VITA_EXT_DEFAULT[MYUSEK]:{mode:'',zdu:''};
   var emInit=(p && p.extMode) ? p.extMode : pakDef.mode;
   if((!p || p.extZduvodneni==null) && pakDef.zdu) document.getElementById('edExtZdu').value=pakDef.zdu;
   document.getElementById('edExt').value = emInit || '';
@@ -314,14 +332,16 @@ function initEditor(){
     document.getElementById('doplnitText').readOnly = true;
     document.getElementById('podLockNote').style.display = 'inline';
   }
-  if(p && p.vyrizeno){
+  var myLocked = (MYUSEK==='PAK') ? !!(p && p.vyrizeno) : !!(p && p.vyrizeno && p.ownEdit);
+  if(myLocked){
     var en=document.getElementById('edLockNote'); if(en) en.style.display='inline';
   }
   applyGating();
 }
 function gateState(){
-  var st2=(loadState()||{}); var pp=(st2.prisp&&st2.prisp.PAK)?st2.prisp.PAK:{};
-  return { confirmed:!!pp.pod, kontrolaOK:pp.pod==='ok', neuplne:pp.pod==='neuplne', vyrizeno:!!pp.vyrizeno };
+  var st2=(loadState()||{}); var pp=(st2.prisp&&st2.prisp[MYUSEK])?st2.prisp[MYUSEK]:{};
+  var locked = (MYUSEK==='PAK') ? !!pp.vyrizeno : !!(pp.vyrizeno && pp.ownEdit);
+  return { confirmed:!!pp.pod, kontrolaOK:pp.pod==='ok', neuplne:pp.pod==='neuplne', vyrizeno:locked };
 }
 function setDisabled(id, dis){ var el=document.getElementById(id); if(!el) return; if('disabled' in el) el.disabled=dis; if(el.tagName==='INPUT'||el.tagName==='TEXTAREA') el.readOnly=dis; el.style.opacity=dis?0.55:1; }
 function setAreasEditable(on){ ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ var el=document.getElementById('ed-'+n); if(el){ el.contentEditable=on?'true':'false'; el.style.background=on?'':'#f4f4f4'; } }); }
@@ -357,7 +377,7 @@ function podStavChange(){
 function saveForm(status){
   var cur=loadState() || {};
   cur.prisp = cur.prisp || {};
-  var p = cur.prisp.PAK || {};
+  var p = cur.prisp[MYUSEK] || {};
   p.pod = document.getElementById('podStav').value;
   p.doplnit = document.getElementById('doplnitText').value;
   p.vz = document.getElementById('edVz').value;
@@ -370,15 +390,21 @@ function saveForm(status){
   p.extZduvodneni = document.getElementById('edExtZdu').value;
   if(status==='vyrizeno'){ p.vyrizeno=true; p.rozprac=false; p.hotovo=true; }
   else if(status==='rozprac'){ p.rozprac=true; p.vyrizeno=false; p.hotovo=false; }
-  cur.prisp.PAK = p;
-  // PRO DEMO: výsledek z PAK replikujeme do ostatních úseků (stejné stavy/texty),
-  // ALE dotčenost (interní/externí DO) ponecháváme per-úsek dle schématu.
-  ['OVZ','VOD','ZPF','LES','ODP','PAM','HYG','PO','DOP','UUP'].forEach(function(u){
-    var c=JSON.parse(JSON.stringify(p));
-    var d=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT[u]) ? VITA_EXT_DEFAULT[u] : {mode:'',zdu:''};
-    c.extMode=d.mode||''; c.extZduvodneni=d.zdu||'';
-    cur.prisp[u]=c;
-  });
+  if(MYUSEK!=='PAK') p.ownEdit=true;   // úsek samostatně editovaný přispěvatelem
+  cur.prisp[MYUSEK] = p;
+  if(MYUSEK==='PAK'){
+    // PRO DEMO: výsledek z PAK replikujeme do ostatních úseků (stejné stavy/texty),
+    // ALE dotčenost (interní/externí DO) ponecháváme per-úsek dle schématu
+    // a NEPŘEPISUJEME úseky samostatně editované přispěvatelem (ownEdit).
+    ['OVZ','VOD','ZPF','LES','ODP','PAM','HYG','PO','DOP','UUP'].forEach(function(u){
+      var ex=cur.prisp[u];
+      if(ex && ex.ownEdit) return;
+      var c=JSON.parse(JSON.stringify(p));
+      var d=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT[u]) ? VITA_EXT_DEFAULT[u] : {mode:'',zdu:''};
+      c.extMode=d.mode||''; c.extZduvodneni=d.zdu||''; c.ownEdit=false;
+      cur.prisp[u]=c;
+    });
+  }
   saveState(cur);
   if(document.getElementById('othersWrap')) renderOthers();
 }
@@ -391,7 +417,7 @@ function canVyridit(){
 function ulozitWip(){ saveForm('rozprac'); toast('Rozpracovaný příspěvek uložen.'); }
 function odeslat(){
   if(!canVyridit()) return;
-  saveForm('vyrizeno'); toast('Vyjádření za úsek PAK vyřízeno a odesláno koordinátorovi.');
+  saveForm('vyrizeno'); toast('Vyjádření za úsek '+MYUSEK+' vyřízeno a odesláno koordinátorovi.');
 }
 
 /* ===== VITA potvrzovací dialog (Ano / Ne / Storno) – kontrola podkladů ===== */
@@ -410,31 +436,33 @@ function vitaSaveDialog(){ document.getElementById('saveDlg').classList.add('sho
 function svStorno(){ document.getElementById('saveDlg').classList.remove('show'); }
 function svVyrizeno(){
   if(!canVyridit()) return;
-  saveForm('vyrizeno'); location.href='prispevatel.html';   // ukončí přispívání, předá ke zpracování
+  saveForm('vyrizeno'); location.href=LANDING;   // ukončí přispívání, předá ke zpracování
 }
-function svUlozit(){ saveForm('rozprac'); location.href='prispevatel.html'; }   // uloží rozpracované
-function svNeulozit(){ location.href='prispevatel.html'; }                       // zavře bez uložení úprav
+function svUlozit(){ saveForm('rozprac'); location.href=LANDING; }   // uloží rozpracované
+function svNeulozit(){ location.href=LANDING; }                       // zavře bez uložení úprav
 
 /* křížek okna – dotaz dle fáze: dokud nejsou podklady potvrzené → stav podkladů; poté → osud příspěvku */
 function zavritObrazovku(){
-  var pak = ((loadState()||{}).prisp||{}).PAK || {};
-  if(pak.vyrizeno){ location.href='prispevatel.html'; return; }   // už vyřízeno → jen zavřít
+  var pak = ((loadState()||{}).prisp||{})[MYUSEK] || {};
+  var myLocked = (MYUSEK==='PAK') ? !!pak.vyrizeno : !!(pak.vyrizeno && pak.ownEdit);
+  if(myLocked){ location.href=LANDING; return; }   // už vyřízeno → jen zavřít
   var locked = document.getElementById('podStav').disabled;     // true = podklady už potvrzené
   var pod = document.getElementById('podStav').value;
   if(!locked){
     vitaConfirm('Potvrdit stav podkladů?',
-      function(){ saveForm(); location.href='prispevatel.html'; },
-      function(){ location.href='prispevatel.html'; });
+      function(){ saveForm(); location.href=LANDING; },
+      function(){ location.href=LANDING; });
   } else if(pod==='ok'){
     vitaSaveDialog();
   } else {
-    location.href='prispevatel.html';   // neúplné – čeká na doplnění, příspěvek se nezpracovává
+    location.href=LANDING;   // neúplné – čeká na doplnění, příspěvek se nezpracovává
   }
 }
 
 /* ===== Další přispěvatelé (read-only) ===== */
 var VZP={'':'<vyberte>','na':'nejsou dotčeny - podle zákona','ok':'jsou dotčeny - bez připomínek','cond':'jsou dotčeny - souhlas za podmínek','no':'jsou dotčeny - nesouhlas'};
 var OTHERS=[
+  {u:'PAK',odbor:'Odbor ŽP — ochrana přírody a krajiny', p:'Dobisík Ondřej',      vz:'cond'},
   {u:'OVZ',odbor:'Odbor ŽP — ochrana ovzduší',          p:'Dobisík Ondřej',      vz:'na'},
   {u:'VOD',odbor:'Odbor ŽP — ochrana vod',              p:'Kozák Martin',        vz:''},
   {u:'ZPF',odbor:'Odbor ŽP — ochrana ZPF',              p:'Herbrychová Jarmila', vz:'ok'},
@@ -460,6 +488,7 @@ function renderOthers(){
   var prispState=(loadState()||{}).prisp||{};
   var wrap=document.getElementById('othersWrap'); wrap.innerHTML='';
   OTHERS.forEach(function(o){
+    if(o.u===MYUSEK) return;
     var saved=prispState[o.u]||null;
     var vzPhrase=(saved && saved.vz && saved.vz!=='<vyberte>') ? saved.vz : VZP[o.vz];
     var zmoc=(saved && saved.zmoc) ? saved.zmoc : '<vyberte>';
@@ -508,7 +537,7 @@ function opTab(u,name){
   ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ document.getElementById('op-'+u+'-'+n).style.display=(n===name)?'block':'none'; });
 }
 
-renderPod(); initEditor(); renderOthers();
+applyIdentity(); renderPod(); initEditor(); renderOthers();
 </script>
 </body>
 </html>

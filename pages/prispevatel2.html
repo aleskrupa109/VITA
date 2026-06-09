@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Přispěvatel (DO) – přehled (mockup)</title>
+<title>Přispěvatel 2 (DO) – přehled (mockup)</title>
 <link rel="stylesheet" href="../assets/css/vita.css">
 <style>
   .wl-area { flex:1 1 auto; overflow:auto; background:#fff; }
@@ -63,7 +63,7 @@
   </div>
 
   <div class="wl-area">
-    <div class="wl-head">Přihlášen: <b>Dobisík Ondřej</b> — úsek <b>PAK</b> (Odbor ŽP – ochrana přírody a krajiny). Řízení předaná koordinátorem zpracujte ve své lhůtě.</div>
+    <div class="wl-head">Přihlášen: <b>Marková Lucie</b> — úsek <b>HYG</b> (Odbor hygieny – ochrana veř. zdraví). Řízení předaná koordinátorem zpracujte ve své lhůtě.</div>
     <table class="grid wl">
       <thead><tr>
         <th style="width:90px">Č. spisu</th>
@@ -80,13 +80,13 @@
   </div>
 
   <div class="statusbar">
-    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select onchange="vitaRoleSwitch(this.value)"><option value="uradnik">Stavební úředník</option><option value="koordinator">Koordinátor</option><option value="prispevatel" selected>Přispěvatel (PAK)</option><option value="prispevatel2">Přispěvatel 2 (HYG)</option></select></span></div>
+    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select onchange="vitaRoleSwitch(this.value)"><option value="uradnik">Stavební úředník</option><option value="koordinator">Koordinátor</option><option value="prispevatel">Přispěvatel (PAK)</option><option value="prispevatel2" selected>Přispěvatel 2 (HYG)</option></select></span></div>
     <div class="sb-right">
       <span>5.3.0.33</span>
       <span id="clock">0:00:00</span>
       <span class="sb-dots"><span class="sb-dot" style="background:#e74c3c"></span><span class="sb-dot" style="background:#2980b9"></span><span class="sb-dot" style="background:#27ae60"></span></span>
-      <span>Dobisík Ondřej</span>
-      <span>Odbor ŽP – ochrana přírody a krajiny</span>
+      <span>Marková Lucie</span>
+      <span>Odbor hygieny (ochrana veř. zdraví)</span>
       <span>https://test-vita.desu.gov.cz/VITA/APP/</span>
     </div>
   </div>
@@ -97,7 +97,7 @@
 <script>
 function kvFaze(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ var o=JSON.parse(s); return o.faze||'zalozeno'; } }catch(e){} return 'zalozeno'; }
 function aktivni(){ var fi=['zalozeno','predano','prideleno','kontrola','vyjadreni'].indexOf(kvFaze()); return fi>=2; }
-function pakState(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ var o=JSON.parse(s); return (o.prisp&&o.prisp.PAK)||{}; } }catch(e){} return {}; }
+function mineState(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ var o=JSON.parse(s); return (o.prisp&&o.prisp.HYG)||{}; } }catch(e){} return {}; }
 function kvPrerus(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return !!JSON.parse(s).prerus; } }catch(e){} return false; }
 function kvZahajeni(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return JSON.parse(s).zahajeniZpusob||''; } }catch(e){} return ''; }
 
@@ -116,25 +116,25 @@ function render(){
     if(r.aktiv){
       if(akt){
         tr.className='active';
-        tr.onclick=function(){ location.href='prispevatel-detail.html'; };
-        var p=pakState(), stav, cls;
+        tr.onclick=function(){ location.href='prispevatel-detail.html?usek=HYG'; };
+        var p=mineState(), stav, cls;
         if(kvPrerus()){ stav='výzva'; cls='wl-stav-w'; }
-        else if(p.vyrizeno){ stav='vyřízeno (odesláno)'; cls='wl-stav-ok'; }
+        else if(p.vyrizeno && p.ownEdit){ stav='vyřízeno (odesláno)'; cls='wl-stav-ok'; }
         else if(p.rozprac){ stav='rozpracováno – k dokončení'; cls='wl-stav-k'; }
+        else if(p.pod==='ok'){ stav='podklady OK – k vyjádření'; cls='wl-stav-k'; }
         else if(kvZahajeni()){ stav='příspěvky'; cls='wl-stav-k'; }
         else if(p.pod==='neuplne'){ stav='neúplné – k doplnění'; cls='wl-stav-w'; }
-        else if(p.pod==='ok'){ stav='podklady OK – k vyjádření'; cls='wl-stav-k'; }
         else { stav='k vyjádření'; cls='wl-stav-k'; }
-        tr.innerHTML='<td><b>'+r.sp+'</b></td><td>OnDo</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
+        tr.innerHTML='<td><b>'+r.sp+'</b></td><td>MaLu</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
           '<td><span class="'+cls+'">'+stav+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
       } else {
         tr.className='inactive';
-        tr.innerHTML='<td>'+r.sp+'</td><td>OnDo</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
+        tr.innerHTML='<td>'+r.sp+'</td><td>MaLu</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
           '<td><span class="wl-stav-w">čeká na předání koordinátorem</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
       }
     } else {
       tr.className='inactive';
-      tr.innerHTML='<td>'+r.sp+'</td><td>OnDo</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
+      tr.innerHTML='<td>'+r.sp+'</td><td>MaLu</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
         '<td><span class="wl-stav-x">'+r.stav+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
     }
     tb.appendChild(tr);
