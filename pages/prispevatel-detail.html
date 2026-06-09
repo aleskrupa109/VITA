@@ -32,6 +32,9 @@
   .doplnit-wrap { display:flex; gap:10px; margin:0 0 12px; }
   .doplnit-wrap > label { font-weight:bold; color:#333; width:60px; flex:0 0 60px; padding-top:4px; }
   .doplnit-wrap textarea { flex:1 1 auto; border:1px solid #9fb0c2; border-left:3px solid #1f6fc9; padding:6px 8px; font-family:inherit; font-size:14px; min-height:90px; resize:vertical; }
+  .ed-extzdu { display:flex; gap:10px; padding:0 12px 10px; }
+  .ed-extzdu > label { font-weight:bold; color:#8a3a00; width:160px; flex:0 0 160px; padding-top:6px; }
+  .ed-extzdu textarea { flex:1 1 auto; border:1px solid #e0a96a; border-left:3px solid #e8821e; padding:6px 8px; font-family:inherit; font-size:14px; min-height:70px; resize:vertical; }
   /* ostatní přispěvatelé – read-only rozbalovací panely */
   .others-head { font-weight:bold; color:#333; margin:18px 0 8px; padding-top:10px; border-top:2px solid #d8d8d8; }
   .others-head .others-sub { font-weight:normal; color:#777; font-size:12px; }
@@ -156,6 +159,18 @@
       <div class="spine"><span>PAK</span></div>
       <div class="ed-body">
         <div class="ed-fld"><label>Zmocnění</label><input type="text" id="edZmoc"><button class="btn sm" title="Vybrat zmocnění">…</button></div>
+        <div class="ed-fld"><span class="ed-usek">PAK</span><label>dotčenost</label>
+          <select id="edExt" onchange="edExtChange()">
+            <option value="">&lt;vyberte&gt;</option>
+            <option value="interni">vyjadřuje se interní DO (ÚRÚ)</option>
+            <option value="externi">vyjadřuje se externí DO</option>
+            <option value="oba">vyjadřuje se interní i externí DO</option>
+          </select>
+        </div>
+        <div class="ed-extzdu" id="edExtZduWrap" style="display:none">
+          <label>Zdůvodnění (externí DO)</label>
+          <textarea id="edExtZdu" placeholder="Uveďte, který externí orgán se má vyjádřit a z jakých zákonných důvodů (např. NKP/KP → ZS; vodní dílo → vodoprávní úřad…)."></textarea>
+        </div>
         <div class="ed-fld"><span class="ed-usek">PAK</span><label>veřejné zájmy</label><select id="edVz"></select></div>
         <div class="htabs" id="edTabs">
           <div class="htab active" data-pt="podminky" onclick="edTab('podminky')">Podmínky</div>
@@ -284,6 +299,14 @@ function initEditor(){
   if(p && p.pod){ document.getElementById('podStav').value=p.pod; }
   if(p && p.doplnit){ document.getElementById('doplnitText').value=p.doplnit; }
   document.getElementById('doplnitWrap').style.display = (p && p.pod==='neuplne')?'flex':'none';
+  if(p){
+    if(p.extZduvodneni!=null) document.getElementById('edExtZdu').value = p.extZduvodneni;
+  }
+  var pakDef=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT.PAK)?VITA_EXT_DEFAULT.PAK:{mode:'',zdu:''};
+  var emInit=(p && p.extMode) ? p.extMode : pakDef.mode;
+  if((!p || p.extZduvodneni==null) && pakDef.zdu) document.getElementById('edExtZdu').value=pakDef.zdu;
+  document.getElementById('edExt').value = emInit || '';
+  document.getElementById('edExtZduWrap').style.display = (emInit==='externi'||emInit==='oba') ? 'flex':'none';
   if(p && p.pod){
     // stav podkladů již byl potvrzen → uzamknout (nelze měnit)
     document.getElementById('podStav').disabled = true;
@@ -294,10 +317,16 @@ function initEditor(){
     // příspěvek byl vyřízen a odeslán → přispívání skončilo, editor uzamčen
     sel.disabled = true;
     document.getElementById('edZmoc').readOnly = true;
+    document.getElementById('edExt').disabled = true;
+    document.getElementById('edExtZdu').readOnly = true;
     ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ document.getElementById('ed-'+n).contentEditable='false'; });
     var en=document.getElementById('edLockNote'); if(en) en.style.display='inline';
     var ob=document.getElementById('btnOdeslat'); if(ob) ob.disabled=true;
   }
+}
+function edExtChange(){
+  var v=document.getElementById('edExt').value;
+  document.getElementById('edExtZduWrap').style.display = (v==='externi'||v==='oba')?'flex':'none';
 }
 function podStavChange(){
   var v=document.getElementById('podStav').value;
@@ -316,12 +345,18 @@ function saveForm(status){
   p.oduvodneni = document.getElementById('ed-oduvodneni').innerHTML;
   p.upozorneni = document.getElementById('ed-upozorneni').innerHTML;
   p.negativni = document.getElementById('ed-negativni').innerHTML;
+  p.extMode = document.getElementById('edExt').value;
+  p.extZduvodneni = document.getElementById('edExtZdu').value;
   if(status==='vyrizeno'){ p.vyrizeno=true; p.rozprac=false; p.hotovo=true; }
   else if(status==='rozprac'){ p.rozprac=true; p.vyrizeno=false; p.hotovo=false; }
   cur.prisp.PAK = p;
-  // PRO DEMO: výsledek z PAK okamžitě replikujeme do všech ostatních úseků (stejné stavy i texty)
+  // PRO DEMO: výsledek z PAK replikujeme do ostatních úseků (stejné stavy/texty),
+  // ALE dotčenost (interní/externí DO) ponecháváme per-úsek dle schématu.
   ['OVZ','VOD','ZPF','LES','ODP','PAM','HYG','PO','DOP','UUP'].forEach(function(u){
-    cur.prisp[u] = JSON.parse(JSON.stringify(p));
+    var c=JSON.parse(JSON.stringify(p));
+    var d=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT[u]) ? VITA_EXT_DEFAULT[u] : {mode:'',zdu:''};
+    c.extMode=d.mode||''; c.extZduvodneni=d.zdu||'';
+    cur.prisp[u]=c;
   });
   saveState(cur);
   if(document.getElementById('othersWrap')) renderOthers();
@@ -401,6 +436,12 @@ function renderOthers(){
     var saved=prispState[o.u]||null;
     var vzPhrase=(saved && saved.vz && saved.vz!=='<vyberte>') ? saved.vz : VZP[o.vz];
     var zmoc=(saved && saved.zmoc) ? saved.zmoc : '<vyberte>';
+    var ed=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT[o.u]) ? VITA_EXT_DEFAULT[o.u] : {mode:'',zdu:''};
+    var em=(saved && saved.extMode) ? saved.extMode : ed.mode;
+    var emTxt = em==='externi'?'vyjadřuje se externí DO' : em==='oba'?'vyjadřuje se interní i externí DO' : em==='interni'?'vyjadřuje se interní DO (ÚRÚ)' : '—';
+    var emZdu=(saved && saved.extZduvodneni) ? saved.extZduvodneni : ed.zdu;
+    var extRow='<div class="op-fld"><span class="op-usek-lbl">'+o.u+'</span><label>dotčenost</label><input type="text" value="'+esc(emTxt)+'" readonly style="flex:1 1 auto"></div>'+
+      (((em==='externi'||em==='oba') && emZdu) ? '<div class="op-fld"><span class="op-usek-lbl"></span><label>zdůvodnění</label><div style="flex:1 1 auto;color:#8a3a00;font-size:13px">'+esc(emZdu)+'</div></div>' : '');
     var panes={
       podminky: (saved&&saved.podminky)?saved.podminky:(OSAMPLE[o.u]?'<ul><li>'+esc(OSAMPLE[o.u])+'</li></ul>':'<ul><li><br></li></ul>'),
       oduvodneni:(saved&&saved.oduvodneni)?saved.oduvodneni:'<ul><li><br></li></ul>',
@@ -414,6 +455,7 @@ function renderOthers(){
           '<div class="spine" onclick="opToggle(\''+o.u+'\')"><span>'+o.u+'</span></div>'+
           '<div class="op-body">'+
             '<div class="op-fld"><label>Zmocnění</label><input type="text" value="'+esc(zmoc)+'" readonly></div>'+
+            extRow+
             '<div class="op-fld"><span class="op-usek-lbl">'+o.u+'</span><label>veřejné zájmy</label>'+
               '<select disabled><option>'+esc(vzPhrase)+'</option></select><span class="op-prac-r">'+o.p+'</span></div>'+
             '<div class="htabs" id="opTabs-'+o.u+'">'+

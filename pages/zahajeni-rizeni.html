@@ -196,6 +196,7 @@
             <div class="vp-content">
               <div id="prispTools" style="margin-bottom:8px;font-size:12px;display:none"></div>
               <div class="prisp-alert" id="prispAlert" style="display:none"></div>
+              <div class="prisp-alert" id="extNote" style="display:none;background:#fff4e8;border-color:#f0c089;color:#8a3a00"></div>
               <table class="grid" id="prispGrid">
                 <thead><tr>
                   <th style="width:42px">Úsek</th>
@@ -253,6 +254,15 @@
         <option value="Postoupení">Postoupení</option>
         <option value="Odložení">Odložení</option>
       </select>
+    </div>
+    <div class="term-row">
+      <label>způsob zahájení</label>
+      <select id="zahajeniZpusob" style="width:150px" onchange="zahajeniZpusobChange()">
+        <option value=""></option>
+        <option value="jednání">jednání</option>
+        <option value="stanoviska">stanoviska</option>
+      </select>
+      <span style="color:#888;font-size:12px;margin-left:8px">podklady v pořádku → vyrozumění o zahájení (Tisk)</span>
     </div>
     <div id="prerusBox" style="display:none">
       <div class="term-row"><label>lhůty neběží od</label><input type="text" class="readonly" style="width:110px" value="14.5.2026" readonly></div>
@@ -1151,7 +1161,7 @@ let faze = 'zalozeno'; /* zalozeno → predano → prideleno → kontrola → vy
 function vpToggle(id){ var el=document.getElementById(id); if(el) el.classList.toggle('open'); }
 
 var KV_KEY='vita_kv_state';
-function saveState(){ try{ var cur=loadState()||{}; cur.faze=faze; cur.coord=predState.coord; cur.podRows=podRows; cur.prerus=!!predState.prerus; cur.rizeniStav=predState.rizeniStav||''; cur.doplnitO=predState.doplnitO||''; localStorage.setItem(KV_KEY, JSON.stringify(cur)); }catch(e){} }
+function saveState(){ try{ var cur=loadState()||{}; cur.faze=faze; cur.coord=predState.coord; cur.podRows=podRows; cur.prerus=!!predState.prerus; cur.rizeniStav=predState.rizeniStav||''; cur.doplnitO=predState.doplnitO||''; cur.zahajeniZpusob=predState.zahajeniZpusob||''; localStorage.setItem(KV_KEY, JSON.stringify(cur)); }catch(e){} }
 function loadState(){ try{ var s=localStorage.getItem(KV_KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
 
 function setRole(v){
@@ -1339,7 +1349,12 @@ function renderPrisp(){
     var vzCell;
     if(o && o.vyrizeno && o.vz && o.vz!=='<vyberte>') vzCell='<span>'+o.vz+'</span>';
     else vzCell = vyjVisible ? '<span class="'+vz.cls+'">'+vz.txt+'</span>' : '';
-    var ext = (vyjVisible && r.ext) ? '<span class="ext-flag">'+r.ext+'</span>' : '';
+    var edf=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:'',zdu:''};
+    var em=(o&&o.extMode)?o.extMode:edf.mode;
+    var ext = em==='externi' ? '<span class="ext-flag">externí</span>'
+            : em==='oba' ? '<span class="ext-flag">interní + externí</span>'
+            : em==='interni' ? '<span class="sub">interní</span>'
+            : (vyjVisible && r.ext) ? '<span class="ext-flag">'+r.ext+'</span>' : '';
     var tr=document.createElement('tr');
     tr.oncontextmenu=function(e){ prispCtx(e, idx); };
     tr.ondblclick=function(){ openPrispevek(idx); };
@@ -1378,6 +1393,16 @@ function renderPrisp(){
     al.style.display='flex'; al.innerHTML='⚠ DO hlásí neúplné podklady (1. lhůta): <b>'+us+'</b>. '+btn;
   } else al.style.display='none';
 
+  var extN=document.getElementById('extNote');
+  if(extN){
+    var extu=PRISP.filter(function(r){ var o=ov[r.usek]; var d=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:''}; var m=(o&&o.extMode)?o.extMode:d.mode; return m==='externi'||m==='oba'; });
+    if(extu.length){
+      var ul=extu.map(function(r){return r.usek;}).join(', ');
+      var akce=(uiRole==='uradnik')?' Úředník vyžádá stanovisko externího DO.':' (stanovisko externího DO vyžádá stavební úředník).';
+      extN.style.display='flex';
+      extN.innerHTML='↳ Vyžádat stanovisko <b>externího DO</b> u úseků: <b>'+ul+'</b>.'+akce+' Zdůvodnění zobrazíte pravým tlačítkem na řádku.';
+    } else extN.style.display='none';
+  }
   var note=document.getElementById('prispNote');
   note.textContent = (uiRole==='do') ? 'Pohled přispěvatele (editor vyjádření za vlastní úsek) doplníme v dalším kroku.'
     : (uiRole==='uradnik' ? 'Náhled pro čtení – úředník sleduje průběh; podmínky DO se na konci převezmou do rozhodnutí.' : '');
@@ -1398,6 +1423,7 @@ function rizeniStavChange(){
   var pb=document.getElementById('prerusBox');
   if(v==='Přerušení'){
     predState.prerus=true; if(pb) pb.style.display='block';
+    predState.zahajeniZpusob=''; var zz=document.getElementById('zahajeniZpusob'); if(zz) zz.value='';
     saveState(); renderPrisp(); renderDoPanel();
     toast('Řízení přerušeno od data doručení žádosti (14.5.2026). Lhůty neběží.');
   } else {
@@ -1405,6 +1431,18 @@ function rizeniStavChange(){
     saveState(); renderPrisp(); renderDoPanel();
     if(v) toast('„'+v+'" – tuto větev doplníme v dalším kroku.');
   }
+}
+function zahajeniZpusobChange(){
+  var v=document.getElementById('zahajeniZpusob').value;
+  predState.zahajeniZpusob=v;
+  if(v){
+    // pozitivní větev – řízení se zahajuje, není přerušeno
+    predState.prerus=false; predState.rizeniStav='';
+    var rs=document.getElementById('rizeniStav'); if(rs) rs.value='';
+    var pb=document.getElementById('prerusBox'); if(pb) pb.style.display='none';
+  }
+  saveState(); renderPrisp(); renderDoPanel();
+  if(v) toast('Řízení bude zahájeno – '+v+'. Vystavte vyrozumění o zahájení přes tlačítko Tisk.');
 }
 
 /* ---- dialog „Co se má doplnit" ---- */
@@ -1485,6 +1523,12 @@ function prispCtx(e, idx){
   if(o && o.pod==='neuplne' && o.doplnit && (uiRole==='uradnik'||uiRole==='koordinator')){
     items.push({t:'Doplnit (zobrazit)', fn:function(){ openDoplnit(idx); }});
   }
+  var edf=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:'',zdu:''};
+  var em=(o&&o.extMode)?o.extMode:edf.mode;
+  var ez=(o&&o.extZduvodneni)?o.extZduvodneni:edf.zdu;
+  if((em==='externi'||em==='oba') && ez && (uiRole==='uradnik'||uiRole==='koordinator')){
+    items.push({t:'Externí DO – zdůvodnění', fn:function(){ openExtZdu(idx); }});
+  }
   items.push({t:'Přidat úsek \u25B8', fn:function(){ toast('Přidat úsek – doplníme v dalším kroku.'); }});
   items.push({t:'Zprávy', fn:function(){ toast('Zprávy – doplníme v dalším kroku.'); }});
   items.push({sep:true});
@@ -1502,6 +1546,17 @@ function openDoplnit(idx){
   document.getElementById('doplnitModal').classList.add('show');
 }
 function closeDoplnit(){ document.getElementById('doplnitModal').classList.remove('show'); }
+function openExtZdu(idx){
+  var r=PRISP[idx];
+  var ov=(loadState()||{}).prisp||{}; var o=ov[r.usek]||{};
+  var edf=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:'',zdu:''};
+  var em=(o.extMode)?o.extMode:edf.mode;
+  var ez=(o.extZduvodneni)?o.extZduvodneni:edf.zdu;
+  var mode = em==='oba' ? 'interní i externí DO' : 'externí DO';
+  document.getElementById('dmTitle').textContent='Externí DO ('+mode+') — úsek '+r.usek;
+  document.getElementById('dmBody').innerHTML = (ez||'').trim() ? ez.replace(/\n/g,'<br>') : '<span class="sub">(bez zdůvodnění)</span>';
+  document.getElementById('doplnitModal').classList.add('show');
+}
 function openPrispevek(idx){
   var r=PRISP[idx]; pmRow=r;
   var ovx=(loadState()||{}).prisp||{}; pmOv = ovx[r.usek] || null;
@@ -1585,8 +1640,10 @@ function pmTabText(r, tab){
     predState.prerus = !!st.prerus;
     predState.rizeniStav = st.rizeniStav || (st.prerus?'Přerušení':'');
     predState.doplnitO = st.doplnitO || '';
+    predState.zahajeniZpusob = st.zahajeniZpusob || '';
     var rsel=document.getElementById('rizeniStav'); if(rsel && predState.rizeniStav) rsel.value=predState.rizeniStav;
     var pbx=document.getElementById('prerusBox'); if(pbx && predState.rizeniStav==='Přerušení') pbx.style.display='block';
+    var zsel=document.getElementById('zahajeniZpusob'); if(zsel && predState.zahajeniZpusob) zsel.value=predState.zahajeniZpusob;
   }
   renderPod(); renderKoordBar(); renderDoPanel(); renderPrisp();
 })();
