@@ -63,7 +63,7 @@
   <!-- HLAVIČKA PANELU -->
   <div class="panel-head">
     <div class="ph-title">Zahájení řízení</div>
-    <div class="ph-close" title="Zpět na seznam" onclick="location.href='../index.html'">&#10005;</div>
+    <div class="ph-close" title="Zpět na seznam" onclick="zavritRizeni()">&#10005;</div>
   </div>
 
   <!-- FORMULÁŘ -->
@@ -1206,7 +1206,7 @@ function renderPod(){
   podRows.forEach(function(r, idx){
     var tr=document.createElement('tr');
     tr.oncontextmenu=function(e){ podRowCtx(e, idx); };
-    tr.innerHTML='<td>'+r.f+'</td><td>'+SSL_CJ+'</td><td>'+SSL_DT+'</td><td><span class="sub">—</span></td>';
+    tr.innerHTML='<td>'+r.f+'</td><td>'+(r.cj||SSL_CJ)+'</td><td>'+(r.dt||SSL_DT)+'</td><td><span class="sub">—</span></td>';
     tb.appendChild(tr);
   });
   document.getElementById('sum-podklady').textContent = podWord(podRows.length);
@@ -1217,7 +1217,7 @@ function renderSsl(){
     var tr=document.createElement('tr'); if(r.sel) tr.className='sel-multi';
     tr.onclick=function(){ SSL[i].sel=!SSL[i].sel; renderSsl(); };
     tr.oncontextmenu=function(e){ if(!SSL[i].sel){ SSL.forEach(function(x){x.sel=false;}); SSL[i].sel=true; renderSsl(); } sslCtx(e); };
-    tr.innerHTML='<td>'+r.f+'</td><td>'+SSL_CJ+'</td><td>'+SSL_DT+'</td><td><span class="sub">—</span></td>';
+    tr.innerHTML='<td>'+r.f+'</td><td>'+(r.cj||SSL_CJ)+'</td><td>'+(r.dt||SSL_DT)+'</td><td><span class="sub">—</span></td>';
     tb.appendChild(tr);
   });
 }
@@ -1441,12 +1441,19 @@ function saveDoplnitO(){
 function openTisk(){ var t=document.getElementById('tiskGrid'); if(t) t.querySelectorAll('tr').forEach(function(tr){tr.classList.remove('sel');}); document.getElementById('tiskModal').classList.add('show'); }
 function closeTisk(){ document.getElementById('tiskModal').classList.remove('show'); }
 function tiskSelect(tr){ document.querySelectorAll('#tiskGrid tbody tr').forEach(function(r){r.classList.remove('sel');}); tr.classList.add('sel'); }
+function zavritRizeni(){ location.href = (uiRole==='koordinator') ? 'koordinator.html' : '../index.html'; }
 function tiskOk(){
   var tr=document.querySelector('#tiskGrid tbody tr.sel');
   if(!tr){ toast('Vyberte dokument k vytvoření.'); return; }
   var cislo=tr.getAttribute('data-cislo'), nazev=tr.cells[1].textContent;
+  var DOCFILE={'0855':'0855_vyzva_k_doplneni_a_usneseni_o_preruseni.pdf','0390':'0390_vyrozumeni_o_zahajeni_rizeni.pdf'};
+  var fname=DOCFILE[cislo]||(cislo+'_dokument.pdf');
+  if(!podRows.some(function(p){return p.f===fname;})){
+    podRows.push({f:fname, cj:'DESU/013304/26', dt:'9.6.2026'});
+    saveState(); renderPod();
+  }
   closeTisk();
-  toast('Dokument vytvořen: '+nazev+' (vzor '+cislo+'). Uložen do spisu.');
+  toast('Dokument vytvořen: '+nazev+' (vzor '+cislo+'). Uložen do spisu a přidán do podkladů.');
 }
 
 /* ---- náhled příspěvku (Koordinované stanovisko) ---- */

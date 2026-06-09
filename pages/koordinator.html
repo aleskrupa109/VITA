@@ -97,6 +97,8 @@
 function kvStore(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s) return JSON.parse(s); }catch(e){} return null; }
 function kvFaze(){ var o=kvStore(); return (o&&o.faze)||'predano'; }
 function aktivniStav(){
+  var o=kvStore();
+  if(o && o.prerus) return {cls:'wl-stav-k', txt:'výzva'};
   var f=kvFaze();
   var fi=['zalozeno','predano','prideleno','kontrola','vyjadreni'].indexOf(f);
   return (fi>=2) ? {cls:'wl-stav-ke', txt:'předáno ke kontrole'} : {cls:'wl-stav-k', txt:'k převzetí'};

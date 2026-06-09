@@ -98,6 +98,7 @@
 function kvFaze(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ var o=JSON.parse(s); return o.faze||'zalozeno'; } }catch(e){} return 'zalozeno'; }
 function aktivni(){ var fi=['zalozeno','predano','prideleno','kontrola','vyjadreni'].indexOf(kvFaze()); return fi>=2; }
 function pakState(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ var o=JSON.parse(s); return (o.prisp&&o.prisp.PAK)||{}; } }catch(e){} return {}; }
+function kvPrerus(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return !!JSON.parse(s).prerus; } }catch(e){} return false; }
 
 var ROWS = [
   { aktiv:true,  sp:'013304/26', zad:'ALMANI s.r.o.',       nazev:'Povolení záměru - testovací zpráva mail 14.5.26', typ:'KSVZ 6.3.1', zah:'14.5.2026', termin:'13.7.2026' },
@@ -116,7 +117,8 @@ function render(){
         tr.className='active';
         tr.onclick=function(){ location.href='prispevatel-detail.html'; };
         var p=pakState(), stav, cls;
-        if(p.vyrizeno){ stav='vyřízeno (odesláno)'; cls='wl-stav-ok'; }
+        if(kvPrerus()){ stav='výzva'; cls='wl-stav-w'; }
+        else if(p.vyrizeno){ stav='vyřízeno (odesláno)'; cls='wl-stav-ok'; }
         else if(p.rozprac){ stav='rozpracováno – k dokončení'; cls='wl-stav-k'; }
         else if(p.pod==='neuplne'){ stav='neúplné – k doplnění'; cls='wl-stav-w'; }
         else if(p.pod==='ok'){ stav='podklady OK – k vyjádření'; cls='wl-stav-k'; }

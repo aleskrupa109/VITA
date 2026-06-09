@@ -257,7 +257,7 @@ function renderPod(){
   podRows.forEach(function(r){
     var tr=document.createElement('tr');
     tr.oncontextmenu=function(e){ ctxAt(e,[{t:'Zobrazit', fn:function(){ toast('Zobrazení dokumentu: '+r.f+' (otevře se v prohlížeči dokumentů).'); }}]); };
-    tr.innerHTML='<td>'+r.f+'</td><td>'+SSL_CJ+'</td><td>'+SSL_DT+'</td><td><span class="sub">—</span></td>';
+    tr.innerHTML='<td>'+r.f+'</td><td>'+(r.cj||SSL_CJ)+'</td><td>'+(r.dt||SSL_DT)+'</td><td><span class="sub">—</span></td>';
     tb.appendChild(tr);
   });
 }
