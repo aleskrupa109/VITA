@@ -47,7 +47,7 @@
     <div class="tbtn"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1" fill="#6aa0c8" stroke="#3a6e95"/><rect x="6" y="3" width="12" height="5" rx="1" fill="#cdd9a6" stroke="#7d8a55"/><rect x="9" y="9" width="6" height="3" fill="#fff" stroke="#3a6e95"/></svg><span class="lbl">Kartotéky</span></div>
     <div class="tb-drop">&#9660;</div>
     <div class="tb-sep"></div>
-    <div class="tbtn"><svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="8" rx="1" fill="#d8d8d8" stroke="#888"/><rect x="7" y="3" width="10" height="6" fill="#fff" stroke="#888"/><rect x="7" y="15" width="10" height="6" fill="#fff" stroke="#888"/><circle cx="17" cy="12" r="1" fill="#2faa4c"/></svg><span class="lbl">Tisk</span></div>
+    <div class="tbtn" onclick="openTisk()" title="Tisk dokumentů"><svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="8" rx="1" fill="#d8d8d8" stroke="#888"/><rect x="7" y="3" width="10" height="6" fill="#fff" stroke="#888"/><rect x="7" y="15" width="10" height="6" fill="#fff" stroke="#888"/><circle cx="17" cy="12" r="1" fill="#2faa4c"/></svg><span class="lbl">Tisk</span></div>
     <div class="tbtn"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" fill="#fff" stroke="#888"/><line x1="7" y1="7" x2="17" y2="7" stroke="#3a6e95" stroke-width="1.5"/><line x1="7" y1="11" x2="17" y2="11" stroke="#bbb" stroke-width="1.5"/><line x1="7" y1="15" x2="17" y2="15" stroke="#bbb" stroke-width="1.5"/></svg><span class="lbl">Soupis</span></div>
     <div class="tbtn active"><svg viewBox="0 0 24 24"><path d="M4 3 h13 l3 3 v15 H4 Z" fill="#3a6ea5" stroke="#2c5380"/><rect x="7" y="3" width="8" height="6" fill="#dfe8f2"/><rect x="9" y="14" width="6" height="7" fill="#cdd9e8"/></svg><span class="lbl">Uložit</span></div>
     <div class="tbtn"><svg viewBox="0 0 24 24"><path d="M16 4 a3 3 0 0 1 0 6 l-7 7 a2 2 0 0 1 -3 -3 l8 -8" fill="none" stroke="#888" stroke-width="2"/></svg><span class="lbl">Poznámka</span></div>
@@ -244,8 +244,21 @@
 
     <h3 class="section">Termíny</h3>
     <div class="term-row">
-      <label>zahájení</label>
+      <label>zahájení řízení</label>
       <input type="text" style="width:110px" value="14.5.2026">
+      <select id="rizeniStav" style="width:150px;margin-left:8px" onchange="rizeniStavChange()">
+        <option value=""></option>
+        <option value="Přerušení">Přerušení</option>
+        <option value="Zastavení">Zastavení</option>
+        <option value="Postoupení">Postoupení</option>
+        <option value="Odložení">Odložení</option>
+      </select>
+    </div>
+    <div id="prerusBox" style="display:none">
+      <div class="term-row"><label>lhůty neběží od</label><input type="text" class="readonly" style="width:110px" value="14.5.2026" readonly></div>
+      <div class="term-row"><label>přerušení řízení</label><input type="text" class="readonly" style="width:110px" value="14.5.2026" readonly><button class="btn sm" style="margin-left:8px" onclick="openDoplnitO()">doplnit o …</button></div>
+      <div class="term-row"><label>termín doplnění</label><input type="text" class="readonly" style="width:110px" value="13.6.2026" readonly></div>
+      <div class="prisp-note" style="color:#1f4e88;font-weight:bold;background:#eef3fb;border-color:#cfe0f5">Lhůty neběží (řízení je přerušeno)</div>
     </div>
     <div class="term-row">
       <label>z<u>r</u>ychlené řízení</label>
@@ -1094,6 +1107,33 @@ kvRenderSummary();
     <div class="m-foot"><div class="right"><button class="btn" onclick="closePrispevek()">OK</button></div></div>
   </div>
 </div>
+<div class="overlay" id="doplnitOModal">
+  <div class="modal" style="width:900px;max-width:96vw">
+    <div class="m-title"><span>Co se má doplnit</span><div class="m-x" onclick="closeDoplnitO()" title="Storno">&#10005;</div></div>
+    <div class="m-body" style="background:#fff">
+      <div class="grid-head-lite" style="border:1px solid #c9c9c9;background:#ececec;padding:4px 8px;font-weight:bold">Text</div>
+      <div id="dopoList" style="border:1px solid #c9c9c9;border-top:0;padding:8px;min-height:60px;background:#fafafa;color:#666;font-size:13px">Seznam neobsahuje žádné záznamy</div>
+      <div class="rt-toolbar" style="margin-top:10px"><div class="rb" style="font-weight:bold">B</div><div class="rb" style="font-style:italic">I</div><div class="rb" style="text-decoration:underline">U</div><div class="rb">A<sup>2</sup></div><div class="rb">A<sub>2</sub></div><div class="rsep"></div><div class="rb">&#9986;</div><div class="rb">&#128203;</div><div class="rb">&#128204;</div></div>
+      <div class="rt-area" contenteditable="true" id="dopoEditor" style="min-height:220px"><ul><li><br></li></ul></div>
+    </div>
+    <div class="m-foot"><button class="btn" onclick="saveDoplnitO()"><u>O</u>K</button><button class="btn" onclick="closeDoplnitO()">Storno</button><div class="right"><button class="btn sm" onclick="dopoNacti()">Načíst požadavky přispěvatelů</button></div></div>
+  </div>
+</div>
+
+<div class="overlay" id="tiskModal">
+  <div class="modal" style="width:720px;max-width:94vw">
+    <div class="m-title"><span>Tisk dokumentů (PS 6.2.1/5-11-5)</span><div class="m-x" onclick="closeTisk()" title="Zavřít">&#10005;</div></div>
+    <div class="m-body" style="background:#fff">
+      <table class="grid" id="tiskGrid"><thead><tr><th style="width:80px">Číslo</th><th>Název</th></tr></thead>
+        <tbody>
+          <tr data-cislo="0855" onclick="tiskSelect(this)" ondblclick="tiskOk()"><td>0855</td><td>Výzva k doplnění žádosti a usnesení o přerušení</td></tr>
+          <tr data-cislo="0390" onclick="tiskSelect(this)" ondblclick="tiskOk()"><td>0390</td><td>Vyrozumění o zahájení řízení</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="m-foot"><button class="btn" onclick="tiskOk()"><u>O</u>k</button><button class="btn" onclick="closeTisk()"><u>Z</u>avřít</button><div class="right"><button class="btn" onclick="toast('Jiný vzor – výběr ze šablon (v mockupu zatím nepodporováno).')">Jiný vzor</button></div></div>
+  </div>
+</div>
 <div class="overlay" id="doplnitModal">
   <div class="modal" style="width:760px;max-width:94vw">
     <div class="m-title"><span id="dmTitle">Doplnění podkladů</span><div class="m-x" onclick="closeDoplnit()" title="Zavřít">&#10005;</div></div>
@@ -1111,7 +1151,7 @@ let faze = 'zalozeno'; /* zalozeno → predano → prideleno → kontrola → vy
 function vpToggle(id){ var el=document.getElementById(id); if(el) el.classList.toggle('open'); }
 
 var KV_KEY='vita_kv_state';
-function saveState(){ try{ localStorage.setItem(KV_KEY, JSON.stringify({faze:faze, coord:predState.coord, podRows:podRows})); }catch(e){} }
+function saveState(){ try{ var cur=loadState()||{}; cur.faze=faze; cur.coord=predState.coord; cur.podRows=podRows; cur.prerus=!!predState.prerus; cur.rizeniStav=predState.rizeniStav||''; cur.doplnitO=predState.doplnitO||''; localStorage.setItem(KV_KEY, JSON.stringify(cur)); }catch(e){} }
 function loadState(){ try{ var s=localStorage.getItem(KV_KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
 
 function setRole(v){
@@ -1343,9 +1383,70 @@ function renderPrisp(){
     : (uiRole==='uradnik' ? 'Náhled pro čtení – úředník sleduje průběh; podmínky DO se na konci převezmou do rozhodnutí.' : '');
 }
 function prispVyzva(){
-  predState.prerus=true;
-  toast('Vydána výzva k doplnění (vzor 3002) a řízení přerušeno. Po doplnění proběhne nová kontrola úplnosti.');
+  predState.prerus=true; predState.rizeniStav='Přerušení';
+  var sel=document.getElementById('rizeniStav'); if(sel) sel.value='Přerušení';
+  var pb=document.getElementById('prerusBox'); if(pb) pb.style.display='block';
+  saveState();
+  toast('Vydána výzva k doplnění a řízení přerušeno. Po doplnění proběhne nová kontrola úplnosti.');
   renderPrisp(); renderDoPanel();
+}
+
+/* ---- stav řízení (přerušení / zastavení / …) v dolním bloku Termíny ---- */
+function rizeniStavChange(){
+  var v=document.getElementById('rizeniStav').value;
+  predState.rizeniStav=v;
+  var pb=document.getElementById('prerusBox');
+  if(v==='Přerušení'){
+    predState.prerus=true; if(pb) pb.style.display='block';
+    saveState(); renderPrisp(); renderDoPanel();
+    toast('Řízení přerušeno od data doručení žádosti (14.5.2026). Lhůty neběží.');
+  } else {
+    predState.prerus=false; if(pb) pb.style.display='none';
+    saveState(); renderPrisp(); renderDoPanel();
+    if(v) toast('„'+v+'" – tuto větev doplníme v dalším kroku.');
+  }
+}
+
+/* ---- dialog „Co se má doplnit" ---- */
+function aggregatePozadavky(){
+  var ov=(loadState()||{}).prisp||{};
+  var groups={}; // text -> [úseky]
+  Object.keys(ov).forEach(function(u){
+    var o=ov[u];
+    if(o && o.pod==='neuplne' && o.doplnit && o.doplnit.trim()){
+      var t=o.doplnit.trim();
+      (groups[t]=groups[t]||[]).push(u);
+    }
+  });
+  var keys=Object.keys(groups);
+  if(!keys.length) return '';
+  return '<ul>'+keys.map(function(t){ return '<li><b>'+groups[t].join(', ')+'</b> – '+t.replace(/</g,'&lt;')+'</li>'; }).join('')+'</ul>';
+}
+function openDoplnitO(){
+  var cur=(loadState()||{}).doplnitO || predState.doplnitO || '';
+  var ed=document.getElementById('dopoEditor');
+  if(cur && cur.replace(/<[^>]*>/g,'').trim()) ed.innerHTML=cur;
+  else { var agg=aggregatePozadavky(); ed.innerHTML = agg || '<ul><li><br></li></ul>'; }
+  document.getElementById('doplnitOModal').classList.add('show');
+}
+function dopoNacti(){ var agg=aggregatePozadavky(); document.getElementById('dopoEditor').innerHTML = agg || '<ul><li><br></li></ul>'; if(!agg) toast('Žádný přispěvatel zatím neuvedl, co doplnit.'); }
+function closeDoplnitO(){ document.getElementById('doplnitOModal').classList.remove('show'); }
+function saveDoplnitO(){
+  predState.doplnitO=document.getElementById('dopoEditor').innerHTML;
+  saveState(); closeDoplnitO();
+  toast('Požadavky na doplnění uloženy. Vystavte výzvu přes tlačítko Tisk.');
+}
+
+/* ---- dialog „Tisk dokumentů" ---- */
+function openTisk(){ var t=document.getElementById('tiskGrid'); if(t) t.querySelectorAll('tr').forEach(function(tr){tr.classList.remove('sel');}); document.getElementById('tiskModal').classList.add('show'); }
+function closeTisk(){ document.getElementById('tiskModal').classList.remove('show'); }
+function tiskSelect(tr){ document.querySelectorAll('#tiskGrid tbody tr').forEach(function(r){r.classList.remove('sel');}); tr.classList.add('sel'); }
+function tiskOk(){
+  var tr=document.querySelector('#tiskGrid tbody tr.sel');
+  if(!tr){ toast('Vyberte dokument k vytvoření.'); return; }
+  var cislo=tr.getAttribute('data-cislo'), nazev=tr.cells[1].textContent;
+  closeTisk();
+  toast('Dokument vytvořen: '+nazev+' (vzor '+cislo+'). Uložen do spisu.');
 }
 
 /* ---- náhled příspěvku (Koordinované stanovisko) ---- */
@@ -1472,6 +1573,13 @@ function pmTabText(r, tab){
     if(predState.handed) predState.coord=(st&&st.coord)||'Ing. Pavla Nováková';
     if(!podRows.length && st && st.podRows && st.podRows.length) podRows=st.podRows;
     var tfu=document.getElementById('typField'); if(tfu) tfu.value='KSVZ 6.3.1 – Stavební záměr';
+  }
+  if(st){
+    predState.prerus = !!st.prerus;
+    predState.rizeniStav = st.rizeniStav || (st.prerus?'Přerušení':'');
+    predState.doplnitO = st.doplnitO || '';
+    var rsel=document.getElementById('rizeniStav'); if(rsel && predState.rizeniStav) rsel.value=predState.rizeniStav;
+    var pbx=document.getElementById('prerusBox'); if(pbx && predState.rizeniStav==='Přerušení') pbx.style.display='block';
   }
   renderPod(); renderKoordBar(); renderDoPanel(); renderPrisp();
 })();
