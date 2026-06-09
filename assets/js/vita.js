@@ -53,3 +53,18 @@ function vitaRoleSwitch(role){
     : { uradnik:'index.html', koordinator:'pages/koordinator.html', prispevatel:'pages/prispevatel.html' };
   if(map[role]) location.href = map[role];
 }
+
+/* ===== Výchozí dotčenost (interní/externí DO) podle úseku – dle schématu DOSS ===== */
+var VITA_EXT_DEFAULT = {
+  PAK:{mode:'interni', zdu:''},
+  OVZ:{mode:'interni', zdu:''},
+  ZPF:{mode:'interni', zdu:''},
+  HYG:{mode:'interni', zdu:''},
+  UUP:{mode:'interni', zdu:''},
+  ODP:{mode:'interni', zdu:''},
+  PAM:{mode:'oba',     zdu:'Národní kulturní památky a kulturní památky zůstávají v kompetenci orgánu památkové péče (ZS) dle zák. 20/1987 Sb. – nutné vyžádat závazné stanovisko; památkové zóny a ochranná pásma řeší ÚRÚ interně.'},
+  VOD:{mode:'externi', zdu:'Vyžádat vyjádření vodoprávního úřadu dle zák. 254/2001 Sb. (nakládání s vodami, vodní dílo, výjimky § 23a).'},
+  LES:{mode:'externi', zdu:'Vyžádat vyjádření orgánu státní správy lesů dle zák. 289/1995 Sb. (dotčení pozemků určených k plnění funkcí lesa).'},
+  PO: {mode:'externi', zdu:'Vyžádat stanovisko HZS dle zák. 133/1985 Sb. (požární bezpečnost; kategorie II – vyjádření).'},
+  DOP:{mode:'externi', zdu:'Vyžádat stanovisko drážního správního úřadu (zák. 266/1994 Sb.) a Policie ČR k bezpečnosti provozu (zák. 13/1997 Sb.).'}
+};
