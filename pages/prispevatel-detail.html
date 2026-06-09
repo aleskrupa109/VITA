@@ -103,6 +103,7 @@
 
   <div class="pd-area">
     <div class="ri-title">KSVZ 6.3.1 – Stavební záměr…</div>
+    <div id="vratNote" style="display:none;margin:0 0 8px;padding:8px 12px;background:#fdeaea;border:1px solid #e0a3a3;color:#7a1f1f;font-size:13px"></div>
 
     <!-- informace o řízení (read-only) -->
     <div class="ro-info">
@@ -192,8 +193,7 @@
     </div>
 
     <div class="ed-save">
-      <span class="sub" id="edLockNote" style="display:none">Příspěvek byl vyřízen a odeslán koordinátorovi – nelze měnit. &nbsp;</span>
-      <button class="btn" id="btnOdeslat" onclick="odeslat()">Uložit a odeslat vyjádření koordinátorovi</button>
+      <span class="sub" id="edLockNote" style="display:none">Příspěvek byl vyřízen a odeslán koordinátorovi – nelze měnit.</span>
     </div>
 
     <!-- Další přispěvatelé (read-only) -->
@@ -336,6 +336,13 @@ function initEditor(){
   if(myLocked){
     var en=document.getElementById('edLockNote'); if(en) en.style.display='inline';
   }
+  var vn=document.getElementById('vratNote');
+  if(vn){
+    if(p && p.vraceno && p.vratDuvod){
+      vn.style.display='block';
+      vn.innerHTML='&#10227; <b>Příspěvek vrácen koordinátorem k přepracování:</b><br>'+String(p.vratDuvod).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+    } else { vn.style.display='none'; }
+  }
   applyGating();
 }
 function gateState(){
@@ -388,7 +395,7 @@ function saveForm(status){
   p.negativni = document.getElementById('ed-negativni').innerHTML;
   p.extMode = document.getElementById('edExt').value;
   p.extZduvodneni = document.getElementById('edExtZdu').value;
-  if(status==='vyrizeno'){ p.vyrizeno=true; p.rozprac=false; p.hotovo=true; }
+  if(status==='vyrizeno'){ p.vyrizeno=true; p.rozprac=false; p.hotovo=true; p.vraceno=false; p.vratDuvod=''; }
   else if(status==='rozprac'){ p.rozprac=true; p.vyrizeno=false; p.hotovo=false; }
   if(MYUSEK!=='PAK') p.ownEdit=true;   // úsek samostatně editovaný přispěvatelem
   cur.prisp[MYUSEK] = p;

@@ -119,6 +119,7 @@ function render(){
         tr.onclick=function(){ location.href='prispevatel-detail.html?usek=HYG'; };
         var p=mineState(), stav, cls;
         if(kvPrerus()){ stav='výzva'; cls='wl-stav-w'; }
+        else if(p.vraceno){ stav='vráceno k přepracování'; cls='wl-stav-w'; }
         else if(p.vyrizeno && p.ownEdit){ stav='vyřízeno (odesláno)'; cls='wl-stav-ok'; }
         else if(p.rozprac){ stav='rozpracováno – k dokončení'; cls='wl-stav-k'; }
         else if(p.pod==='ok'){ stav='podklady OK – k vyjádření'; cls='wl-stav-k'; }

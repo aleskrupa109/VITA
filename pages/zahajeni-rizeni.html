@@ -25,6 +25,8 @@
   #koordPrispWrap .op-fld select { min-width:300px; }
   #koordPrispWrap .op-prac-r { margin-left:auto; color:#333; padding-left:12px; white-space:nowrap; }
   #koordPrispWrap .op-ro { background:#fcfcfc; min-height:120px; }
+  .note-flag { color:#c77c00; cursor:pointer; font-size:12px; vertical-align:middle; }
+  .note-flag:hover { color:#1f6fc9; }
 </style>
 </head>
 <body>
@@ -1177,6 +1179,36 @@ kvRenderSummary();
     <div class="m-foot"><div class="right"><button class="btn" onclick="closeDoplnit()">OK</button></div></div>
   </div>
 </div>
+<div class="overlay" id="vratModal">
+  <div class="modal" style="width:640px;max-width:94vw">
+    <div class="m-title"><span id="vratTitle">Vrátit příspěvek přispěvateli</span><div class="m-x" onclick="closeVrat()" title="Storno">&#10005;</div></div>
+    <div class="m-body" style="background:#fff">
+      <div class="sub" style="margin-bottom:6px">Uveďte důvod vrácení (zobrazí se přispěvateli k přepracování):</div>
+      <textarea id="vratText" style="width:100%;min-height:120px;box-sizing:border-box;font:13px/1.4 inherit" placeholder="Např.: Podmínka v bodě 2 je v rozporu s vyjádřením úseku PAK – sjednoťte termín provádění prací; doplňte odůvodnění podmínky."></textarea>
+    </div>
+    <div class="m-foot"><button class="btn" onclick="vratOk()">Vrátit přispěvateli</button><button class="btn" onclick="closeVrat()">Storno</button></div>
+  </div>
+</div>
+<div class="overlay" id="zpravaModal">
+  <div class="modal mini" style="width:440px">
+    <div class="m-title"><span id="zpravaTitle">Interní zpráva</span><div class="m-x" onclick="closeZprava()" title="Předat zprávu (zavřít)">&#10005;</div></div>
+    <div class="m-body" style="background:#fff">
+      <div class="sub" id="zpravaTo" style="margin-bottom:6px"></div>
+      <textarea id="zpravaText" style="width:100%;min-height:120px;box-sizing:border-box;font:13px/1.4 inherit" placeholder="Text interní systémové zprávy pracovníkovi…"></textarea>
+      <div class="sub" style="margin-top:6px">Zprávu předáte zavřením okna křížkem (×).</div>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="poznamkaModal">
+  <div class="modal" style="width:560px;max-width:94vw">
+    <div class="m-title"><span id="poznamkaTitle">Poznámka koordinátora</span><div class="m-x" onclick="closePoznamka()" title="Storno">&#10005;</div></div>
+    <div class="m-body" style="background:#fff">
+      <div class="sub" style="margin-bottom:6px">Interní poznámka k úseku (vidí jen koordinátor) – např. datum telefonické urgence, dohody, kontakty:</div>
+      <textarea id="poznamkaText" style="width:100%;min-height:110px;box-sizing:border-box;font:13px/1.4 inherit" placeholder="Např.: 9.6. telefonicky urgováno (p. Marková), přislíbeno do 11.6."></textarea>
+    </div>
+    <div class="m-foot"><button class="btn" onclick="savePoznamka()"><u>U</u>ložit</button><button class="btn" onclick="closePoznamka()">Storno</button></div>
+  </div>
+</div>
 <div class="ctx-menu" id="ctxMenu"></div>
 <script>
 /* =================== Rozbalovací panely + role (přepracováno) =================== */
@@ -1406,7 +1438,8 @@ function renderPrisp(){
     var tr=document.createElement('tr');
     tr.oncontextmenu=function(e){ prispCtx(e, idx); };
     tr.ondblclick=function(){ openPrispevek(idx); };
-    tr.innerHTML='<td><b>'+r.usek+'</b></td><td>'+r.odbor+'</td><td>'+prac+'</td>'+
+    var noteIco = (o && o.poznamka) ? ' <span class="note-flag" title="'+esc(o.poznamka)+'" onclick="event.stopPropagation(); openPoznamka('+idx+')">&#9998;</span>' : '';
+    tr.innerHTML='<td><b>'+r.usek+'</b>'+noteIco+'</td><td>'+r.odbor+'</td><td>'+prac+'</td>'+
       '<td>'+pod+'</td><td>'+lhutaCell(o)+'</td><td style="text-align:center">'+done+'</td>'+
       '<td>'+vzCell+'</td><td>'+ext+'</td>';
     tb.appendChild(tr);
@@ -1602,13 +1635,20 @@ function prispCtx(e, idx){
     items.push({t:'Prodloužit termín o 14 dní', fn:function(){ prodlouzit(r.usek); }});
     if(overdue) items.push({t:'Označit fikci souhlasu', fn:function(){ oznacitFikci(r.usek); }});
   }
-  items.push({t:'Přidat úsek \u25B8', fn:function(){ toast('Přidat úsek – doplníme v dalším kroku.'); }});
-  items.push({t:'Zprávy', fn:function(){ toast('Zprávy – doplníme v dalším kroku.'); }});
+  if(uiRole==='koordinator' && o && o.vyrizeno && !o.fikce){
+    items.push({sep:true});
+    items.push({t:'Vrátit\u2026', fn:function(){ openVrat(idx); }});
+  }
+  items.push({t:'Přidat úsek \u25B8', dis:true});
+  items.push({t:'Zprávy', fn:function(){ openZprava(idx); }});
+  if(uiRole==='koordinator'){
+    items.push({t:'Poznámka\u2026', fn:function(){ openPoznamka(idx); }});
+  }
   items.push({sep:true});
-  items.push({t:'Termín', fn:function(){ toast('Termín – doplníme v dalším kroku.'); }});
+  items.push({t:'Termín', dis:true});
   items.push({sep:true});
-  items.push({t:'Zrušit (Ctrl+Del)', fn:function(){ toast('Zrušit úsek – doplníme v dalším kroku.'); }});
-  items.push({t:'Historie', fn:function(){ toast('Historie – doplníme v dalším kroku.'); }});
+  items.push({t:'Zrušit (Ctrl+Del)', dis:true});
+  items.push({t:'Historie', dis:true});
   ctxAt(e, items);
 }
 // --- MVP1: zápis do sdíleného stavu (urgence / lhůty / fikce / simulace) ---
@@ -1750,6 +1790,7 @@ function renderKoordPrisp(){
     var emZdu=(sv && sv.extZduvodneni)?sv.extZduvodneni:ed.zdu;
     var stavTag = (sv&&sv.fikce) ? '<span class="sub">fikce souhlasu</span>'
                 : (sv&&sv.vyrizeno) ? '<span class="kv-pod-ok">vyřízeno</span>'
+                : (sv&&sv.vraceno) ? '<span class="kv-pod-no">vráceno k přepracování</span>'
                 : '<span class="sub">nevyřízeno</span>';
     var extRow='<div class="op-fld"><span class="op-usek-lbl">'+r.usek+'</span><label>dotčenost</label><input type="text" value="'+esc(emTxt)+'" readonly style="flex:1 1 auto"></div>'+
       (((em==='externi'||em==='oba')&&emZdu)?'<div class="op-fld"><span class="op-usek-lbl"></span><label>zdůvodnění</label><div style="flex:1 1 auto;color:#8a3a00;font-size:13px">'+esc(emZdu)+'</div></div>':'');
@@ -1790,6 +1831,74 @@ function toggleKoordPrisp(){
   var w=document.getElementById('koordPrispWrap'); var b=document.getElementById('btnKoordPrisp');
   if(w.style.display==='none'){ renderKoordPrisp(); w.style.display='block'; if(b) b.innerHTML='Příspěvky &#9662;'; }
   else { w.style.display='none'; if(b) b.innerHTML='Příspěvky &#9656;'; }
+}
+
+/* ===== Vrátit příspěvek přispěvateli (se zdůvodněním) ===== */
+var vratIdx=null;
+function openVrat(idx){
+  vratIdx=idx; var r=PRISP[idx];
+  var o=((loadState()||{}).prisp||{})[r.usek]||{};
+  document.getElementById('vratTitle').textContent='Vrátit příspěvek — úsek '+r.usek;
+  document.getElementById('vratText').value=o.vratDuvod||'';
+  document.getElementById('vratModal').classList.add('show');
+  setTimeout(function(){ var t=document.getElementById('vratText'); if(t) t.focus(); },0);
+}
+function closeVrat(){ document.getElementById('vratModal').classList.remove('show'); }
+function vratOk(){
+  if(vratIdx==null) return;
+  var r=PRISP[vratIdx];
+  var txt=(document.getElementById('vratText').value||'').trim();
+  if(!txt){ toast('Uveďte důvod vrácení.'); return; }
+  kvPatchUsek(r.usek, function(p){ p.vraceno=true; p.vratDuvod=txt; p.vyrizeno=false; p.hotovo=false; });
+  closeVrat();
+  toast('Příspěvek úseku '+r.usek+' vrácen přispěvateli k přepracování.');
+  renderPrisp();
+  var w=document.getElementById('koordPrispWrap'); if(w && w.style.display!=='none') renderKoordPrisp();
+}
+
+/* ===== Interní zpráva pracovníkovi (boční okno; předá se zavřením křížkem) ===== */
+var zprIdx=null;
+function pracOf(r){ return (r.prac && r.prac!=='') ? r.prac : ('pracovník úseku '+r.usek); }
+function openZprava(idx){
+  zprIdx=idx; var r=PRISP[idx]; var prac=pracOf(r);
+  document.getElementById('zpravaTitle').textContent='Interní zpráva — '+prac;
+  document.getElementById('zpravaTo').innerHTML='Příjemce: <b>'+prac+'</b> &nbsp;·&nbsp; úsek '+r.usek;
+  document.getElementById('zpravaText').value='';
+  document.getElementById('zpravaModal').classList.add('show');
+  setTimeout(function(){ var t=document.getElementById('zpravaText'); if(t) t.focus(); },0);
+}
+function closeZprava(){
+  if(zprIdx!=null){
+    var r=PRISP[zprIdx];
+    var txt=(document.getElementById('zpravaText').value||'').trim();
+    if(txt){
+      kvPatchUsek(r.usek, function(p){ p.zpravy=p.zpravy||[]; p.zpravy.push({od:'koordinátor', dt:'9.6.2026', text:txt}); });
+      toast('Zpráva předána pracovníkovi: '+pracOf(r)+'.');
+    }
+  }
+  zprIdx=null;
+  document.getElementById('zpravaModal').classList.remove('show');
+}
+
+/* ===== Poznámka koordinátora (interní, per úsek) ===== */
+var poznIdx=null;
+function openPoznamka(idx){
+  poznIdx=idx; var r=PRISP[idx];
+  var o=((loadState()||{}).prisp||{})[r.usek]||{};
+  document.getElementById('poznamkaTitle').textContent='Poznámka koordinátora — úsek '+r.usek;
+  document.getElementById('poznamkaText').value=o.poznamka||'';
+  document.getElementById('poznamkaModal').classList.add('show');
+  setTimeout(function(){ var t=document.getElementById('poznamkaText'); if(t) t.focus(); },0);
+}
+function closePoznamka(){ document.getElementById('poznamkaModal').classList.remove('show'); }
+function savePoznamka(){
+  if(poznIdx==null) return;
+  var r=PRISP[poznIdx];
+  var txt=(document.getElementById('poznamkaText').value||'').trim();
+  kvPatchUsek(r.usek, function(p){ p.poznamka=txt; });
+  closePoznamka();
+  toast(txt ? ('Poznámka k úseku '+r.usek+' uložena.') : ('Poznámka k úseku '+r.usek+' smazána.'));
+  renderPrisp();
 }
 (function(){
   var mb=document.querySelector('#stavbaOverlay .m-body');
