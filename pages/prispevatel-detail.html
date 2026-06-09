@@ -158,6 +158,7 @@
     <div class="ed-wrap">
       <div class="spine"><span>PAK</span></div>
       <div class="ed-body">
+        <div class="sub" id="edGateNote" style="padding:6px 12px;color:#8a3a00;display:none;border-bottom:1px solid #eee"></div>
         <div class="ed-fld"><label>Zmocnění</label><input type="text" id="edZmoc"><button class="btn sm" title="Vybrat zmocnění">…</button></div>
         <div class="ed-fld"><span class="ed-usek">PAK</span><label>dotčenost</label>
           <select id="edExt" onchange="edExtChange()">
@@ -314,20 +315,40 @@ function initEditor(){
     document.getElementById('podLockNote').style.display = 'inline';
   }
   if(p && p.vyrizeno){
-    // příspěvek byl vyřízen a odeslán → přispívání skončilo, editor uzamčen
-    sel.disabled = true;
-    document.getElementById('edZmoc').readOnly = true;
-    document.getElementById('edExt').disabled = true;
-    document.getElementById('edExtZdu').readOnly = true;
-    ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ document.getElementById('ed-'+n).contentEditable='false'; });
     var en=document.getElementById('edLockNote'); if(en) en.style.display='inline';
-    var ob=document.getElementById('btnOdeslat'); if(ob) ob.disabled=true;
+  }
+  applyGating();
+}
+function gateState(){
+  var st2=(loadState()||{}); var pp=(st2.prisp&&st2.prisp.PAK)?st2.prisp.PAK:{};
+  return { confirmed:!!pp.pod, kontrolaOK:pp.pod==='ok', neuplne:pp.pod==='neuplne', vyrizeno:!!pp.vyrizeno };
+}
+function setDisabled(id, dis){ var el=document.getElementById(id); if(!el) return; if('disabled' in el) el.disabled=dis; if(el.tagName==='INPUT'||el.tagName==='TEXTAREA') el.readOnly=dis; el.style.opacity=dis?0.55:1; }
+function setAreasEditable(on){ ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ var el=document.getElementById('ed-'+n); if(el){ el.contentEditable=on?'true':'false'; el.style.background=on?'':'#f4f4f4'; } }); }
+function applyGating(){
+  var g=gateState();
+  var em=document.getElementById('edExt').value;
+  var canExt = g.kontrolaOK && !g.vyrizeno;                                   // dotčenost
+  var canZdu = g.kontrolaOK && !g.vyrizeno && (em==='externi'||em==='oba');   // zdůvodnění ext. DO
+  var canVyj = g.kontrolaOK && !g.vyrizeno && (em==='interni'||em==='oba');   // interní vyjádření
+  document.getElementById('edExtZduWrap').style.display = (em==='externi'||em==='oba')?'flex':'none';
+  setDisabled('edExt', !canExt);
+  setDisabled('edExtZdu', !canZdu);
+  setDisabled('edZmoc', !canVyj);
+  setDisabled('edVz', !canVyj);
+  setAreasEditable(canVyj);
+  var ob=document.getElementById('btnOdeslat'); if(ob) ob.disabled = g.vyrizeno || !g.kontrolaOK || em==='';
+  var note=document.getElementById('edGateNote'); if(note){
+    var msg='';
+    if(g.vyrizeno) msg='Příspěvek je vyřízen a odeslán koordinátorovi – needitovatelné.';
+    else if(!g.confirmed) msg='Nejprve proveďte kontrolu podkladů a potvrďte ji zavřením řízení (křížek vpravo nahoře). Teprve poté lze vyplnit dotčenost, veřejné zájmy a příspěvek.';
+    else if(g.neuplne) msg='Podklady označeny jako neúplné – řízení se přerušuje a čeká na doplnění; dotčenost ani vyjádření se zatím nevyplňuje.';
+    else if(em==='') msg='Vyberte dotčenost (interní / externí / oba). Teprve poté lze vyplnit veřejné zájmy a příspěvek.';
+    else if(em==='externi') msg='Vyjadřuje se pouze externí DO – interní vyjádření (veřejné zájmy, příspěvek) se nevyplňuje; doplňte jen zdůvodnění pro externí orgán.';
+    note.textContent=msg; note.style.display=msg?'block':'none';
   }
 }
-function edExtChange(){
-  var v=document.getElementById('edExt').value;
-  document.getElementById('edExtZduWrap').style.display = (v==='externi'||v==='oba')?'flex':'none';
-}
+function edExtChange(){ applyGating(); }
 function podStavChange(){
   var v=document.getElementById('podStav').value;
   document.getElementById('doplnitWrap').style.display = (v==='neuplne')?'flex':'none';
@@ -361,9 +382,15 @@ function saveForm(status){
   saveState(cur);
   if(document.getElementById('othersWrap')) renderOthers();
 }
+function canVyridit(){
+  var em=document.getElementById('edExt').value;
+  if(em===''){ toast('Nejprve vyberte dotčenost (interní / externí / oba).'); return false; }
+  if((em==='interni'||em==='oba') && document.getElementById('edVz').value==='<vyberte>'){ toast('Pro vyřízení vyberte „veřejné zájmy".'); return false; }
+  return true;
+}
 function ulozitWip(){ saveForm('rozprac'); toast('Rozpracovaný příspěvek uložen.'); }
 function odeslat(){
-  if(document.getElementById('edVz').value==='<vyberte>'){ toast('Pro vyřízení vyberte „veřejné zájmy".'); return; }
+  if(!canVyridit()) return;
   saveForm('vyrizeno'); toast('Vyjádření za úsek PAK vyřízeno a odesláno koordinátorovi.');
 }
 
@@ -382,7 +409,7 @@ function cfNe(){ cfStorno(); if(cfNeFn) cfNeFn(); }
 function vitaSaveDialog(){ document.getElementById('saveDlg').classList.add('show'); }
 function svStorno(){ document.getElementById('saveDlg').classList.remove('show'); }
 function svVyrizeno(){
-  if(document.getElementById('edVz').value==='<vyberte>'){ toast('Pro vyřízení vyberte „veřejné zájmy".'); return; }
+  if(!canVyridit()) return;
   saveForm('vyrizeno'); location.href='prispevatel.html';   // ukončí přispívání, předá ke zpracování
 }
 function svUlozit(){ saveForm('rozprac'); location.href='prispevatel.html'; }   // uloží rozpracované
