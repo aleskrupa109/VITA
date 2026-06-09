@@ -210,6 +210,11 @@
                 </tr></thead>
                 <tbody id="prispBody"></tbody>
               </table>
+              <div id="koordPrispTools" style="margin-top:8px;display:none">
+                <button class="btn sm" id="btnKoordPrisp" onclick="toggleKoordPrisp()">Příspěvky &#9656;</button>
+                <span class="sub">&nbsp;— pootevřete a porovnejte jednotlivá vyjádření přispěvatelů</span>
+              </div>
+              <div id="koordPrispWrap" style="display:none"></div>
               <div class="prisp-note" id="prispNote"></div>
             </div>
           </div>
@@ -1415,6 +1420,15 @@ function renderPrisp(){
     }
   } else { tools.style.display='none'; tools.innerHTML=''; }
 
+  var kpt=document.getElementById('koordPrispTools');
+  if(kpt){
+    var showKP=(uiRole==='koordinator' && fi>=2);
+    kpt.style.display = showKP ? 'block' : 'none';
+    var w=document.getElementById('koordPrispWrap');
+    if(!showKP){ if(w){ w.style.display='none'; } var b=document.getElementById('btnKoordPrisp'); if(b) b.innerHTML='Příspěvky &#9656;'; }
+    else if(w && w.style.display!=='none'){ renderKoordPrisp(); }
+  }
+
   var al=document.getElementById('prispAlert');
   if(predState.prerus){
     al.style.display='flex'; al.innerHTML='Řízení přerušeno – vydána výzva k doplnění (vzor 3002). Po doplnění proběhne nová kontrola úplnosti.';
@@ -1675,7 +1689,87 @@ function pmTabText(r, tab){
   return '<div class="pm-empty">(bez textu)</div>';
 }
 
-/* ---- INIT: přesun detailu záměru do panelu + úvodní render ---- */
+/* ===== Koordinátor: „Příspěvky" – sbalené read-only panely všech úseků ke čtení/porovnání ===== */
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function rtToolbar(){
+  return '<div class="rt-toolbar" style="opacity:.7"><div class="rb" style="font-weight:bold">B</div><div class="rb" style="font-style:italic">I</div>'+
+    '<div class="rb" style="text-decoration:underline">U</div><div class="rb">A<sup>2</sup></div><div class="rb">A<sub>2</sub></div>'+
+    '<div class="rsep"></div><div class="rb">&#9986;</div><div class="rb">&#128203;</div><div class="rb">&#128204;</div></div>';
+}
+function koordPaneText(r, sv, tab){
+  if(sv){
+    var html=sv[tab];
+    return (html && html.replace(/<[^>]*>/g,'').trim()) ? html : '<ul><li><br></li></ul>';
+  }
+  var worked=(faze==='vyjadreni');
+  if(tab==='podminky'){
+    if(!worked) return '<ul><li><br></li></ul>';
+    if(r.vz==='cond') return '<ul><li>'+(PODTEXT[r.usek]||'splnit podmínky uvedené ve vyjádření')+'</li></ul>';
+    if(r.vz==='na')   return '<ul><li>nejsou dotčeny</li></ul>';
+    if(r.vz==='ok')   return '<ul><li>jsou dotčeny, bez připomínek</li></ul>';
+    return '<ul><li><br></li></ul>';
+  }
+  if(tab==='negativni'){
+    if(worked && r.vz==='no') return '<ul><li>'+(r.negtext||'záměr je v rozporu s chráněným veřejným zájmem')+'</li></ul>';
+    return '<ul><li><br></li></ul>';
+  }
+  return '<ul><li><br></li></ul>';
+}
+function renderKoordPrisp(){
+  var ov=(loadState()||{}).prisp||{};
+  var wrap=document.getElementById('koordPrispWrap'); if(!wrap) return;
+  wrap.innerHTML='';
+  PRISP.forEach(function(r){
+    var sv=ov[r.usek]||null;
+    var vzPhrase=(sv && sv.vz && sv.vz!=='<vyberte>') ? sv.vz : ((r.vz&&PVZ[r.vz])?PVZ[r.vz].txt:'<vyberte>');
+    var zmoc=(sv && sv.zmoc && sv.zmoc!=='<vyberte>') ? sv.zmoc : (ZMOC[r.usek]||'<vyberte>');
+    var ed=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:'',zdu:''};
+    var em=(sv && sv.extMode)?sv.extMode:ed.mode;
+    var emTxt= em==='externi'?'vyjadřuje se externí DO':em==='oba'?'vyjadřuje se interní i externí DO':em==='interni'?'vyjadřuje se interní DO (ÚRÚ)':'—';
+    var emZdu=(sv && sv.extZduvodneni)?sv.extZduvodneni:ed.zdu;
+    var stavTag = (sv&&sv.fikce) ? '<span class="sub">fikce souhlasu</span>'
+                : (sv&&sv.vyrizeno) ? '<span class="kv-pod-ok">vyřízeno</span>'
+                : '<span class="sub">nevyřízeno</span>';
+    var extRow='<div class="op-fld"><span class="op-usek-lbl">'+r.usek+'</span><label>dotčenost</label><input type="text" value="'+esc(emTxt)+'" readonly style="flex:1 1 auto"></div>'+
+      (((em==='externi'||em==='oba')&&emZdu)?'<div class="op-fld"><span class="op-usek-lbl"></span><label>zdůvodnění</label><div style="flex:1 1 auto;color:#8a3a00;font-size:13px">'+esc(emZdu)+'</div></div>':'');
+    var P={ podminky:koordPaneText(r,sv,'podminky'), oduvodneni:koordPaneText(r,sv,'oduvodneni'), upozorneni:koordPaneText(r,sv,'upozorneni'), negativni:koordPaneText(r,sv,'negativni') };
+    var prac=r.prac||'<span class="sub">nepřiděleno</span>';
+    var html='<div class="opanel" id="kop-'+r.usek+'">'+
+      '<div class="op-bar" onclick="kopToggle(\''+r.usek+'\')"><div class="op-usek">'+r.usek+'</div><div class="op-fill"></div><div class="op-prac">'+stavTag+' &nbsp; '+prac+'</div></div>'+
+      '<div class="op-exp">'+
+        '<div class="spine" onclick="kopToggle(\''+r.usek+'\')"><span>'+r.usek+'</span></div>'+
+        '<div class="op-body">'+
+          '<div class="op-fld"><label>Zmocnění</label><input type="text" value="'+esc(zmoc)+'" readonly></div>'+
+          extRow+
+          '<div class="op-fld"><span class="op-usek-lbl">'+r.usek+'</span><label>veřejné zájmy</label><select disabled><option>'+esc(vzPhrase)+'</option></select><span class="op-prac-r">'+prac+'</span></div>'+
+          '<div class="htabs" id="kopTabs-'+r.usek+'">'+
+            '<div class="htab active" data-pt="podminky" onclick="kopTab(\''+r.usek+'\',\'podminky\')">Podmínky</div>'+
+            '<div class="htab" data-pt="oduvodneni" onclick="kopTab(\''+r.usek+'\',\'oduvodneni\')">Odůvodnění</div>'+
+            '<div class="htab" data-pt="upozorneni" onclick="kopTab(\''+r.usek+'\',\'upozorneni\')">Upozornění</div>'+
+            '<div class="htab" data-pt="negativni" onclick="kopTab(\''+r.usek+'\',\'negativni\')">Negativní - důvody</div>'+
+          '</div>'+
+          rtToolbar()+
+          '<div class="rt-area op-ro" id="kop-'+r.usek+'-podminky">'+P.podminky+'</div>'+
+          '<div class="rt-area op-ro" id="kop-'+r.usek+'-oduvodneni" style="display:none">'+P.oduvodneni+'</div>'+
+          '<div class="rt-area op-ro" id="kop-'+r.usek+'-upozorneni" style="display:none">'+P.upozorneni+'</div>'+
+          '<div class="rt-area op-ro" id="kop-'+r.usek+'-negativni" style="display:none">'+P.negativni+'</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+    wrap.insertAdjacentHTML('beforeend', html);
+  });
+}
+function kopToggle(u){ var el=document.getElementById('kop-'+u); if(el) el.classList.toggle('open'); }
+function kopTab(u,name){
+  var ts=document.querySelectorAll('#kopTabs-'+u+' .htab');
+  Array.prototype.forEach.call(ts, function(t){ t.classList.toggle('active', t.dataset.pt===name); });
+  ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ var el=document.getElementById('kop-'+u+'-'+n); if(el) el.style.display=(n===name)?'block':'none'; });
+}
+function toggleKoordPrisp(){
+  var w=document.getElementById('koordPrispWrap'); var b=document.getElementById('btnKoordPrisp');
+  if(w.style.display==='none'){ renderKoordPrisp(); w.style.display='block'; if(b) b.innerHTML='Příspěvky &#9662;'; }
+  else { w.style.display='none'; if(b) b.innerHTML='Příspěvky &#9656;'; }
+}
 (function(){
   var mb=document.querySelector('#stavbaOverlay .m-body');
   var host=document.getElementById('host-zamer');
