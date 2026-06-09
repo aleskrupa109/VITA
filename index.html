@@ -156,7 +156,7 @@
 
   <!-- STATUS BAR -->
   <div class="statusbar">
-    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select onchange="vitaRoleSwitch(this.value)"><option value="uradnik" selected>Stavební úředník</option><option value="koordinator">Koordinátor</option><option value="prispevatel">Přispěvatel (PAK)</option></select></span></div>
+    <div class="sb-left"><span class="role-switch">Role&nbsp;(mockup):&nbsp;<select onchange="vitaRoleSwitch(this.value)"><option value="uradnik" selected>Stavební úředník</option><option value="koordinator">Koordinátor</option><option value="prispevatel">Přispěvatel (PAK)</option><option value="prispevatel2">Přispěvatel 2 (HYG)</option></select></span></div>
     <div class="sb-right">
       <span>5.3.0.33</span>
       <span id="clock">9:05:40</span>
@@ -267,8 +267,10 @@ function ctxAction(name){
 // --- seznam řízení úředníka ---
 function kvFaze(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return (JSON.parse(s).faze)||'zalozeno'; } }catch(e){} return 'zalozeno'; }
 function kvPrerus(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return !!JSON.parse(s).prerus; } }catch(e){} return false; }
+function kvZahajeni(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return JSON.parse(s).zahajeniZpusob||''; } }catch(e){} return ''; }
 function uStav(){
   if(kvPrerus()) return ['výzva','wl-stav-w'];
+  var z=kvZahajeni(); if(z) return [z,'wl-stav-k'];
   var f=kvFaze();
   if(f==='predano')   return ['předáno koordinátorovi','wl-stav-w'];
   if(f==='prideleno' || f==='kontrola') return ['u dotčených orgánů','wl-stav-w'];
