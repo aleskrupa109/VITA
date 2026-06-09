@@ -68,3 +68,39 @@ var VITA_EXT_DEFAULT = {
   PO: {mode:'externi', zdu:'Vyžádat stanovisko HZS dle zák. 133/1985 Sb. (požární bezpečnost; kategorie II – vyjádření).'},
   DOP:{mode:'externi', zdu:'Vyžádat stanovisko drážního správního úřadu (zák. 266/1994 Sb.) a Policie ČR k bezpečnosti provozu (zák. 13/1997 Sb.).'}
 };
+
+/* ===== Program → Reset (vrátí mockup do výchozího stavu) ===== */
+function vitaReset(){
+  try{ localStorage.removeItem('vita_kv_state'); }catch(e){}
+  var inPages = /\/pages\//.test(location.pathname);
+  location.href = inPages ? '../index.html' : 'index.html';
+}
+(function(){
+  function wire(){
+    var prog=null;
+    document.querySelectorAll('.menubar .menu-item').forEach(function(mi){
+      if(mi.textContent.trim().toLowerCase()==='program') prog=mi;
+    });
+    if(!prog) return;
+    var dd=document.createElement('div');
+    dd.style.cssText='position:fixed;display:none;background:#fff;border:1px solid #9a9a9a;box-shadow:0 6px 18px rgba(0,0,0,.25);font-size:13px;z-index:9999;min-width:190px;';
+    dd.innerHTML='<div class="vita-prog-reset" style="padding:6px 16px;cursor:default;white-space:nowrap;">Reset (výchozí stav)</div>';
+    document.body.appendChild(dd);
+    var item=dd.firstChild;
+    item.addEventListener('mouseenter', function(){ item.style.background='#cfe0f5'; });
+    item.addEventListener('mouseleave', function(){ item.style.background='#fff'; });
+    item.addEventListener('click', function(e){
+      e.stopPropagation(); dd.style.display='none';
+      if(confirm('Resetovat všechny provedené úkony do výchozího stavu?')) vitaReset();
+    });
+    prog.style.cursor='default';
+    prog.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(dd.style.display==='block'){ dd.style.display='none'; return; }
+      var r=prog.getBoundingClientRect();
+      dd.style.left=r.left+'px'; dd.style.top=r.bottom+'px'; dd.style.display='block';
+    });
+    document.addEventListener('click', function(){ dd.style.display='none'; });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+})();
