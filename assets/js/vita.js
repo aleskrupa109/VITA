@@ -62,6 +62,7 @@ var VITA_EXT_DEFAULT = {
   HYG:{mode:'interni', zdu:''},
   UUP:{mode:'interni', zdu:''},
   ODP:{mode:'interni', zdu:''},
+  ZAV:{mode:'interni', zdu:''},
   PAM:{mode:'oba',     zdu:'Národní kulturní památky a kulturní památky zůstávají v kompetenci orgánu památkové péče (ZS) dle zák. 20/1987 Sb. – nutné vyžádat závazné stanovisko; památkové zóny a ochranná pásma řeší ÚRÚ interně.'},
   VOD:{mode:'externi', zdu:'Vyžádat vyjádření vodoprávního úřadu dle zák. 254/2001 Sb. (nakládání s vodami, vodní dílo, výjimky § 23a).'},
   LES:{mode:'interni', zdu:''},
