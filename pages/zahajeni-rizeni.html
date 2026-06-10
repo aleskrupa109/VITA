@@ -29,6 +29,8 @@
   .note-flag:hover { color:#1f6fc9; }
   #prispGrid tbody tr { user-select:none; }
   #prispGrid tbody tr.sel td { background:#cfe2fb; }
+  .op-fld { display:flex; align-items:center; gap:10px; padding:6px 0; }
+  .op-fld > label { font-weight:bold; color:#333; }
 </style>
 </head>
 <body>
@@ -231,7 +233,7 @@
                   <th>Termín</th>
                   <th style="width:64px">Vyřízeno</th>
                   <th>Veřejné zájmy</th>
-                  <th>Externí DO</th>
+                  <th>DO</th>
                 </tr></thead>
                 <tbody id="prispBody"></tbody>
               </table>
@@ -443,7 +445,7 @@
             <th>Stav vyjádření</th>
             <th>2. lhůta</th>
             <th>Výsledek <span class="sub">(veřejné zájmy)</span></th>
-            <th>Externí DO</th>
+            <th>DO</th>
             <th>Parafa</th>
           </tr></thead>
           <tbody id="kvBody"></tbody>
@@ -1211,6 +1213,68 @@ kvRenderSummary();
     <div class="m-foot"><button class="btn" onclick="savePoznamka()"><u>U</u>ložit</button><button class="btn" onclick="closePoznamka()">Storno</button></div>
   </div>
 </div>
+<div class="overlay" id="addDoModal">
+  <div class="modal" style="width:600px;max-width:94vw">
+    <div class="m-title"><span>Přidej dotčený orgán</span><div class="m-x" onclick="closeAddDO()" title="Storno">&#10005;</div></div>
+    <div class="m-body" style="background:#fff">
+      <div class="sub" style="margin-bottom:6px">Vyberte dotčený orgán, jehož veřejný zájem dosud není v tabulce:</div>
+      <select id="addDoSel" size="8" style="width:100%;box-sizing:border-box;font:13px/1.6 inherit"></select>
+      <div id="addDoEmpty" class="sub" style="display:none">Všechny dostupné dotčené orgány už jsou v tabulce.</div>
+    </div>
+    <div class="m-foot"><button class="btn" id="btnAddDo" onclick="addDO()">Přidej</button><button class="btn" onclick="closeAddDO()">Storno</button></div>
+  </div>
+</div>
+<div class="overlay" id="extStanModal">
+  <div class="modal" style="width:660px;max-width:94vw">
+    <div class="m-title"><span id="extStanTitle">Stanovisko externího DO</span><div class="m-x" onclick="closeExtStan()" title="Storno">&#10005;</div></div>
+    <div class="m-body" style="background:#fff">
+      <div class="sub" style="margin-bottom:8px">Externí DO se nevyjadřuje v systému. Ověřte v dokumentaci, zda jeho stanovisko/vyjádření existuje – pokud ano, nahrajte je; pokud ne, vyžádejte je.</div>
+      <div style="margin-bottom:8px;line-height:1.8">
+        <label><input type="radio" name="extStanVolba" value="dolozeno" onchange="extStanSwitch()"> Stanovisko je doloženo v dokumentaci (nahrát dokument z počítače)</label><br>
+        <label><input type="radio" name="extStanVolba" value="vyzadat" onchange="extStanSwitch()"> Stanovisko není doloženo – vyžádat u externího DO</label>
+      </div>
+      <div id="extStanDolozeno" style="display:none;border-top:1px solid #ddd;padding-top:8px">
+        <div class="op-fld"><label style="min-width:130px">Dokument</label><input type="file" id="extFile"></div>
+        <div class="op-fld"><label style="min-width:130px">Původce</label><input type="text" id="extPuvodce" style="flex:1 1 auto" placeholder="Orgán, který stanovisko vydal"></div>
+        <div class="op-fld"><label style="min-width:130px">Datum vystavení</label><input type="text" id="extDatum" style="width:140px" placeholder="d.m.rrrr"></div>
+        <div class="op-fld"><label style="min-width:130px">Číslo jednací</label><input type="text" id="extCj" style="flex:1 1 auto" placeholder="č.j. dokumentu"></div>
+        <div class="sub" style="margin-top:4px">Po uložení navážeme vytvořením příspěvku (přepis veřejných zájmů a podmínek z dokumentu).</div>
+      </div>
+      <div id="extStanVyzadat" style="display:none;border-top:1px solid #ddd;padding-top:8px">
+        <div class="op-fld"><label style="min-width:130px">Datum vyžádání</label><input type="text" id="extVyzDatum" style="width:140px"></div>
+        <div class="sub">Vyžádání zaznamenává koordinátor; běží vlastní lhůta externího DO (mimo režim fikce u interních; výjimka EIA / ZS).</div>
+      </div>
+    </div>
+    <div class="m-foot"><button class="btn" id="extStanOk" onclick="extStanOk()" disabled>Uložit</button><button class="btn" onclick="closeExtStan()">Storno</button></div>
+  </div>
+</div>
+<div class="overlay" id="extEditModal">
+  <div class="modal" style="width:1000px;max-width:96vw">
+    <div class="m-title"><span id="exTitle">Příspěvek z externího stanoviska</span><div class="m-x" onclick="closeExtEdit()" title="Storno">&#10005;</div></div>
+    <div class="m-body" style="padding:0;background:#fff">
+      <div class="pm-head"><span class="pm-usek" id="exUsek">VOD</span><label>veřejné zájmy</label><select id="exVz"></select></div>
+      <div style="display:flex;flex-wrap:wrap;border-bottom:1px solid #ddd;background:#f7f7f7">
+        <div class="op-fld" style="flex:1 1 280px"><label>Původce</label><input type="text" id="exPuvodce" style="flex:1 1 auto"></div>
+        <div class="op-fld" style="flex:0 0 220px"><label>Datum vystavení</label><input type="text" id="exDatum" style="width:120px"></div>
+        <div class="op-fld" style="flex:0 0 260px"><label>Č.j.</label><input type="text" id="exCj" style="flex:1 1 auto"></div>
+      </div>
+      <div class="pm-zmoc"><label>Připojený dokument</label><input type="text" id="exDoc" class="readonly" readonly></div>
+      <div class="htabs" id="exTabs">
+        <div class="htab active" data-pt="podminky" onclick="exTab('podminky')">Podmínky</div>
+        <div class="htab" data-pt="oduvodneni" onclick="exTab('oduvodneni')">Odůvodnění</div>
+        <div class="htab" data-pt="upozorneni" onclick="exTab('upozorneni')">Upozornění</div>
+        <div class="htab" data-pt="negativni" onclick="exTab('negativni')">Negativní - důvody</div>
+      </div>
+      <div class="rt-toolbar">
+        <div class="rb" style="font-weight:bold">B</div><div class="rb" style="font-style:italic">I</div><div class="rb" style="text-decoration:underline">U</div>
+        <div class="rb">A<sup>2</sup></div><div class="rb">A<sub>2</sub></div><div class="rsep"></div>
+        <div class="rb" title="Vyjmout">&#9986;</div><div class="rb" title="Kopírovat">&#128203;</div><div class="rb" title="Vložit">&#128204;</div>
+      </div>
+      <div class="pm-content" id="exContent" contenteditable="true" style="min-height:160px;outline:none"></div>
+    </div>
+    <div class="m-foot"><div class="right"><button class="btn" onclick="exSave()">Uložit příspěvek</button><button class="btn" onclick="closeExtEdit()">Storno</button></div></div>
+  </div>
+</div>
 <div class="ctx-menu" id="ctxMenu"></div>
 <script>
 /* =================== Rozbalovací panely + role (přepracováno) =================== */
@@ -1402,7 +1466,7 @@ function lhutaCell(o){
   if(diff>=0) return 'do '+_fcz(term)+' <span class="sub">· zbývá '+diff+' dní</span>'+urg;
   return '<span class="kv-pod-no">po termínu ('+(-diff)+' dní)</span>'+urg;
 }
-var prispSel=[]; var prispAnchor=null;
+var prispSel=[]; var prispAnchor=null; var prispOrder=[];
 function renderPrisp(){
   var fOrder=['zalozeno','predano','prideleno','kontrola','vyjadreni'];
   var fi=fOrder.indexOf(faze);
@@ -1412,17 +1476,24 @@ function renderPrisp(){
   var vyjVisible= fi>=4;   // zpracování vyjádření
 
   var stAll = loadState()||{};
+  (stAll.extraDO||[]).forEach(function(d){ if(!PRISP.some(function(r){ return r.usek===d.usek; })) PRISP.push({usek:d.usek, odbor:d.odbor, prac:'', vz:'', ext:'', stav:''}); });
   var ov = stAll.prisp || {};
   KVSIM = stAll.simDays || 0;
   function effPodOf(r){ var o=ov[r.usek]; return (o&&o.pod)?o.pod:(podDone?r.pod:(podPending?'ceka':'')); }
   function isDone(r){ var o=ov[r.usek]; return (o&&(o.vyrizeno||o.fikce)) || (vyjVisible&&(r.stav==='vyrizeno'||r.stav==='fikce')); }
   function isOverdue(r){ var o=ov[r.usek]; return !isDone(r) && _diffUsek(o)<0; }
   var tb=document.getElementById('prispBody'); tb.innerHTML='';
-  PRISP.forEach(function(r, idx){
+  function emOf(r){ var oo=ov[r.usek]; var d=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:''}; return (oo&&oo.extMode)?oo.extMode:d.mode; }
+  var order=PRISP.map(function(_x,i){ return i; });
+  order.sort(function(a,b){ var ea=emOf(PRISP[a])==='externi'?1:0, eb=emOf(PRISP[b])==='externi'?1:0; if(ea!==eb) return ea-eb; return a-b; });
+  prispOrder=order;
+  order.forEach(function(idx){
+    var r=PRISP[idx];
     var effPod = effPodOf(r);
     var o = ov[r.usek];
+    var em = emOf(r);
     var vz=PVZ[r.vz||''];
-    var prac = assigned ? (r.prac||'<span class="sub">nepřiděleno</span>') : '';
+    var prac = (em==='externi') ? '<span class="sub">—</span>' : (assigned ? (r.prac||'<span class="sub">nepřiděleno</span>') : '');
     var pod  = effPod==='ok' ? '<span class="kv-pod-ok">OK</span>'
              : effPod==='neuplne' ? '<span class="kv-pod-no">Neúplné</span>'
              : effPod==='ceka' ? '<span class="kv-pod-wait">čeká</span>' : '';
@@ -1432,21 +1503,27 @@ function renderPrisp(){
     if(fikce) vzCell='<span class="sub">nevydáno – fikce souhlasu</span>';
     else if(o && o.vyrizeno && o.vz && o.vz!=='<vyberte>') vzCell='<span>'+o.vz+'</span>';
     else vzCell = vyjVisible ? '<span class="'+vz.cls+'">'+vz.txt+'</span>' : '';
-    var edf=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:'',zdu:''};
-    var em=(o&&o.extMode)?o.extMode:edf.mode;
     var ext = em==='externi' ? '<span class="ext-flag">externí</span>'
             : em==='oba' ? '<span class="ext-flag">interní + externí</span>'
             : em==='interni' ? '<span class="sub">interní</span>'
             : (vyjVisible && r.ext) ? '<span class="ext-flag">'+r.ext+'</span>' : '';
+    var isExt = (em==='externi');
+    var podCell = isExt ? (o&&o.extDoc ? '<span class="kv-pod-ok">doloženo</span>'
+                          : (o&&o.extVyzadano ? '<span class="kv-pod-wait">vyžádáno</span>'
+                          : '<span class="sub">nezkontrolováno</span>')) : pod;
+    var lhutaC = isExt ? (o&&o.vyrizeno ? '<span class="kv-pod-ok">vyřízeno</span>'
+                         : (o&&o.extVyzadano ? 'vyžádáno <span class="sub">'+(o.extVyzadano.datum||'')+'</span>'
+                         : '<span class="sub">—</span>')) : lhutaCell(o);
     var tr=document.createElement('tr');
     tr.dataset.idx=idx;
     tr.onclick=function(e){ prispRowClick(idx, e); };
     tr.oncontextmenu=function(e){ prispCtxAt(e, idx); };
     tr.ondblclick=function(){ openPrispevek(idx); };
     var noteIco = (o && o.poznamka) ? ' <span class="note-flag" title="'+esc(o.poznamka)+'" onclick="event.stopPropagation(); openPoznamka('+idx+')">&#9998;</span>' : '';
-    var doneCell = (o && o.vyrizeno && o.paraf) ? '<span style="color:#1f6b1f;font-weight:bold" title="parafováno koordinátorem">&#10003;</span>' : done;
-    tr.innerHTML='<td><b>'+r.usek+'</b>'+noteIco+'</td><td>'+r.odbor+'</td><td>'+prac+'</td>'+
-      '<td>'+pod+'</td><td>'+lhutaCell(o)+'</td><td style="text-align:center">'+doneCell+'</td>'+
+    var docIco = (o && o.extDoc) ? ' <span class="note-flag" title="'+esc((o.extDoc.nazev||'dokument')+' · '+(o.extDoc.puvodce||'')+' · č.j. '+(o.extDoc.cj||'')+' · '+(o.extDoc.datum||''))+'" onclick="event.stopPropagation(); showExtDoc('+idx+')">&#128206;</span>' : '';
+    var doneCell = (o && o.vyrizeno && o.paraf) ? '<span style="color:#1f6b1f;font-weight:bold" title="potvrzeno koordinátorem">&#10003;</span>' : done;
+    tr.innerHTML='<td><b>'+r.usek+'</b>'+noteIco+docIco+'</td><td>'+r.odbor+'</td><td>'+prac+'</td>'+
+      '<td>'+podCell+'</td><td>'+lhutaC+'</td><td style="text-align:center">'+doneCell+'</td>'+
       '<td>'+vzCell+'</td><td>'+ext+'</td>';
     tb.appendChild(tr);
   });
@@ -1635,6 +1712,23 @@ function prispCtx(e, idx){
   if((em==='externi'||em==='oba') && ez && (uiRole==='uradnik'||uiRole==='koordinator')){
     items.push({t:'Externí DO – zdůvodnění', fn:function(){ openExtZdu(idx); }});
   }
+  if(em==='externi'){
+    if(uiRole==='koordinator'){
+      items.push({sep:true});
+      items.push({t:'Stanovisko externího DO\u2026', fn:function(){ openExtStan(idx); }});
+      items.push((o&&o.extDoc) ? {t:'Vytvořit příspěvek z dokumentu\u2026', fn:function(){ openExtEdit(idx); }} : {t:'Vytvořit příspěvek z dokumentu\u2026', dis:true});
+      items.push((o&&o.extDoc) ? {t:'Připojený dokument', fn:function(){ showExtDoc(idx); }} : {t:'Připojený dokument', dis:true});
+      items.push({sep:true});
+      if(o&&o.vyrizeno&&!o.paraf) items.push({t:'Potvrdit', fn:function(){ potvrdit(r.usek); }});
+      else if(o&&o.paraf) items.push({t:'Potvrzeno', dis:true});
+      else items.push({t:'Potvrdit', dis:true});
+      items.push({t:'Poznámka\u2026', fn:function(){ openPoznamka(idx); }});
+      items.push({sep:true});
+      items.push({t:'Přidej DO\u2026', fn:function(){ openAddDO(); }});
+    }
+    ctxAt(e, items);
+    return;
+  }
   if(uiRole==='koordinator' && !(o&&(o.vyrizeno||o.fikce))){
     var overdue = _diffUsek(o)<0;
     items.push({sep:true});
@@ -1648,7 +1742,8 @@ function prispCtx(e, idx){
     else items.push({t:'Parafovat', fn:function(){ parafovat(r.usek); }});
     items.push({t:'Vrátit\u2026', fn:function(){ openVrat(idx); }});
   }
-  items.push({t:'Přidat úsek \u25B8', dis:true});
+  if(uiRole==='koordinator') items.push({t:'Přidej DO\u2026', fn:function(){ openAddDO(); }});
+  else items.push({t:'Přidej DO\u2026', dis:true});
   items.push({t:'Zprávy', fn:function(){ openZprava(idx); }});
   if(uiRole==='koordinator'){
     items.push({t:'Poznámka\u2026', fn:function(){ openPoznamka(idx); }});
@@ -1805,7 +1900,7 @@ function renderKoordPrisp(){
     var extRow='<div class="op-fld"><span class="op-usek-lbl">'+r.usek+'</span><label>dotčenost</label><input type="text" value="'+esc(emTxt)+'" readonly style="flex:1 1 auto"></div>'+
       (((em==='externi'||em==='oba')&&emZdu)?'<div class="op-fld"><span class="op-usek-lbl"></span><label>zdůvodnění</label><div style="flex:1 1 auto;color:#8a3a00;font-size:13px">'+esc(emZdu)+'</div></div>':'');
     var P={ podminky:koordPaneText(r,sv,'podminky'), oduvodneni:koordPaneText(r,sv,'oduvodneni'), upozorneni:koordPaneText(r,sv,'upozorneni'), negativni:koordPaneText(r,sv,'negativni') };
-    var prac=r.prac||'<span class="sub">nepřiděleno</span>';
+    var prac=(em==='externi')?'<span class="sub">—</span>':(r.prac||'<span class="sub">nepřiděleno</span>');
     var html='<div class="opanel" id="kop-'+r.usek+'">'+
       '<div class="op-bar" onclick="kopToggle(\''+r.usek+'\')"><div class="op-usek">'+r.usek+'</div><div class="op-fill"></div><div class="op-prac">'+stavTag+' &nbsp; '+prac+'</div></div>'+
       '<div class="op-exp">'+
@@ -1907,8 +2002,10 @@ function paintPrispSel(){
 }
 function prispRowClick(idx, e){
   if(e && e.shiftKey && prispAnchor!=null){
-    var a=Math.min(prispAnchor, idx), b=Math.max(prispAnchor, idx);
-    prispSel=[]; for(var i=a;i<=b;i++) prispSel.push(i);
+    var ord = prispOrder.length ? prispOrder : PRISP.map(function(_x,i){ return i; });
+    var pa = ord.indexOf(prispAnchor), pi = ord.indexOf(idx);
+    if(pa<0||pi<0){ prispSel=[idx]; prispAnchor=idx; }
+    else { var a=Math.min(pa,pi), b=Math.max(pa,pi); prispSel=ord.slice(a, b+1); }
   } else if(e && (e.ctrlKey||e.metaKey)){
     var p=prispSel.indexOf(idx);
     if(p>=0) prispSel.splice(p,1); else prispSel.push(idx);
@@ -1935,6 +2032,157 @@ function parafovatVice(){
   var ov=(loadState()||{}).prisp||{}, n=0;
   prispSel.forEach(function(i){ var r=PRISP[i]; var o=ov[r.usek]; if(o && o.vyrizeno && !o.fikce && !o.paraf){ kvPatchUsek(r.usek, function(p){ p.paraf=true; }); n++; } });
   toast(n ? ('Parafováno příspěvků: '+n+'.') : 'Žádný z vybraných příspěvků nelze parafovat.');
+  renderPrisp();
+  var w=document.getElementById('koordPrispWrap'); if(w && w.style.display!=='none') renderKoordPrisp();
+}
+
+/* ===== Přidej DO – další dotčené orgány (dosud nepokryté veřejné zájmy) ===== */
+var DO_KATALOG=[
+  {usek:'ZAV', name:'Prevence závažných havárií',        zakon:'224/2015',                 mode:'interni'},
+  {usek:'VET', name:'Veterinární správa',                zakon:'166/1999',                 mode:'externi'},
+  {usek:'BAN', name:'Báňská správa',                     zakon:'44/1988, 61/1988, 157/2009', mode:'externi'},
+  {usek:'IZS', name:'IZS / ochrana obyvatelstva',        zakon:'239/2000',                 mode:'externi'},
+  {usek:'LET', name:'Civilní letectví',                  zakon:'49/1997',                  mode:'externi'},
+  {usek:'OIP', name:'Inspekce práce',                    zakon:'251/2005',                 mode:'externi'},
+  {usek:'SPU', name:'Státní pozemkový úřad',             zakon:'139/2002',                 mode:'externi'},
+  {usek:'SEI', name:'Státní energetická inspekce',       zakon:'406/2000',                 mode:'externi'},
+  {usek:'LAZ', name:'Lázeňství (Min. zdravotnictví)',    zakon:'164/2001',                 mode:'externi'},
+  {usek:'CEL', name:'Celní úřad',                        zakon:'17/2012',                  mode:'externi'},
+  {usek:'MV',  name:'Ministerstvo vnitra',               zakon:'15/1997 aj.',              mode:'externi'},
+  {usek:'MO',  name:'Ministerstvo obrany',               zakon:'283/2021, 49/1997',        mode:'externi'}
+];
+function doOdbor(d){ return d.name+' (zák. '+d.zakon+')'; }
+function openAddDO(){
+  var sel=document.getElementById('addDoSel'); sel.innerHTML='';
+  var existing=PRISP.map(function(r){ return r.usek; });
+  var any=false;
+  DO_KATALOG.forEach(function(d){
+    if(existing.indexOf(d.usek)>=0) return;
+    any=true;
+    var op=document.createElement('option'); op.value=d.usek;
+    op.textContent=d.name+'  —  zák. '+d.zakon+'  ('+(d.mode==='interni'?'interní DO – ÚRÚ':'externí DO')+')';
+    sel.appendChild(op);
+  });
+  document.getElementById('addDoEmpty').style.display=any?'none':'block';
+  document.getElementById('addDoSel').style.display=any?'':'none';
+  document.getElementById('btnAddDo').disabled=!any;
+  document.getElementById('addDoModal').classList.add('show');
+}
+function closeAddDO(){ document.getElementById('addDoModal').classList.remove('show'); }
+function addDO(){
+  var sel=document.getElementById('addDoSel'); var code=sel.value;
+  var d=null; DO_KATALOG.forEach(function(x){ if(x.usek===code) d=x; });
+  if(!d){ closeAddDO(); return; }
+  if(!PRISP.some(function(r){ return r.usek===d.usek; })){
+    PRISP.push({ usek:d.usek, odbor:doOdbor(d), prac:'', vz:'', ext:'', stav:'' });
+  }
+  var s=loadState()||{}; s.extraDO=s.extraDO||[];
+  if(!s.extraDO.some(function(x){ return x.usek===d.usek; })) s.extraDO.push({usek:d.usek, odbor:doOdbor(d), mode:d.mode});
+  s.prisp=s.prisp||{}; var p=s.prisp[d.usek]||{}; p.extMode=d.mode; s.prisp[d.usek]=p;
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){}
+  closeAddDO();
+  toast('Přidán dotčený orgán: '+d.name+'.');
+  renderPrisp();
+  var w=document.getElementById('koordPrispWrap'); if(w && w.style.display!=='none') renderKoordPrisp();
+}
+
+/* ===== Externí DO – stanovisko z dokumentace / vyžádání / příspěvek z dokumentu ===== */
+var extIdx=null, exIdx=null, exTabCur='podminky', exData={};
+function potvrdit(usek){
+  kvPatchUsek(usek, function(p){ p.paraf=true; });
+  toast('Stanovisko externího DO ('+usek+') potvrzeno.');
+  renderPrisp();
+  var w=document.getElementById('koordPrispWrap'); if(w && w.style.display!=='none') renderKoordPrisp();
+}
+function showExtDoc(idx){
+  var r=PRISP[idx]; var o=((loadState()||{}).prisp||{})[r.usek]||{}; var d=o.extDoc;
+  if(!d){ toast('K úseku '+r.usek+' není připojen žádný dokument.'); return; }
+  toast('Dokument: '+(d.nazev||'—')+' · původce: '+(d.puvodce||'—')+' · č.j. '+(d.cj||'—')+' · '+(d.datum||'—'));
+}
+function openExtStan(idx){
+  extIdx=idx; var r=PRISP[idx];
+  document.getElementById('extStanTitle').textContent='Stanovisko externího DO — úsek '+r.usek;
+  var o=((loadState()||{}).prisp||{})[r.usek]||{};
+  var radios=document.getElementsByName('extStanVolba'); radios[0].checked=false; radios[1].checked=false;
+  document.getElementById('extPuvodce').value=(o.extDoc&&o.extDoc.puvodce)||'';
+  document.getElementById('extDatum').value=(o.extDoc&&o.extDoc.datum)||'';
+  document.getElementById('extCj').value=(o.extDoc&&o.extDoc.cj)||'';
+  try{ document.getElementById('extFile').value=''; }catch(e){}
+  document.getElementById('extVyzDatum').value=(o.extVyzadano&&o.extVyzadano.datum)||_fcz(_add(DNES_BASE,KVSIM));
+  document.getElementById('extStanDolozeno').style.display='none';
+  document.getElementById('extStanVyzadat').style.display='none';
+  document.getElementById('extStanOk').disabled=true;
+  document.getElementById('extStanModal').classList.add('show');
+}
+function extStanSwitch(){
+  var v='', radios=document.getElementsByName('extStanVolba');
+  for(var i=0;i<radios.length;i++) if(radios[i].checked) v=radios[i].value;
+  document.getElementById('extStanDolozeno').style.display=(v==='dolozeno')?'block':'none';
+  document.getElementById('extStanVyzadat').style.display=(v==='vyzadat')?'block':'none';
+  document.getElementById('extStanOk').disabled=!v;
+}
+function closeExtStan(){ document.getElementById('extStanModal').classList.remove('show'); }
+function extStanOk(){
+  if(extIdx==null) return;
+  var r=PRISP[extIdx];
+  var v='', radios=document.getElementsByName('extStanVolba');
+  for(var i=0;i<radios.length;i++) if(radios[i].checked) v=radios[i].value;
+  if(v==='dolozeno'){
+    var fi=document.getElementById('extFile'); var nazev=(fi&&fi.files&&fi.files[0])?fi.files[0].name:'stanovisko_DO.pdf';
+    var puv=document.getElementById('extPuvodce').value.trim();
+    var dat=document.getElementById('extDatum').value.trim();
+    var cj=document.getElementById('extCj').value.trim();
+    kvPatchUsek(r.usek, function(p){ p.extDoc={nazev:nazev, puvodce:puv, datum:dat, cj:cj}; p.extVyzadano=null; });
+    closeExtStan();
+    toast('Dokument „'+nazev+'" připojen k úseku '+r.usek+'.');
+    renderPrisp();
+    openExtEdit(extIdx);
+  } else if(v==='vyzadat'){
+    var vd=document.getElementById('extVyzDatum').value.trim()||_fcz(_add(DNES_BASE,KVSIM));
+    kvPatchUsek(r.usek, function(p){ p.extVyzadano={datum:vd}; p.extDoc=null; });
+    closeExtStan();
+    toast('Stanovisko úseku '+r.usek+' vyžádáno ('+vd+').');
+    renderPrisp();
+  }
+}
+function openExtEdit(idx){
+  exIdx=idx; var r=PRISP[idx]; var o=((loadState()||{}).prisp||{})[r.usek]||{};
+  document.getElementById('exTitle').textContent='Příspěvek z externího stanoviska — '+r.usek;
+  document.getElementById('exUsek').textContent=r.usek;
+  var cur=(o.vz&&o.vz!=='<vyberte>')?o.vz:'';
+  document.getElementById('exVz').innerHTML=VZ_OPTS.map(function(x){ return '<option'+(x===cur?' selected':'')+'>'+(x||'<vyberte>')+'</option>'; }).join('');
+  document.getElementById('exPuvodce').value=(o.extDoc&&o.extDoc.puvodce)||'';
+  document.getElementById('exDatum').value=(o.extDoc&&o.extDoc.datum)||'';
+  document.getElementById('exCj').value=(o.extDoc&&o.extDoc.cj)||'';
+  document.getElementById('exDoc').value=(o.extDoc&&o.extDoc.nazev)||'(žádný)';
+  exData={ podminky:o.podminky||'', oduvodneni:o.oduvodneni||'', upozorneni:o.upozorneni||'', negativni:o.negativni||'' };
+  exTabCur='podminky';
+  Array.prototype.forEach.call(document.querySelectorAll('#exTabs .htab'), function(t){ t.classList.toggle('active', t.dataset.pt==='podminky'); });
+  document.getElementById('exContent').innerHTML=exData.podminky||'<ul><li><br></li></ul>';
+  document.getElementById('extEditModal').classList.add('show');
+}
+function exTab(name){
+  exData[exTabCur]=document.getElementById('exContent').innerHTML;
+  exTabCur=name;
+  Array.prototype.forEach.call(document.querySelectorAll('#exTabs .htab'), function(t){ t.classList.toggle('active', t.dataset.pt===name); });
+  document.getElementById('exContent').innerHTML=exData[name]||'<ul><li><br></li></ul>';
+}
+function closeExtEdit(){ document.getElementById('extEditModal').classList.remove('show'); }
+function exSave(){
+  if(exIdx==null) return;
+  var r=PRISP[exIdx];
+  exData[exTabCur]=document.getElementById('exContent').innerHTML;
+  var vz=document.getElementById('exVz').value;
+  var puv=document.getElementById('exPuvodce').value.trim();
+  var dat=document.getElementById('exDatum').value.trim();
+  var cj=document.getElementById('exCj').value.trim();
+  kvPatchUsek(r.usek, function(p){
+    p.vz=vz; p.podminky=exData.podminky; p.oduvodneni=exData.oduvodneni; p.upozorneni=exData.upozorneni; p.negativni=exData.negativni;
+    p.extDoc=p.extDoc||{}; p.extDoc.puvodce=puv; p.extDoc.datum=dat; p.extDoc.cj=cj;
+    p.extMode='externi'; p.vyrizeno=true; p.hotovo=true;
+  });
+  closeExtEdit();
+  toast('Příspěvek z externího stanoviska ('+r.usek+') uložen.');
   renderPrisp();
   var w=document.getElementById('koordPrispWrap'); if(w && w.style.display!=='none') renderKoordPrisp();
 }
