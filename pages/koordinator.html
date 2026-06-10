@@ -99,15 +99,18 @@ function kvStore(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s) retu
 function kvFaze(){ var o=kvStore(); return (o&&o.faze)||'predano'; }
 var USEKY=['PAK','OVZ','VOD','ZPF','LES','ODP','ZAV','PAM','HYG','PO','DOP','UUP'];
 function prispAgg(o){
-  var pr=(o&&o.prisp)||{}, n=0, podOk=0, done=0;
-  USEKY.forEach(function(u){ var p=pr[u]; if(!p) return; n++; if(p.pod==='ok') podOk++; if(p.vyrizeno||p.fikce) done++; });
-  return { allPodOk:(podOk===USEKY.length), allDone:(done===USEKY.length) };
+  var pr=(o&&o.prisp)||{}, removed=(o&&o.removedDO)||[], extra=(o&&o.extraDO)||[];
+  var list=USEKY.concat(extra.map(function(d){ return d.usek; }));
+  var total=0, podOk=0, done=0, paraf=0;
+  list.forEach(function(u){ if(removed.indexOf(u)>=0) return; total++; var p=pr[u]; if(!p) return; if(p.pod==='ok') podOk++; if(p.vyrizeno||p.fikce) done++; if(p.paraf||p.fikce) paraf++; });
+  return { allPodOk:(total>0 && podOk===total), allDone:(total>0 && done===total), allParaf:(total>0 && paraf===total) };
 }
 function aktivniStav(){
   var o=kvStore();
   if(o && o.prerus) return {cls:'wl-stav-k', txt:'výzva'};
+  if(o && o.kvVydano) return {cls:'wl-stav-ok', txt:'vydáno'};
   var a=prispAgg(o);
-  if(a.allDone) return {cls:'wl-stav-ok', txt:'vydání'};
+  if(a.allParaf) return {cls:'wl-stav-ok', txt:'vydání'};
   if(a.allPodOk || (o&&o.zahajeniZpusob)) return {cls:'wl-stav-ke', txt:'příspěvky'};
   var f=kvFaze();
   var fi=['zalozeno','predano','prideleno','kontrola','vyjadreni'].indexOf(f);

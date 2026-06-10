@@ -395,20 +395,22 @@ function saveForm(status){
   p.negativni = document.getElementById('ed-negativni').innerHTML;
   p.extMode = document.getElementById('edExt').value;
   p.extZduvodneni = document.getElementById('edExtZdu').value;
-  if(status==='vyrizeno'){ p.vyrizeno=true; p.rozprac=false; p.hotovo=true; p.vraceno=false; p.vratDuvod=''; }
+  if(status==='vyrizeno'){ if(p.vraceno) p.opraveno=true; p.vyrizeno=true; p.rozprac=false; p.hotovo=true; p.vraceno=false; }  /* vratDuvod se zachová pro kontrolu koordinátorem */
   else if(status==='rozprac'){ p.rozprac=true; p.vyrizeno=false; p.hotovo=false; }
   if(MYUSEK!=='PAK') p.ownEdit=true;   // úsek samostatně editovaný přispěvatelem
   cur.prisp[MYUSEK] = p;
   if(MYUSEK==='PAK'){
     // PRO DEMO: výsledek z PAK replikujeme do ostatních úseků (stejné stavy/texty),
-    // ALE dotčenost (interní/externí DO) ponecháváme per-úsek dle schématu
-    // a NEPŘEPISUJEME úseky samostatně editované přispěvatelem (ownEdit).
+    // ALE dotčenost (interní/externí DO) ponecháváme per-úsek dle schématu,
+    // NEPŘEPISUJEME úseky samostatně editované přispěvatelem (ownEdit)
+    // a nepřenášíme návratový stav (vrácení/oprava/parafa jsou per-úsek).
     ['OVZ','VOD','ZPF','LES','ODP','ZAV','PAM','HYG','PO','DOP','UUP'].forEach(function(u){
       var ex=cur.prisp[u];
       if(ex && ex.ownEdit) return;
       var c=JSON.parse(JSON.stringify(p));
       var d=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT[u]) ? VITA_EXT_DEFAULT[u] : {mode:'',zdu:''};
       c.extMode=d.mode||''; c.extZduvodneni=d.zdu||''; c.ownEdit=false;
+      c.vraceno=false; c.vratDuvod=''; c.opraveno=false; c.paraf=false;
       cur.prisp[u]=c;
     });
   }
