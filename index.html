@@ -268,8 +268,10 @@ function ctxAction(name){
 function kvFaze(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return (JSON.parse(s).faze)||'zalozeno'; } }catch(e){} return 'zalozeno'; }
 function kvPrerus(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return !!JSON.parse(s).prerus; } }catch(e){} return false; }
 function kvZahajeni(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return JSON.parse(s).zahajeniZpusob||''; } }catch(e){} return ''; }
+function kvVydano(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return JSON.parse(s).kvVydano||null; } }catch(e){} return null; }
 function uStav(){
   if(kvPrerus()) return ['výzva','wl-stav-w'];
+  if(kvVydano()) return ['koord. vyjádření vydáno – k rozhodnutí','wl-stav-ok'];
   var z=kvZahajeni(); if(z) return [z,'wl-stav-k'];
   var f=kvFaze();
   if(f==='predano')   return ['předáno koordinátorovi','wl-stav-w'];
