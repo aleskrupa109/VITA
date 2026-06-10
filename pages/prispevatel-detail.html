@@ -403,7 +403,7 @@ function saveForm(status){
     // PRO DEMO: výsledek z PAK replikujeme do ostatních úseků (stejné stavy/texty),
     // ALE dotčenost (interní/externí DO) ponecháváme per-úsek dle schématu
     // a NEPŘEPISUJEME úseky samostatně editované přispěvatelem (ownEdit).
-    ['OVZ','VOD','ZPF','LES','ODP','PAM','HYG','PO','DOP','UUP'].forEach(function(u){
+    ['OVZ','VOD','ZPF','LES','ODP','ZAV','PAM','HYG','PO','DOP','UUP'].forEach(function(u){
       var ex=cur.prisp[u];
       if(ex && ex.ownEdit) return;
       var c=JSON.parse(JSON.stringify(p));
@@ -475,6 +475,7 @@ var OTHERS=[
   {u:'ZPF',odbor:'Odbor ŽP — ochrana ZPF',              p:'Herbrychová Jarmila', vz:'ok'},
   {u:'LES',odbor:'Odbor ŽP — ochrana lesa',             p:'Herbrychová Jarmila', vz:'cond'},
   {u:'ODP',odbor:'Odbor ŽP — odpadové hospodářství',    p:'Čížková Jiřina',      vz:''},
+  {u:'ZAV',odbor:'Odbor ŽP — prevence závažných havárií', p:'Dobisík Ondřej',    vz:''},
   {u:'PAM',odbor:'Odbor památkové péče',                p:'Hynková Petra',       vz:''},
   {u:'HYG',odbor:'Sam. odd. ochrany veř. zdraví',       p:'Marková Lucie',       vz:''},
   {u:'PO', odbor:'Odbor požární ochrany',               p:'Horák Petr',          vz:'cond'},

@@ -1152,7 +1152,7 @@ kvRenderSummary();
 <div class="overlay" id="doplnitOModal">
   <div class="modal" style="width:900px;max-width:96vw">
     <div class="m-title"><span>Co se má doplnit</span><div class="m-x" onclick="closeDoplnitO()" title="Storno">&#10005;</div></div>
-    <div class="m-body" style="background:#fff">
+    <div class="m-body" style="padding:10px 12px;background:#fff">
       <div class="grid-head-lite" style="border:1px solid #c9c9c9;background:#ececec;padding:4px 8px;font-weight:bold">Text</div>
       <div id="dopoList" style="border:1px solid #c9c9c9;border-top:0;padding:8px;min-height:60px;background:#fafafa;color:#666;font-size:13px">Seznam neobsahuje žádné záznamy</div>
       <div class="rt-toolbar" style="margin-top:10px"><div class="rb" style="font-weight:bold">B</div><div class="rb" style="font-style:italic">I</div><div class="rb" style="text-decoration:underline">U</div><div class="rb">A<sup>2</sup></div><div class="rb">A<sub>2</sub></div><div class="rsep"></div><div class="rb">&#9986;</div><div class="rb">&#128203;</div><div class="rb">&#128204;</div></div>
@@ -1165,7 +1165,7 @@ kvRenderSummary();
 <div class="overlay" id="tiskModal">
   <div class="modal" style="width:720px;max-width:94vw">
     <div class="m-title"><span>Tisk dokumentů (PS 6.2.1/5-11-5)</span><div class="m-x" onclick="closeTisk()" title="Zavřít">&#10005;</div></div>
-    <div class="m-body" style="background:#fff">
+    <div class="m-body" style="padding:10px 12px;background:#fff">
       <table class="grid" id="tiskGrid"><thead><tr><th style="width:80px">Číslo</th><th>Název</th></tr></thead>
         <tbody>
           <tr data-cislo="0855" onclick="tiskSelect(this)" ondblclick="tiskOk()"><td>0855</td><td>Výzva k doplnění žádosti a usnesení o přerušení</td></tr>
@@ -1179,14 +1179,14 @@ kvRenderSummary();
 <div class="overlay" id="doplnitModal">
   <div class="modal" style="width:760px;max-width:94vw">
     <div class="m-title"><span id="dmTitle">Doplnění podkladů</span><div class="m-x" onclick="closeDoplnit()" title="Zavřít">&#10005;</div></div>
-    <div class="m-body" style="background:#fff"><div id="dmBody" style="font-size:14px;min-height:120px"></div></div>
+    <div class="m-body" style="padding:10px 12px;background:#fff"><div id="dmBody" style="font-size:14px;min-height:120px"></div></div>
     <div class="m-foot"><div class="right"><button class="btn" onclick="closeDoplnit()">OK</button></div></div>
   </div>
 </div>
 <div class="overlay" id="vratModal">
   <div class="modal" style="width:640px;max-width:94vw">
     <div class="m-title"><span id="vratTitle">Vrátit příspěvek přispěvateli</span><div class="m-x" onclick="closeVrat()" title="Storno">&#10005;</div></div>
-    <div class="m-body" style="background:#fff">
+    <div class="m-body" style="padding:10px 12px;background:#fff">
       <div class="sub" style="margin-bottom:6px">Uveďte důvod vrácení (zobrazí se přispěvateli k přepracování):</div>
       <textarea id="vratText" style="width:100%;min-height:120px;box-sizing:border-box;font:13px/1.4 inherit" placeholder="Např.: Podmínka v bodě 2 je v rozporu s vyjádřením úseku PAK – sjednoťte termín provádění prací; doplňte odůvodnění podmínky."></textarea>
     </div>
@@ -1196,7 +1196,7 @@ kvRenderSummary();
 <div class="overlay" id="zpravaModal">
   <div class="modal mini" style="width:440px">
     <div class="m-title"><span id="zpravaTitle">Interní zpráva</span><div class="m-x" onclick="closeZprava()" title="Předat zprávu (zavřít)">&#10005;</div></div>
-    <div class="m-body" style="background:#fff">
+    <div class="m-body" style="padding:10px 12px;background:#fff">
       <div class="sub" id="zpravaTo" style="margin-bottom:6px"></div>
       <textarea id="zpravaText" style="width:100%;min-height:120px;box-sizing:border-box;font:13px/1.4 inherit" placeholder="Text interní systémové zprávy pracovníkovi…"></textarea>
       <div class="sub" style="margin-top:6px">Zprávu předáte zavřením okna křížkem (×).</div>
@@ -1206,7 +1206,7 @@ kvRenderSummary();
 <div class="overlay" id="poznamkaModal">
   <div class="modal" style="width:560px;max-width:94vw">
     <div class="m-title"><span id="poznamkaTitle">Poznámka koordinátora</span><div class="m-x" onclick="closePoznamka()" title="Storno">&#10005;</div></div>
-    <div class="m-body" style="background:#fff">
+    <div class="m-body" style="padding:10px 12px;background:#fff">
       <div class="sub" style="margin-bottom:6px">Interní poznámka k úseku (vidí jen koordinátor) – např. datum telefonické urgence, dohody, kontakty:</div>
       <textarea id="poznamkaText" style="width:100%;min-height:110px;box-sizing:border-box;font:13px/1.4 inherit" placeholder="Např.: 9.6. telefonicky urgováno (p. Marková), přislíbeno do 11.6."></textarea>
     </div>
@@ -1216,9 +1216,9 @@ kvRenderSummary();
 <div class="overlay" id="addDoModal">
   <div class="modal" style="width:600px;max-width:94vw">
     <div class="m-title"><span>Přidej dotčený orgán</span><div class="m-x" onclick="closeAddDO()" title="Storno">&#10005;</div></div>
-    <div class="m-body" style="background:#fff">
+    <div class="m-body" style="padding:10px 12px;background:#fff">
       <div class="sub" style="margin-bottom:6px">Vyberte dotčený orgán, jehož veřejný zájem dosud není v tabulce:</div>
-      <select id="addDoSel" size="8" style="width:100%;box-sizing:border-box;font:13px/1.6 inherit"></select>
+      <select id="addDoSel" size="8" style="width:100%;height:auto;box-sizing:border-box;padding:4px 6px;font:13px/1.7 inherit"></select>
       <div id="addDoEmpty" class="sub" style="display:none">Všechny dostupné dotčené orgány už jsou v tabulce.</div>
     </div>
     <div class="m-foot"><button class="btn" id="btnAddDo" onclick="addDO()">Přidej</button><button class="btn" onclick="closeAddDO()">Storno</button></div>
@@ -1227,7 +1227,7 @@ kvRenderSummary();
 <div class="overlay" id="extStanModal">
   <div class="modal" style="width:660px;max-width:94vw">
     <div class="m-title"><span id="extStanTitle">Stanovisko externího DO</span><div class="m-x" onclick="closeExtStan()" title="Storno">&#10005;</div></div>
-    <div class="m-body" style="background:#fff">
+    <div class="m-body" style="padding:10px 12px;background:#fff">
       <div class="sub" style="margin-bottom:8px">Externí DO se nevyjadřuje v systému. Ověřte v dokumentaci, zda jeho stanovisko/vyjádření existuje – pokud ano, nahrajte je; pokud ne, vyžádejte je.</div>
       <div style="margin-bottom:8px;line-height:1.8">
         <label><input type="radio" name="extStanVolba" value="dolozeno" onchange="extStanSwitch()"> Stanovisko je doloženo v dokumentaci (nahrát dokument z počítače)</label><br>
@@ -1435,6 +1435,7 @@ const PRISP = [
   { usek:'ZPF', odbor:'Odbor ŽP — ochrana ZPF',                    prac:'Herbrychová Jarmila', pod:'ok',      stav:'vyrizeno',   vz:'ok',   ext:'' },
   { usek:'LES', odbor:'Odbor ŽP — ochrana lesa',                   prac:'Herbrychová Jarmila', pod:'ok',      stav:'vyrizeno',   vz:'cond', ext:'' },
   { usek:'ODP', odbor:'Odbor ŽP — odpadové hospodářství',          prac:'Herbrychová Jarmila', pod:'ok',      stav:'nezahajeno', vz:'',     ext:'' },
+  { usek:'ZAV', odbor:'Odbor ŽP — prevence závažných havárií',     prac:'Dobisík Ondřej',      pod:'ok',      stav:'zpracovava', vz:'',     ext:'' },
   { usek:'PAM', odbor:'Odbor památkové péče',                      prac:'Krupa Aleš',          pod:'neuplne', stav:'nezahajeno', vz:'',     ext:'ORP památky (ZS)' },
   { usek:'HYG', odbor:'Samostatné oddělení ochrany veř. zdraví',   prac:'Marková Lucie',       pod:'ok',      stav:'zpracovava', vz:'',     ext:'' },
   { usek:'PO',  odbor:'Odbor požární ochrany',                     prac:'Horák Petr',          pod:'ok',      stav:'parafa',     vz:'cond', ext:'' },
@@ -1686,6 +1687,7 @@ const ZMOC = {
   ZPF:'§ 15 písm. p) zákona č. 334/1992 Sb., o ochraně zemědělského půdního fondu, ve znění pozdějších předpisů',
   LES:'§ 14 odst. 2 zákona č. 289/1995 Sb., o lesích, ve znění pozdějších předpisů',
   ODP:'§ 146 zákona č. 541/2020 Sb., o odpadech, ve znění pozdějších předpisů',
+  ZAV:'§ 49 zákona č. 224/2015 Sb., o prevenci závažných havárií, ve znění pozdějších předpisů',
   PAM:'§ 11 odst. 3 zákona č. 20/1987 Sb., o státní památkové péči, ve znění pozdějších předpisů',
   HYG:'§ 77 zákona č. 258/2000 Sb., o ochraně veřejného zdraví, ve znění pozdějších předpisů',
   PO:'§ 31 odst. 1 písm. b) zákona č. 133/1985 Sb., o požární ochraně, ve znění pozdějších předpisů',
@@ -1702,32 +1704,40 @@ const VZ_OPTS = ['','nejsou dotčeny','nejsou dotčeny - podle zákona','jsou do
 function prispCtx(e, idx){
   var r=PRISP[idx];
   var ov=(loadState()||{}).prisp||{}; var o=ov[r.usek];
+  var edf=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:'',zdu:''};
+  var em=(o&&o.extMode)?o.extMode:edf.mode;
+  var ez=(o&&o.extZduvodneni)?o.extZduvodneni:edf.zdu;
+
+  // ===== ČISTĚ EXTERNÍ DO – menu v logickém pořadí kroků =====
+  if(em==='externi'){
+    var xitems=[];
+    if(uiRole==='koordinator'){
+      xitems.push({t:'Stanovisko externího DO\u2026', fn:function(){ openExtStan(idx); }});
+      xitems.push((o&&o.extDoc) ? {t:'Vytvořit příspěvek z dokumentu\u2026', fn:function(){ openExtEdit(idx); }} : {t:'Vytvořit příspěvek z dokumentu\u2026', dis:true});
+      xitems.push((o&&o.extDoc) ? {t:'Připojený dokument', fn:function(){ showExtDoc(idx); }} : {t:'Připojený dokument', dis:true});
+      xitems.push({sep:true});
+      if(o&&o.vyrizeno&&!o.paraf) xitems.push({t:'Potvrdit', fn:function(){ potvrdit(r.usek); }});
+      else if(o&&o.paraf) xitems.push({t:'Potvrzeno', dis:true});
+      else xitems.push({t:'Potvrdit', dis:true});
+      xitems.push({sep:true});
+      xitems.push((o&&o.vyrizeno) ? {t:'Příspěvek', fn:function(){ openPrispevek(idx); }} : {t:'Příspěvek', dis:true});
+      xitems.push({t:'Poznámka\u2026', fn:function(){ openPoznamka(idx); }});
+      xitems.push({sep:true});
+      xitems.push({t:'Přidej DO\u2026', fn:function(){ openAddDO(); }});
+    } else {
+      xitems.push((o&&o.vyrizeno) ? {t:'Příspěvek', fn:function(){ openPrispevek(idx); }} : {t:'Příspěvek', dis:true});
+    }
+    ctxAt(e, xitems);
+    return;
+  }
+
+  // ===== INTERNÍ / OBA =====
   var items=[ {t:'Příspěvek', fn:function(){ openPrispevek(idx); }} ];
   if(o && o.pod==='neuplne' && o.doplnit && (uiRole==='uradnik'||uiRole==='koordinator')){
     items.push({t:'Doplnit (zobrazit)', fn:function(){ openDoplnit(idx); }});
   }
-  var edf=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:'',zdu:''};
-  var em=(o&&o.extMode)?o.extMode:edf.mode;
-  var ez=(o&&o.extZduvodneni)?o.extZduvodneni:edf.zdu;
-  if((em==='externi'||em==='oba') && ez && (uiRole==='uradnik'||uiRole==='koordinator')){
+  if(em==='oba' && ez && (uiRole==='uradnik'||uiRole==='koordinator')){
     items.push({t:'Externí DO – zdůvodnění', fn:function(){ openExtZdu(idx); }});
-  }
-  if(em==='externi'){
-    if(uiRole==='koordinator'){
-      items.push({sep:true});
-      items.push({t:'Stanovisko externího DO\u2026', fn:function(){ openExtStan(idx); }});
-      items.push((o&&o.extDoc) ? {t:'Vytvořit příspěvek z dokumentu\u2026', fn:function(){ openExtEdit(idx); }} : {t:'Vytvořit příspěvek z dokumentu\u2026', dis:true});
-      items.push((o&&o.extDoc) ? {t:'Připojený dokument', fn:function(){ showExtDoc(idx); }} : {t:'Připojený dokument', dis:true});
-      items.push({sep:true});
-      if(o&&o.vyrizeno&&!o.paraf) items.push({t:'Potvrdit', fn:function(){ potvrdit(r.usek); }});
-      else if(o&&o.paraf) items.push({t:'Potvrzeno', dis:true});
-      else items.push({t:'Potvrdit', dis:true});
-      items.push({t:'Poznámka\u2026', fn:function(){ openPoznamka(idx); }});
-      items.push({sep:true});
-      items.push({t:'Přidej DO\u2026', fn:function(){ openAddDO(); }});
-    }
-    ctxAt(e, items);
-    return;
   }
   if(uiRole==='koordinator' && !(o&&(o.vyrizeno||o.fikce))){
     var overdue = _diffUsek(o)<0;
@@ -2038,7 +2048,6 @@ function parafovatVice(){
 
 /* ===== Přidej DO – další dotčené orgány (dosud nepokryté veřejné zájmy) ===== */
 var DO_KATALOG=[
-  {usek:'ZAV', name:'Prevence závažných havárií',        zakon:'224/2015',                 mode:'interni'},
   {usek:'VET', name:'Veterinární správa',                zakon:'166/1999',                 mode:'externi'},
   {usek:'BAN', name:'Báňská správa',                     zakon:'44/1988, 61/1988, 157/2009', mode:'externi'},
   {usek:'IZS', name:'IZS / ochrana obyvatelstva',        zakon:'239/2000',                 mode:'externi'},
