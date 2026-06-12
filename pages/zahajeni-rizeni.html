@@ -31,6 +31,13 @@
   #prispGrid tbody tr.sel td { background:#cfe2fb; }
   .op-fld { display:flex; align-items:center; gap:10px; padding:6px 0; }
   .op-fld > label { font-weight:bold; color:#333; }
+  #tabKV.tab-on, #tabPrisp.tab-on { background:#dceaff; border-color:#7da2d6; font-weight:bold; }
+  #kvWrap .kv-tool { border:1px solid #9bb6d6; background:#f3f7fc; padding:8px 10px; margin:6px 0 10px; font-size:12px; }
+  #kvWrap .kv-lbl { font-weight:bold; color:#333; margin:6px 0 2px; font-size:12px; }
+  #kvWrap .kv-edit { border:1px solid #c7c7c7; background:#fff; min-height:24px; padding:4px 6px; font-size:13px; }
+  #kvWrap .kv-edit[contenteditable=true]:focus { outline:2px solid #9bc1ff; }
+  #kvWrap .kv-edit.kv-ro { background:#f6f6f6; color:#222; }
+  #kvWrap .opanel { margin:8px 0; }
 </style>
 </head>
 <body>
@@ -239,9 +246,11 @@
                 <tbody id="prispBody"></tbody>
               </table>
               <div id="koordPrispTools" style="margin-top:8px;display:none">
-                <button class="btn sm" id="btnKoordPrisp" onclick="toggleKoordPrisp()">Příspěvky &#9656;</button>
-                <span class="sub">&nbsp;— pootevřete a porovnejte jednotlivá vyjádření přispěvatelů</span>
+                <button class="btn sm" id="tabKV" onclick="koordTab('kv')">Koordinované vyjádření &#9656;</button>
+                <button class="btn sm" id="tabPrisp" onclick="koordTab('prisp')">Příspěvky jednotlivých DO &#9656;</button>
+                <span class="sub">&nbsp;— KV sestavte z parafovaných příspěvků; „Příspěvky" = porovnání jednotlivých vyjádření</span>
               </div>
+              <div id="kvWrap" style="display:none"></div>
               <div id="koordPrispWrap" style="display:none"></div>
               <div class="prisp-note" id="prispNote"></div>
             </div>
@@ -1573,18 +1582,16 @@ function renderPrisp(){
 
   var vb=document.getElementById('vydaniBox');
   if(vb){
-    if(uiRole==='koordinator' && (readyVydani || stAll.kvVydano)){
+    if(uiRole==='koordinator' && (readyVydani || stAll.kv || stAll.kvVydano)){
       vb.style.display='block';
       if(stAll.kvVydano){
-        vb.innerHTML='<b>Koordinované vyjádření vydáno</b> dne '+esc(stAll.kvVydano.datum)+' — '+esc(stAll.kvVydano.vysledek)+'. <span class="sub">Dokument je ve spisové službě i v podkladech; příspěvky slouží jako podklad pro rozhodnutí úředníka.</span>';
+        vb.innerHTML='<b>Koordinované vyjádření vydáno</b> dne '+esc(stAll.kvVydano.datum)+' — '+esc(stAll.kvVydano.vysledek)+'. <span class="sub">Podepsaná data slouží jako podklad pro rozhodnutí úředníka.</span>';
+      } else if(stAll.kv && stAll.kv.podepsano){
+        vb.innerHTML='<b>Koordinované vyjádření podepsáno</b> ('+esc(stAll.kv.podpisDatum||'')+'). Vytvořte interní KV přes <b>Tisk → Interní koordinované vyjádření</b> nebo v záložce <a href="#" onclick="koordTab(\'kv\');return false;">Koordinované vyjádření</a>.';
+      } else if(stAll.kv && stAll.kv.sestaveno){
+        vb.innerHTML='<b>Koordinované vyjádření je rozpracováno.</b> Dokončete a podepište v záložce <a href="#" onclick="koordTab(\'kv\');return false;">Koordinované vyjádření</a>.';
       } else {
-        var kd=stAll.kvDatum||_fcz(_add(DNES_BASE,KVSIM));
-        var kv=stAll.kvVysledek||'souhlasné';
-        var opts=['souhlasné','souhlasné s podmínkami','nesouhlasné'].map(function(x){return '<option'+(x===kv?' selected':'')+'>'+x+'</option>';}).join('');
-        vb.innerHTML='<b>Vydání koordinovaného vyjádření</b> &nbsp; datum vydání <input type="text" id="kvDatum" value="'+esc(kd)+'" style="width:100px" onchange="kvSetField(\'kvDatum\',this.value)"> '+
-          '<select id="kvVysledek" onchange="kvSetField(\'kvVysledek\',this.value)">'+opts+'</select>'+
-          ' &nbsp; <button class="btn sm" onclick="openTisk()">Vytvořit (Tisk &rarr;)</button>'+
-          ' <span class="sub">— přes Tisk zvolte „Interní koordinované vyjádření"; uloží se do spisu a podkladů.</span>';
+        vb.innerHTML='<b>Všechny příspěvky parafovány.</b> Sestavte koordinované vyjádření v záložce <a href="#" onclick="koordTab(\'kv\');return false;">Koordinované vyjádření</a>.';
       }
     } else { vb.style.display='none'; vb.innerHTML=''; }
   }
@@ -1593,9 +1600,14 @@ function renderPrisp(){
   if(kpt){
     var showKP=(uiRole==='koordinator' && fi>=2);
     kpt.style.display = showKP ? 'block' : 'none';
-    var w=document.getElementById('koordPrispWrap');
-    if(!showKP){ if(w){ w.style.display='none'; } var b=document.getElementById('btnKoordPrisp'); if(b) b.innerHTML='Příspěvky &#9656;'; }
-    else if(w && w.style.display!=='none'){ renderKoordPrisp(); }
+    if(!showKP){
+      koordOpen=false;
+      var kvW=document.getElementById('kvWrap'); if(kvW) kvW.style.display='none';
+      var w0=document.getElementById('koordPrispWrap'); if(w0) w0.style.display='none';
+    } else if(koordOpen){
+      if(koordActive==='kv') renderKV(); else renderKoordPrisp();
+      koordTabBtns();
+    } else { koordTabBtns(); }
   }
 
   var al=document.getElementById('prispAlert');
@@ -1711,23 +1723,16 @@ function tiskOk(){
 function kvSetField(f,v){ var s=loadState()||{}; s[f]=v; try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){} }
 function vydatKV(){
   var s=loadState()||{};
-  // kontrola připravenosti – všechny (neodstraněné) úseky parafovány / fikce
-  var removed=s.removedDO||[], pr=s.prisp||{}, anyU=false, allParaf=true;
-  PRISP.forEach(function(r){ if(removed.indexOf(r.usek)>=0) return; anyU=true; var p=pr[r.usek]||{}; if(!(p.paraf||p.fikce)) allParaf=false; });
-  if(!anyU || !allParaf){ toast('Koordinované vyjádření lze vydat až po parafování všech příspěvků.'); return; }
-  var datum=s.kvDatum||_fcz(_add(DNES_BASE,(s.simDays||0)));
-  var vysl=s.kvVysledek||'souhlasné';
-  // SNÍMEK parafovaných příspěvků = zdroj pro dokument i pro rozhodnutí úředníka
-  var snap={};
-  PRISP.forEach(function(r){ if(removed.indexOf(r.usek)>=0) return; var p=pr[r.usek]; if(!p) return;
-    snap[r.usek]={usek:r.usek, odbor:r.odbor, prac:r.prac||'', vz:p.vz||'', podminky:p.podminky||'', oduvodneni:p.oduvodneni||'', upozorneni:p.upozorneni||'', negativni:p.negativni||'', fikce:!!p.fikce, paraf:!!p.paraf, extMode:p.extMode||'', extDoc:p.extDoc||null}; });
+  if(!s.kv || !s.kv.podepsano){ toast('Nejprve sestavte a podepište koordinované vyjádření v záložce „Koordinované vyjádření".'); return; }
+  var datum=s.kv.datum||_fcz(_add(DNES_BASE,(s.simDays||0)));
+  var vysl=s.kv.vysledek||'souhlasné';
   var fname='Interní koordinované vyjádření — '+vysl+' (záměr '+CZAM+').pdf';
   if(!podRows.some(function(p){return p.f===fname;})) podRows.push({f:fname, cj:'DESU/013304/26-KS', dt:datum});
-  s.kvData=snap; s.kvVydano={datum:datum, vysledek:vysl, doc:fname}; s.podRows=podRows;
+  s.kvData=s.kv.sections; s.kvVydano={datum:datum, vysledek:vysl, doc:fname}; s.podRows=podRows;
   try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){}
   renderPod(); renderPrisp();
-  var w=document.getElementById('koordPrispWrap'); if(w && w.style.display!=='none') renderKoordPrisp();
-  toast('Interní koordinované vyjádření vytvořeno ('+vysl+', '+datum+'); data příspěvků uložena jako podklad pro rozhodnutí.');
+  if(koordOpen && koordActive==='kv') renderKV();
+  toast('Interní koordinované vyjádření vytvořeno z podepsaných dat ('+vysl+', '+datum+'). Uloženo do spisu a podkladů.');
 }
 
 /* ---- náhled příspěvku (Koordinované stanovisko) ---- */
@@ -1801,9 +1806,8 @@ function prispCtx(e, idx){
   }
   if(uiRole==='koordinator' && o && o.vyrizeno && !o.fikce){
     items.push({sep:true});
-    if(o.paraf) items.push({t:'Parafováno', dis:true});
-    else items.push({t:'Parafovat', fn:function(){ parafovat(r.usek); }});
-    items.push({t:'Vrátit\u2026', fn:function(){ openVrat(idx); }});
+    if(o.paraf){ items.push({t:'Parafováno', dis:true}); }
+    else { items.push({t:'Parafovat', fn:function(){ parafovat(r.usek); }}); items.push({t:'Vrátit\u2026', fn:function(){ openVrat(idx); }}); }
   }
   if(uiRole==='koordinator' && o && o.vratDuvod){
     items.push({t:'Důvod vrácení'+(o.opraveno?' (opraveno)':''), fn:function(){ showVratDuvod(idx); }});
@@ -1946,6 +1950,91 @@ function koordPaneText(r, sv, tab){
   }
   return '<ul><li><br></li></ul>';
 }
+function kvReady(){
+  var s=loadState()||{}; var removed=s.removedDO||[], pr=s.prisp||{}, any=false, all=true;
+  PRISP.forEach(function(r){ if(removed.indexOf(r.usek)>=0) return; any=true; var p=pr[r.usek]||{}; if(!(p.paraf||p.fikce)) all=false; });
+  return any && all;
+}
+function emLabelOf(usek,p){
+  var d=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[usek])?VITA_EXT_DEFAULT[usek]:{mode:''};
+  var em=(p&&p.extMode)?p.extMode:d.mode;
+  return em==='externi'?'externí DO':em==='oba'?'interní i externí DO':'interní DO (ÚRÚ)';
+}
+function sestavitKV(){
+  if(!kvReady()){ toast('Nejprve parafujte všechny příspěvky.'); return; }
+  var s=loadState()||{}; var removed=s.removedDO||[], pr=s.prisp||{}, secs=[];
+  PRISP.forEach(function(r){ if(removed.indexOf(r.usek)>=0) return; var p=pr[r.usek]; if(!p) return;
+    secs.push({usek:r.usek, odbor:r.odbor, prac:r.prac||'', em:emLabelOf(r.usek,p),
+      vz:(p.vz||''), podminky:(p.podminky||''), oduvodneni:(p.oduvodneni||''), upozorneni:(p.upozorneni||''), negativni:(p.negativni||''), fikce:!!p.fikce}); });
+  var kv=s.kv||{};
+  s.kv={ sestaveno:true, podepsano:false,
+    datum:(kv.datum||s.kvDatum||_fcz(_add(DNES_BASE,(s.simDays||0)))),
+    vysledek:(kv.vysledek||s.kvVysledek||'souhlasné'),
+    coordText:(kv.coordText||''), podpisDatum:'', sections:secs };
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){}
+  renderKV(); toast('Koordinované vyjádření sestaveno z '+secs.length+' parafovaných příspěvků.');
+}
+function kvSet(f,v){ var s=loadState()||{}; if(!s.kv) return; s.kv[f]=v; try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){} }
+function kvSecSet(i,f,v){ var s=loadState()||{}; if(!s.kv||!s.kv.sections||!s.kv.sections[i]) return; s.kv.sections[i][f]=v; try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){} }
+function podepsatKV(){
+  var s=loadState()||{}; if(!s.kv||!s.kv.sestaveno) return;
+  if(!confirm('Podepsat a uzamknout koordinované vyjádření? Po podpisu nebude datový soubor editovatelný.')) return;
+  s.kv.podepsano=true; s.kv.podpisDatum=_fcz(_add(DNES_BASE,(s.simDays||0)));
+  s.kvData=s.kv.sections;   // podepsaná data = jednotný zdroj pro šablony (interní KV, rozhodnutí)
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){}
+  renderKV(); renderPrisp(); toast('Koordinované vyjádření podepsáno a uzamčeno ('+s.kv.podpisDatum+').');
+}
+function odemknoutKV(){
+  var s=loadState()||{}; if(!s.kv) return;
+  if(s.kvVydano){ toast('Interní KV již bylo vydáno – odemčení není možné.'); return; }
+  if(!confirm('Odemknout koordinované vyjádření k úpravě? Zruší se podpis.')) return;
+  s.kv.podepsano=false; s.kv.podpisDatum='';
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){}
+  renderKV(); renderPrisp();
+}
+function renderKV(){
+  var wrap=document.getElementById('kvWrap'); if(!wrap) return;
+  var s=loadState()||{}; var kv=s.kv;
+  if(!kv || !kv.sestaveno){
+    var rdy=kvReady();
+    wrap.innerHTML='<div class="kv-tool"><span class="sub">Koordinované vyjádření zatím nesestaveno. Sestaví se zkopírováním parafovaných příspěvků (interních i externích DO) do jednoho editovatelného datového souboru.</span><br>'+
+      '<button class="btn sm" onclick="sestavitKV()"'+(rdy?'':' disabled')+'>Sestavit z parafovaných příspěvků</button>'+
+      (rdy?'':' <span class="kv-pod-no">nejprve parafujte všechny příspěvky</span>')+'</div>';
+    return;
+  }
+  var locked=!!kv.podepsano, head;
+  if(locked){
+    head='<div class="kv-tool"><b>Koordinované vyjádření — podepsáno a uzamčeno</b> dne '+esc(kv.podpisDatum||'')+'. '+
+      'Výsledek: <b>'+esc(kv.vysledek)+'</b>, datum vydání '+esc(kv.datum)+'. '+
+      '<span class="sub">Z tohoto podepsaného datového souboru se generuje interní KV i rozhodnutí.</span><br>'+
+      (s.kvVydano?'<span class="kv-pod-ok">Interní KV vydáno přes Tisk.</span>':'<button class="btn sm" onclick="openTisk()">Vytvořit interní KV (Tisk &rarr;)</button> <button class="btn sm" onclick="odemknoutKV()">Odemknout k úpravě</button>')+'</div>';
+  } else {
+    var opts=['souhlasné','souhlasné s podmínkami','nesouhlasné'].map(function(x){return '<option'+(x===kv.vysledek?' selected':'')+'>'+x+'</option>';}).join('');
+    head='<div class="kv-tool"><b>Koordinované vyjádření — rozpracováno (editovatelné)</b><br>'+
+      'celkový výsledek <select onchange="kvSet(\'vysledek\',this.value)">'+opts+'</select> '+
+      '&nbsp; datum vydání <input type="text" value="'+esc(kv.datum)+'" style="width:100px" onchange="kvSet(\'datum\',this.value)"> '+
+      '&nbsp; <button class="btn sm" onclick="podepsatKV()">Podepsat a uzamknout</button> '+
+      '<button class="btn sm" onclick="if(confirm(\'Sestavit znovu z parafovaných příspěvků? Zahodí se ruční úpravy.\')) sestavitKV();">Sestavit znovu</button>'+
+      '<div style="margin-top:6px"><label class="sub">Koordinační text / vypořádání veřejných zájmů:</label>'+
+      '<div class="kv-edit" contenteditable="true" onblur="kvSet(\'coordText\',this.innerHTML)" style="min-height:40px">'+(kv.coordText||'')+'</div></div></div>';
+  }
+  var body='';
+  (kv.sections||[]).forEach(function(sec,i){
+    var ro=locked?'':' contenteditable="true"', roCls=locked?' kv-ro':'';
+    body+='<div class="opanel open"><div class="op-bar"><div class="op-usek">'+esc(sec.usek)+'</div><div class="op-fill"></div><div class="op-prac">'+esc(sec.em)+(sec.fikce?' · <span class="sub">fikce souhlasu</span>':'')+'</div></div>'+
+      '<div class="op-exp"><div class="spine"><span>'+esc(sec.usek)+'</span></div><div class="op-body">'+
+        '<div class="op-fld"><label>Odbor</label><input type="text" value="'+esc(sec.odbor)+'" readonly></div>'+
+        '<div class="op-fld"><label>Veřejné zájmy</label>'+(locked
+            ? '<input type="text" value="'+esc(sec.vz)+'" readonly style="flex:1 1 auto">'
+            : '<input type="text" value="'+esc(sec.vz)+'" style="flex:1 1 auto" onchange="kvSecSet('+i+',\'vz\',this.value)">')+'</div>'+
+        '<div class="kv-lbl">Podmínky</div><div class="kv-edit'+roCls+'"'+ro+' onblur="kvSecSet('+i+',\'podminky\',this.innerHTML)">'+(sec.podminky||'')+'</div>'+
+        '<div class="kv-lbl">Odůvodnění</div><div class="kv-edit'+roCls+'"'+ro+' onblur="kvSecSet('+i+',\'oduvodneni\',this.innerHTML)">'+(sec.oduvodneni||'')+'</div>'+
+        '<div class="kv-lbl">Upozornění</div><div class="kv-edit'+roCls+'"'+ro+' onblur="kvSecSet('+i+',\'upozorneni\',this.innerHTML)">'+(sec.upozorneni||'')+'</div>'+
+        '<div class="kv-lbl">Negativní – důvody</div><div class="kv-edit'+roCls+'"'+ro+' onblur="kvSecSet('+i+',\'negativni\',this.innerHTML)">'+(sec.negativni||'')+'</div>'+
+      '</div></div></div>';
+  });
+  wrap.innerHTML=head+body;
+}
 function renderKoordPrisp(){
   var stAll=loadState()||{}; var ov=stAll.prisp||{}; var removed=stAll.removedDO||[];
   var wrap=document.getElementById('koordPrispWrap'); if(!wrap) return;
@@ -1998,16 +2087,25 @@ function renderKoordPrisp(){
     wrap.insertAdjacentHTML('beforeend', html);
   });
 }
+var koordOpen=false, koordActive='kv';
+function koordTabBtns(){
+  var t1=document.getElementById('tabKV'), t2=document.getElementById('tabPrisp');
+  if(t1){ t1.classList.toggle('tab-on', koordOpen&&koordActive==='kv'); t1.innerHTML='Koordinované vyjádření '+((koordOpen&&koordActive==='kv')?'&#9662;':'&#9656;'); }
+  if(t2){ t2.classList.toggle('tab-on', koordOpen&&koordActive==='prisp'); t2.innerHTML='Příspěvky jednotlivých DO '+((koordOpen&&koordActive==='prisp')?'&#9662;':'&#9656;'); }
+}
+function koordTab(name){
+  var kvW=document.getElementById('kvWrap'), pW=document.getElementById('koordPrispWrap');
+  if(koordOpen && koordActive===name){ koordOpen=false; if(kvW)kvW.style.display='none'; if(pW)pW.style.display='none'; koordTabBtns(); return; }
+  koordOpen=true; koordActive=name;
+  if(name==='kv'){ renderKV(); if(kvW)kvW.style.display='block'; if(pW)pW.style.display='none'; }
+  else { renderKoordPrisp(); if(pW)pW.style.display='block'; if(kvW)kvW.style.display='none'; }
+  koordTabBtns();
+}
 function kopToggle(u){ var el=document.getElementById('kop-'+u); if(el) el.classList.toggle('open'); }
 function kopTab(u,name){
   var ts=document.querySelectorAll('#kopTabs-'+u+' .htab');
   Array.prototype.forEach.call(ts, function(t){ t.classList.toggle('active', t.dataset.pt===name); });
   ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ var el=document.getElementById('kop-'+u+'-'+n); if(el) el.style.display=(n===name)?'block':'none'; });
-}
-function toggleKoordPrisp(){
-  var w=document.getElementById('koordPrispWrap'); var b=document.getElementById('btnKoordPrisp');
-  if(w.style.display==='none'){ renderKoordPrisp(); w.style.display='block'; if(b) b.innerHTML='Příspěvky &#9662;'; }
-  else { w.style.display='none'; if(b) b.innerHTML='Příspěvky &#9656;'; }
 }
 
 /* ===== Vrátit příspěvek přispěvateli (se zdůvodněním) ===== */
