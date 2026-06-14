@@ -6,6 +6,11 @@
 <title>Přispěvatel (DO) – příspěvek (mockup)</title>
 <link rel="stylesheet" href="../assets/css/vita.css">
 <style>
+.ci.ci-new { color:#8a5a12; }
+.ro-row.ri-new { background:#fbf6ea; border-left:3px solid #cbb077; padding-left:6px; }
+.ro-row.ri-new label { color:#8a5a12; }
+.ro-row.ri-new .v { color:#7a5a14; }
+.ci.ci-new:hover { background:#f7eed6; color:#7a5a14; }
   .pd-area { flex:1 1 auto; overflow:auto; background:#fff; padding:10px 12px; }
   .ri-title { font-size:18px; font-weight:bold; color:#1f4e88; margin:2px 0 10px; }
   .ro-info { background:#fcfbe9; border:1px solid #e3e0b0; padding:4px 0; margin-bottom:10px; font-size:14px; }
@@ -108,6 +113,7 @@
 
     <!-- informace o řízení (read-only) -->
     <div class="ro-info">
+      <div class="ro-row ri-new"><label>Stav řízení</label><div class="v bold" id="ri-stav"><span class="sub">—</span></div></div>
       <div class="ro-row"><label>spis. zn.</label><div class="v">SZ DESU/013304/26</div></div>
       <div class="ro-row"><label>Žadatel</label><div class="v">ALMANI s.r.o., Počernická č.p. 264, Radonice, 250 73 Jenštejn</div></div>
       <div class="ro-row"><label>Věc</label><div class="v bold">Povolení záměru - testovací zpráva mail 14.5.26</div></div>
@@ -277,6 +283,23 @@ function applyIdentity(){
 }
 
 function vpToggle(id){ var el=document.getElementById(id); if(el) el.classList.toggle('open'); }
+function renderStavRizeni(){
+  var el=document.getElementById('ri-stav'); if(!el) return;
+  var o=loadState()||{}; var us=o.doplneniUseky||[], pr=o.prisp||{}; var txt;
+  if(o.doplneniStav==='kekontrole'){
+    var pend=us.filter(function(u){ var p=pr[u]||{}; return p.pod!=='ok'; });
+    txt = pend.length ? 'kontrola doplnění podkladů' : 'doplněno – k obnovení běhu';
+  } else if(o.prerus){
+    txt='přerušeno – výzva k doplnění';
+  } else if(o.kvVydano){
+    txt='koordinované vyjádření vydáno';
+  } else if(['vyjadreni','kontrola','prideleno','predano'].indexOf(o.faze)>=0){
+    txt='probíhá – vyjádření dotčených orgánů';
+  } else {
+    txt='zahájeno';
+  }
+  el.textContent=txt;
+}
 function renderPopisNahled(){
   var el=document.getElementById('popisNahled'); if(!el) return;
   var p=((loadState()||{}).popisZameru)||'';
@@ -290,7 +313,7 @@ function ctxAt(e, items){
   var m=document.getElementById('ctxMenu'); m.innerHTML='';
   items.forEach(function(it){
     if(it.sep){ var s=document.createElement('div'); s.className='cisep'; m.appendChild(s); return; }
-    var d=document.createElement('div'); d.className='ci'+(it.dis?' disabled':''); d.textContent=it.t;
+    var d=document.createElement('div'); d.className='ci'+(it.dis?' disabled':'')+(it.nw?' ci-new':''); d.textContent=it.t;
     if(!it.dis) d.onclick=function(){ hideCtx(); it.fn&&it.fn(); };
     m.appendChild(d);
   });
@@ -570,9 +593,10 @@ function renderOthers(){
   });
 }
 function opToggle(u){ var el=document.getElementById('op-'+u); if(el) el.classList.toggle('open'); }
-function othersCtx(e){ ctxAt(e, [{t:'Znovu načíst', fn:znovuNacistOthers}]); }
+function othersCtx(e){ ctxAt(e, [{t:'Znovu načíst', fn:znovuNacistOthers, nw:true}]); }
 function znovuNacistOthers(){
   renderOthers();
+  if(typeof renderStavRizeni==='function') renderStavRizeni();
   if(typeof renderPopisNahled==='function') renderPopisNahled();
   if(typeof renderPod==='function') renderPod();
   toast('Data znovu načtena ze spisu.');
@@ -582,7 +606,7 @@ function opTab(u,name){
   ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ document.getElementById('op-'+u+'-'+n).style.display=(n===name)?'block':'none'; });
 }
 
-applyIdentity(); renderPod(); initEditor(); renderOthers(); renderPopisNahled();
+applyIdentity(); renderPod(); initEditor(); renderOthers(); renderPopisNahled(); renderStavRizeni();
 </script>
 </body>
 </html>

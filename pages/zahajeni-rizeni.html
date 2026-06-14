@@ -6,6 +6,8 @@
 <title>Stavební úřad – VITA · Zahájení řízení (mockup)</title>
 <link rel="stylesheet" href="../assets/css/vita.css">
 <style>
+.ci.ci-new { color:#8a5a12; }
+.ci.ci-new:hover { background:#f7eed6; color:#7a5a14; }
   /* Příspěvky – sbalené read-only panely (drženo i lokálně kvůli cache vita.css) */
   #koordPrispWrap .opanel { border:1px solid #c9c9c9; margin-bottom:6px; background:#fff; }
   #koordPrispWrap .op-bar { display:flex; align-items:center; background:#ececec; cursor:pointer; }
@@ -1442,7 +1444,7 @@ function ctxAt(e, items){
   var m=document.getElementById('ctxMenu'); m.innerHTML='';
   items.forEach(function(it){
     if(it.sep){ var s=document.createElement('div'); s.className='cisep'; m.appendChild(s); return; }
-    var d=document.createElement('div'); d.className='ci'+(it.dis?' disabled':''); d.textContent=it.t;
+    var d=document.createElement('div'); d.className='ci'+(it.dis?' disabled':'')+(it.nw?' ci-new':''); d.textContent=it.t;
     if(!it.dis) d.onclick=function(){ hideCtx(); it.fn&&it.fn(); };
     m.appendChild(d);
   });
@@ -1908,11 +1910,11 @@ function prispCtx(e, idx){
       xitems.push({t:'Přidej DO\u2026', fn:function(){ openAddDO(); }});
       xitems.push({t:'Odstranit DO', fn:function(){ odstranitDO(idx); }});
       xitems.push({sep:true});
-      xitems.push({t:'Znovu načíst', fn:znovuNacist});
+      xitems.push({t:'Znovu načíst', fn:znovuNacist, nw:true});
     } else {
       xitems.push((o&&o.vyrizeno) ? {t:'Příspěvek', fn:function(){ openPrispevek(idx); }} : {t:'Příspěvek', dis:true});
       xitems.push({sep:true});
-      xitems.push({t:'Znovu načíst', fn:znovuNacist});
+      xitems.push({t:'Znovu načíst', fn:znovuNacist, nw:true});
     }
     ctxAt(e, xitems);
     return;
@@ -1948,7 +1950,7 @@ function prispCtx(e, idx){
     items.push({t:'Poznámka\u2026', fn:function(){ openPoznamka(idx); }});
   }
   items.push({sep:true});
-  items.push({t:'Znovu načíst', fn:znovuNacist});
+  items.push({t:'Znovu načíst', fn:znovuNacist, nw:true});
   items.push({sep:true});
   items.push({t:'Termín', dis:true});
   items.push({sep:true});
