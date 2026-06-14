@@ -1405,22 +1405,28 @@ function renderPod(){
   });
   document.getElementById('sum-podklady').textContent = podWord(podRows.length);
 }
+var sslView=[];
 function renderSsl(){
   var tb=document.getElementById('sslBody'); tb.innerHTML='';
-  SSL.forEach(function(r,i){
+  sslView.forEach(function(r,i){
     var tr=document.createElement('tr'); if(r.sel) tr.className='sel-multi';
-    tr.onclick=function(){ SSL[i].sel=!SSL[i].sel; renderSsl(); };
-    tr.oncontextmenu=function(e){ if(!SSL[i].sel){ SSL.forEach(function(x){x.sel=false;}); SSL[i].sel=true; renderSsl(); } sslCtx(e); };
+    tr.onclick=function(){ sslView[i].sel=!sslView[i].sel; renderSsl(); };
+    tr.oncontextmenu=function(e){ if(!sslView[i].sel){ sslView.forEach(function(x){x.sel=false;}); sslView[i].sel=true; renderSsl(); } sslCtx(e); };
     tr.innerHTML='<td>'+r.f+'</td><td>'+(r.cj||SSL_CJ)+'</td><td>'+(r.dt||SSL_DT)+'</td><td><span class="sub">—</span></td>';
     tb.appendChild(tr);
   });
 }
-function showSsl(){ document.getElementById('sslWrap').style.display='flex'; renderSsl(); }
+function showSsl(){
+  var st=loadState()||{};
+  var extra=(st.sslDoplneni||[]).map(function(d){ return {f:d.f, cj:d.cj, dt:d.dt, sel:false}; });
+  sslView = SSL.map(function(r){ return {f:r.f, cj:r.cj, dt:r.dt, sel:false}; }).concat(extra);
+  document.getElementById('sslWrap').style.display='flex'; renderSsl();
+}
 function vlozitSsl(){
-  var add=SSL.filter(function(x){return x.sel;});
+  var add=sslView.filter(function(x){return x.sel;});
   if(!add.length){ toast('Vyberte alespoň jeden řádek ze SSL.'); return; }
-  add.forEach(function(x){ if(!podRows.some(function(p){return p.f===x.f;})) podRows.push({f:x.f}); });
-  SSL.forEach(function(x){x.sel=false;});
+  add.forEach(function(x){ if(!podRows.some(function(p){return p.f===x.f;})) podRows.push({f:x.f, cj:x.cj, dt:x.dt}); });
+  sslView.forEach(function(x){x.sel=false;});
   renderPod(); renderSsl(); saveState();
   toast(add.length+' příloh(y) zkopírováno ze spisové služby do podkladů.');
 }
