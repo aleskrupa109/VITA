@@ -259,9 +259,9 @@
                 <tbody id="prispBody"></tbody>
               </table>
               <div id="koordPrispTools" style="margin-top:8px;display:none">
-                <button class="btn sm" id="tabKV" onclick="koordTab('kv')">Koordinované vyjádření &#9656;</button>
                 <button class="btn sm" id="tabPrisp" onclick="koordTab('prisp')">Příspěvky jednotlivých DO &#9656;</button>
-                <span class="sub">&nbsp;— KV sestavte z parafovaných příspěvků; „Příspěvky" = porovnání jednotlivých vyjádření</span>
+                <button class="btn sm" id="tabKV" onclick="koordTab('kv')">Koordinované vyjádření &#9656;</button>
+                <span class="sub">&nbsp;— „Příspěvky" = porovnání jednotlivých vyjádření; KV sestavte z parafovaných příspěvků</span>
               </div>
               <div id="kvWrap" style="display:none"></div>
               <div id="koordPrispWrap" style="display:none"></div>
@@ -1361,7 +1361,6 @@ function renderKoordBar(){
   } else {
     html='<span class="kb-stav kprevzeti">Stav: k převzetí</span><button class="btn" onclick="predatVsemDO()">Předat všem integrovaným DO</button><span class="sub">převzetím a předáním všem DO splníte svůj první úkol</span>';
   }
-  html+='<span class="kb-back" onclick="location.href=\'koordinator.html\'">\u2190 Přehled řízení</span>';
   bar.innerHTML=html;
 }
 function predatVsemDO(){
