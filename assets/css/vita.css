@@ -592,3 +592,19 @@
 .op-fld select { min-width:300px; }
 .op-prac-r { margin-left:auto; color:#333; padding-left:12px; white-space:nowrap; }
 .op-ro { background:#fcfcfc; min-height:120px; }
+
+/* === Provenance prvků (sdílené) ===
+   src-kv  = prvek převzatý do apl. Stavební úřad z apl. Koordinované vyjádření (tlumená tyrkysová)
+   src-new = prvek zcela nový (není v SÚ ani v KV) – tlumená jantarová */
+.vpanel.src-kv > .vp-bar > .vp-bar-lbl { background:linear-gradient(#f2f8f6,#d8eae4); border-color:#7aac9d; }
+.vpanel.src-kv > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#cde6df); border-color:#4d8f80; }
+.vpanel.src-kv > .vp-bar > .vp-bar-sum { border-color:#7aac9d; color:#1f5e52; }
+.vpanel.src-kv > .vp-exp > .vp-row > .spine { background:#4d8f80; }
+.vpanel.src-new > .vp-bar > .vp-bar-lbl { background:linear-gradient(#fbf6ea,#eee1c4); border-color:#cbb077; }
+.vpanel.src-new > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#e7d6a8); border-color:#b8862f; }
+.vpanel.src-new > .vp-bar > .vp-bar-sum { border-color:#cbb077; color:#7a5a14; }
+.vpanel.src-new > .vp-exp > .vp-row > .spine { background:#b8862f; }
+.tag-kv  { background:#e6f1ee; border:1px solid #7aac9d; color:#1f5e52; }
+.tag-new { background:#f7eed6; border:1px solid #cbb077; color:#7a5a14; }
+.accent-kv  { box-shadow: inset 3px 0 0 #4d8f80; }
+.accent-new { box-shadow: inset 3px 0 0 #b8862f; }
