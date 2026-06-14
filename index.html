@@ -138,13 +138,13 @@
                 <td>2.9.2025</td>
               </tr>
               <tr>
-                <td class="mail-ico">&#128193;</td>
-                <td>/000229/25/</td>
+                <td class="mail-ico">&#9993;</td>
+                <td>DESU/014721/26</td>
                 <td><span class="ssl-arrow">&#10153;</span></td>
                 <td></td><td></td>
-                <td>vlastní záznam</td>
-                <td></td>
-                <td>15.10.2025</td>
+                <td>ISSŘ: ALMANI s.r.o.</td>
+                <td>Doplnění podkladů</td>
+                <td>9.6.2026</td>
               </tr>
             </tbody>
           </table>
@@ -204,6 +204,20 @@
   <div class="mi" onclick="ctxAction('Znovu načíst')">Znovu načíst</div>
 </div>
 
+<!-- Modal: Přiřadit k č.j. -->
+<div class="overlay" id="cjModal">
+  <div class="modal mini" style="width:430px">
+    <div class="m-title">Přiřadit k č.j.<div class="m-x" onclick="closeCjModal()" title="Storno">&#10005;</div></div>
+    <div class="m-body">
+      <div class="sub" id="cjVec" style="margin-bottom:8px"></div>
+      <label style="display:block;margin-bottom:4px">Číslo jednací spisu, do něhož se vloží</label>
+      <input type="text" id="cjInput" placeholder="např. DESU/013304/26" style="width:100%">
+      <div class="sub" style="margin-top:6px">Pro simulaci stačí zadat libovolnou hodnotu a potvrdit OK.</div>
+    </div>
+    <div class="m-foot"><button class="btn" onclick="cjOk()"><u>O</u>K</button><button class="btn" onclick="closeCjModal()">Storno</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script src="assets/js/vita.js"></script>
 <script>
@@ -261,7 +275,33 @@ function ctxAction(name){
     }
     location.href = url; return;
   }
+  if(name === 'Přiřadit k č.j.'){ openCjModal(); return; }
   toast('„'+name+'" – v mockupu zatím nepodporováno.');
+}
+function kvLoad(){ try{ var s=localStorage.getItem('vita_kv_state'); return s?JSON.parse(s):{}; }catch(e){ return {}; } }
+function kvSave(o){ try{ localStorage.setItem('vita_kv_state', JSON.stringify(o)); }catch(e){} }
+function openCjModal(){
+  var inp=document.getElementById('cjInput'); inp.value='';
+  var vec=document.getElementById('cjVec');
+  vec.textContent = ctxRow ? ('Položka: '+ctxRow.cells[6].textContent.trim()+' — '+ctxRow.cells[5].textContent.trim()) : '';
+  document.getElementById('cjModal').classList.add('show');
+  setTimeout(function(){ inp.focus(); }, 30);
+}
+function closeCjModal(){ document.getElementById('cjModal').classList.remove('show'); }
+function cjOk(){
+  var cj=document.getElementById('cjInput').value.trim();
+  if(!cj){ toast('Zadejte číslo jednací.'); return; }
+  var dt='9.6.2026';
+  var st=kvLoad();
+  st.doplneniCj=cj;
+  st.sslDoplneni=[
+    {f:'Doplnění podkladů – průvodní dopis.pdf', cj:cj, dt:dt},
+    {f:'Plná moc zástupce.pdf', cj:cj, dt:dt},
+    {f:'Doplněná dokumentace záměru (DSŘ).pdf', cj:cj, dt:dt}
+  ];
+  kvSave(st);
+  closeCjModal();
+  toast('Doplnění podkladů přiřazeno k č.j. '+cj+'. Dokumenty jsou nyní v SSL — vložíte je v podkladech spisu přes „Přílohy ze SSL".');
 }
 
 // --- seznam řízení úředníka ---
