@@ -204,17 +204,29 @@
   <div class="mi" onclick="ctxAction('Znovu načíst')">Znovu načíst</div>
 </div>
 
-<!-- Modal: Přiřadit k č.j. -->
+<!-- Modal: Přiřadit ke spisu -->
 <div class="overlay" id="cjModal">
-  <div class="modal mini" style="width:430px">
-    <div class="m-title">Přiřadit k č.j.<div class="m-x" onclick="closeCjModal()" title="Storno">&#10005;</div></div>
+  <div class="modal mini" style="width:520px">
+    <div class="m-title">Přiřadit ke spisu<div class="m-x" onclick="closeCjModal()" title="Storno">&#10005;</div></div>
     <div class="m-body">
-      <div class="sub" id="cjVec" style="margin-bottom:8px"></div>
-      <label style="display:block;margin-bottom:4px">Číslo jednací spisu, do něhož se vloží</label>
-      <input type="text" id="cjInput" placeholder="např. DESU/013304/26" style="width:100%">
-      <div class="sub" style="margin-top:6px">Pro simulaci stačí zadat libovolnou hodnotu a potvrdit OK.</div>
+      <div style="display:grid;grid-template-columns:54px 1fr;gap:3px 10px;align-items:baseline;margin-bottom:12px">
+        <span class="sub">Č.j.</span><b id="cjInfoCj"></b>
+        <span class="sub">Kdo</span><b id="cjInfoKdo"></b>
+        <span class="sub">Věc</span><b id="cjInfoVec"></b>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <label style="min-width:58px">K č.j.</label>
+        <input type="text" id="cjK1" style="flex:1 1 auto"><span>/</span><input type="text" id="cjK2" style="width:54px">
+      </div>
+      <div style="font-weight:bold;margin:6px 0 6px">Ke spisu</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <label style="min-width:58px">Č. spisu</label>
+        <input type="text" id="cjS1" style="flex:1 1 auto"><span>/</span><input type="text" id="cjS2" style="width:54px">
+      </div>
+      <div style="border:1px solid #9a9a9a;background:#fff;height:170px"></div>
+      <div class="sub" style="margin-top:6px">Pro simulaci stačí vyplnit libovolné hodnoty a potvrdit Ok.</div>
     </div>
-    <div class="m-foot"><button class="btn" onclick="cjOk()"><u>O</u>K</button><button class="btn" onclick="closeCjModal()">Storno</button></div>
+    <div class="m-foot"><button class="btn" onclick="cjOk()"><u>O</u>k</button><button class="btn" onclick="closeCjModal()">Storno</button></div>
   </div>
 </div>
 
@@ -281,16 +293,23 @@ function ctxAction(name){
 function kvLoad(){ try{ var s=localStorage.getItem('vita_kv_state'); return s?JSON.parse(s):{}; }catch(e){ return {}; } }
 function kvSave(o){ try{ localStorage.setItem('vita_kv_state', JSON.stringify(o)); }catch(e){} }
 function openCjModal(){
-  var inp=document.getElementById('cjInput'); inp.value='';
-  var vec=document.getElementById('cjVec');
-  vec.textContent = ctxRow ? ('Položka: '+ctxRow.cells[6].textContent.trim()+' — '+ctxRow.cells[5].textContent.trim()) : '';
+  ['cjK1','cjK2','cjS1','cjS2'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  if(ctxRow){
+    document.getElementById('cjInfoCj').textContent  = ctxRow.cells[1].textContent.trim();
+    document.getElementById('cjInfoKdo').textContent = ctxRow.cells[5].textContent.trim();
+    document.getElementById('cjInfoVec').textContent = ctxRow.cells[6].textContent.trim();
+  }
   document.getElementById('cjModal').classList.add('show');
-  setTimeout(function(){ inp.focus(); }, 30);
+  setTimeout(function(){ var f=document.getElementById('cjK1'); if(f) f.focus(); }, 30);
 }
 function closeCjModal(){ document.getElementById('cjModal').classList.remove('show'); }
+function cjVal(id){ var el=document.getElementById(id); return el?(el.value||'').trim():''; }
 function cjOk(){
-  var cj=document.getElementById('cjInput').value.trim();
-  if(!cj){ toast('Zadejte číslo jednací.'); return; }
+  var k1=cjVal('cjK1'), k2=cjVal('cjK2'), s1=cjVal('cjS1'), s2=cjVal('cjS2');
+  var spis = s1 ? (s1 + (s2?'/'+s2:'')) : '';
+  var kcj  = k1 ? (k1 + (k2?'/'+k2:'')) : '';
+  var rowCj = (ctxRow ? ctxRow.cells[1].textContent.trim() : '') || (document.getElementById('cjInfoCj').textContent||'').trim();
+  var cj = spis || kcj || rowCj || '—';
   var dt='9.6.2026';
   var st=kvLoad();
   st.doplneniCj=cj;
@@ -301,7 +320,7 @@ function cjOk(){
   ];
   kvSave(st);
   closeCjModal();
-  toast('Doplnění podkladů přiřazeno k č.j. '+cj+'. Dokumenty jsou nyní v SSL — vložíte je v podkladech spisu přes „Přílohy ze SSL".');
+  toast('Doplnění podkladů přiřazeno ke spisu '+cj+'. Dokumenty jsou nyní v SSL — vložíte je v podkladech spisu přes „Přílohy ze SSL".');
 }
 
 // --- seznam řízení úředníka ---
