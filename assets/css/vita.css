@@ -596,10 +596,10 @@
 /* === Provenance prvků (sdílené) ===
    src-kv  = prvek převzatý do apl. Stavební úřad z apl. Koordinované vyjádření (tlumená tyrkysová)
    src-new = prvek zcela nový (není v SÚ ani v KV) – tlumená jantarová */
-.vpanel.src-kv > .vp-bar > .vp-bar-lbl { background:linear-gradient(#f2f8f6,#d8eae4); border-color:#7aac9d; }
-.vpanel.src-kv > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#cde6df); border-color:#4d8f80; }
-.vpanel.src-kv > .vp-bar > .vp-bar-sum { border-color:#7aac9d; color:#1f5e52; }
-.vpanel.src-kv > .vp-exp > .vp-row > .spine { background:#4d8f80; }
+.app-window:not(.koord-view) .vpanel.src-kv > .vp-bar > .vp-bar-lbl { background:linear-gradient(#f2f8f6,#d8eae4); border-color:#7aac9d; }
+.app-window:not(.koord-view) .vpanel.src-kv > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#cde6df); border-color:#4d8f80; }
+.app-window:not(.koord-view) .vpanel.src-kv > .vp-bar > .vp-bar-sum { border-color:#7aac9d; color:#1f5e52; }
+.app-window:not(.koord-view) .vpanel.src-kv > .vp-exp > .vp-row > .spine { background:#4d8f80; }
 .vpanel.src-new > .vp-bar > .vp-bar-lbl { background:linear-gradient(#fbf6ea,#eee1c4); border-color:#cbb077; }
 .vpanel.src-new > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#e7d6a8); border-color:#b8862f; }
 .vpanel.src-new > .vp-bar > .vp-bar-sum { border-color:#cbb077; color:#7a5a14; }
@@ -608,3 +608,18 @@
 .tag-new { background:#f7eed6; border:1px solid #cbb077; color:#7a5a14; }
 .accent-kv  { box-shadow: inset 3px 0 0 #4d8f80; }
 .accent-new { box-shadow: inset 3px 0 0 #b8862f; }
+
+/* Celý pohled koordinátora = nový (role navíc, v našem pojetí ji nahrazuje stavební úředník).
+   Jemný jantarový rám + štítek; standardní tlačítka a záložky zůstávají beze změny. */
+.app-window.koord-view { outline:2px solid #b8862f; outline-offset:-2px; }
+.koord-badge { display:none; }
+.app-window.koord-view .koord-badge { display:inline-flex; align-items:center; background:#f7eed6; border:1px solid #cbb077; color:#7a5a14; font-size:11px; line-height:1; padding:2px 8px; border-radius:2px; margin-left:10px; font-weight:normal; }
+
+/* Nová položka v kontextovém menu (jantarová = zcela nová funkcionalita) */
+.ci.ci-new { color:#8a5a12; }
+.ci.ci-new:hover { background:#f7eed6; color:#7a5a14; }
+
+/* Stav řízení v žluté info části přispěvatele (jantarová = nová) */
+.ro-row.ri-new { background:#fbf6ea; border-left:3px solid #cbb077; padding-left:6px; }
+.ro-row.ri-new label { color:#8a5a12; }
+.ro-row.ri-new .v { color:#7a5a14; }
