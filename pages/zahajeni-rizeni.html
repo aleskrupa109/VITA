@@ -39,10 +39,10 @@
   #kvWrap .kv-edit.kv-ro { background:#f6f6f6; color:#222; }
   #kvWrap .opanel { margin:8px 0; }
   /* === Provenance prvků: src-kv = převzato z apl. Koordinované vyjádření; src-new = zcela nové === */
-  .vpanel.src-kv > .vp-bar > .vp-bar-lbl { background:linear-gradient(#f2f8f6,#d8eae4); border-color:#7aac9d; }
-  .vpanel.src-kv > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#cde6df); border-color:#4d8f80; }
-  .vpanel.src-kv > .vp-bar > .vp-bar-sum { border-color:#7aac9d; color:#1f5e52; }
-  .vpanel.src-kv > .vp-exp > .vp-row > .spine { background:#4d8f80; }
+  .app-window:not(.koord-view) .vpanel.src-kv > .vp-bar > .vp-bar-lbl { background:linear-gradient(#f2f8f6,#d8eae4); border-color:#7aac9d; }
+  .app-window:not(.koord-view) .vpanel.src-kv > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#cde6df); border-color:#4d8f80; }
+  .app-window:not(.koord-view) .vpanel.src-kv > .vp-bar > .vp-bar-sum { border-color:#7aac9d; color:#1f5e52; }
+  .app-window:not(.koord-view) .vpanel.src-kv > .vp-exp > .vp-row > .spine { background:#4d8f80; }
   .vpanel.src-new > .vp-bar > .vp-bar-lbl { background:linear-gradient(#fbf6ea,#eee1c4); border-color:#cbb077; }
   .vpanel.src-new > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#e7d6a8); border-color:#b8862f; }
   .vpanel.src-new > .vp-bar > .vp-bar-sum { border-color:#cbb077; color:#7a5a14; }
@@ -51,6 +51,9 @@
   .tag-new { background:#f7eed6; border:1px solid #cbb077; color:#7a5a14; }
   .accent-kv  { box-shadow: inset 3px 0 0 #4d8f80; }
   .accent-new { box-shadow: inset 3px 0 0 #b8862f; }
+  .app-window.koord-view { outline:2px solid #b8862f; outline-offset:-2px; }
+  .koord-badge { display:none; }
+  .app-window.koord-view .koord-badge { display:inline-flex; align-items:center; background:#f7eed6; border:1px solid #cbb077; color:#7a5a14; font-size:11px; line-height:1; padding:2px 8px; border-radius:2px; margin-left:10px; font-weight:normal; }
 </style>
 </head>
 <body>
@@ -60,6 +63,7 @@
   <div class="titlebar">
     <div class="logo"></div>
     <div class="title">Stavební úřad</div>
+    <span class="koord-badge">nový pohled – role koordinátora</span>
     <div class="win-controls">
       <button title="Minimalizovat">&#xE921;</button>
       <button title="Maximalizovat">&#xE922;</button>
@@ -1345,6 +1349,7 @@ function setRole(v){
   savePopisZameru();
   uiRole=v;
   var rb=document.getElementById('rizeniBody'); if(rb) rb.classList.toggle('ro-mode', v==='koordinator');
+  var aw=document.querySelector('.app-window'); if(aw) aw.classList.toggle('koord-view', v==='koordinator');
   initPopisZameru();
   renderKoordBar(); renderDoPanel(); renderPrisp();
 }
@@ -2489,6 +2494,7 @@ function savePoznamka(){
     var pbx=document.getElementById('prerusBox'); if(pbx && predState.rizeniStav==='Přerušení') pbx.style.display='block';
     var zsel=document.getElementById('zahajeniZpusob'); if(zsel && predState.zahajeniZpusob) zsel.value=predState.zahajeniZpusob;
   }
+  var aw0=document.querySelector('.app-window'); if(aw0) aw0.classList.toggle('koord-view', uiRole==='koordinator');
   renderPod(); renderKoordBar(); renderDoPanel(); renderPrisp(); initPopisZameru();
 })();
 </script>
