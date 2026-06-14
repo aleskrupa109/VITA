@@ -108,6 +108,7 @@ function prispAgg(o){
 }
 function aktivniStav(){
   var o=kvStore();
+  if(o && o.doplneniStav==='kekontrole') return {cls:'wl-stav-w', txt:'kontrola doplnění'};
   if(o && o.prerus) return {cls:'wl-stav-k', txt:'výzva'};
   if(o && o.kvVydano) return {cls:'wl-stav-ok', txt:'vydáno'};
   var a=prispAgg(o);

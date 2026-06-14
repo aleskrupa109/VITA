@@ -119,7 +119,8 @@ function render(){
         tr.className='active';
         tr.onclick=function(){ location.href='prispevatel-detail.html'; };
         var p=pakState(), stav, cls;
-        if(kvPrerus()){ stav='výzva'; cls='wl-stav-w'; }
+        if(p.recheck){ stav='k opětovné kontrole úplnosti'; cls='wl-stav-w'; }
+        else if(kvPrerus()){ stav='výzva'; cls='wl-stav-w'; }
         else if(kvVydano()){ stav='koordinované vyjádření vydáno'; cls='wl-stav-ok'; }
         else if(p.vraceno){ stav='vráceno k přepracování'; cls='wl-stav-w'; }
         else if(p.vyrizeno){ stav=p.opraveno?'vyřízeno (opraveno)':'vyřízeno (odesláno)'; cls='wl-stav-ok'; }

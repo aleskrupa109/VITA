@@ -104,6 +104,7 @@
   <div class="pd-area">
     <div class="ri-title">KSVZ 6.3.1 – Stavební záměr…</div>
     <div id="vratNote" style="display:none;margin:0 0 8px;padding:8px 12px;background:#fdeaea;border:1px solid #e0a3a3;color:#7a1f1f;font-size:13px"></div>
+    <div id="recheckNote" style="display:none;margin:0 0 8px;padding:8px 12px;background:#f7eed6;border:1px solid #cbb077;color:#7a5a14;font-size:13px"></div>
 
     <!-- informace o řízení (read-only) -->
     <div class="ro-info">
@@ -345,7 +346,7 @@ function initEditor(){
   if((!p || p.extZduvodneni==null) && pakDef.zdu) document.getElementById('edExtZdu').value=pakDef.zdu;
   document.getElementById('edExt').value = emInit || '';
   document.getElementById('edExtZduWrap').style.display = (emInit==='externi'||emInit==='oba') ? 'flex':'none';
-  if(p && p.pod){
+  if(p && p.pod && !p.recheck){
     // stav podkladů již byl potvrzen → uzamknout (nelze měnit)
     document.getElementById('podStav').disabled = true;
     document.getElementById('doplnitText').readOnly = true;
@@ -361,6 +362,13 @@ function initEditor(){
       vn.style.display='block';
       vn.innerHTML='&#10227; <b>Příspěvek vrácen koordinátorem k přepracování:</b><br>'+String(p.vratDuvod).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
     } else { vn.style.display='none'; }
+  }
+  var rn=document.getElementById('recheckNote');
+  if(rn){
+    if(p && p.recheck){
+      rn.style.display='block';
+      rn.innerHTML='&#9888; <b>Doplnění podkladů vloženo do spisu — proveďte opětovnou kontrolu úplnosti.</b><br>Po kontrole nastavte stav podkladů (OK / Neúplné) a potvrďte zavřením řízení (křížek vpravo nahoře).';
+    } else { rn.style.display='none'; }
   }
   applyGating();
 }
@@ -405,6 +413,7 @@ function saveForm(status){
   cur.prisp = cur.prisp || {};
   var p = cur.prisp[MYUSEK] || {};
   p.pod = document.getElementById('podStav').value;
+  if(p.recheck && p.pod==='ok'){ p.recheck=false; }   // opětovná kontrola po doplnění proběhla – OK
   p.doplnit = document.getElementById('doplnitText').value;
   p.vz = document.getElementById('edVz').value;
   p.zmoc = document.getElementById('edZmoc').value;
@@ -429,7 +438,7 @@ function saveForm(status){
       var c=JSON.parse(JSON.stringify(p));
       var d=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT[u]) ? VITA_EXT_DEFAULT[u] : {mode:'',zdu:''};
       c.extMode=d.mode||''; c.extZduvodneni=d.zdu||''; c.ownEdit=false;
-      c.vraceno=false; c.vratDuvod=''; c.opraveno=false; c.paraf=false;
+      c.vraceno=false; c.vratDuvod=''; c.opraveno=false; c.paraf=false; c.recheck=false;
       cur.prisp[u]=c;
     });
   }

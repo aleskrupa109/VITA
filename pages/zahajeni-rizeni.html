@@ -328,6 +328,7 @@
       <div class="term-row"><label>přerušení řízení</label><input type="text" class="readonly" style="width:110px" value="14.5.2026" readonly><button class="btn sm" style="margin-left:8px" onclick="openDoplnitO()">doplnit o …</button></div>
       <div class="term-row"><label>termín doplnění</label><input type="text" class="readonly" style="width:110px" value="13.6.2026" readonly></div>
       <div class="prisp-note" style="color:#1f4e88;font-weight:bold;background:#eef3fb;border-color:#cfe0f5">Lhůty neběží (řízení je přerušeno)</div>
+      <div id="doplneniBox" style="display:none;border:1px solid #cbb077;background:#fbf3e2;color:#7a5a14;padding:8px 10px;margin-top:8px;font-size:13px"></div>
     </div>
     <div class="term-row">
       <label>z<u>r</u>ychlené řízení</label>
@@ -1404,6 +1405,7 @@ function renderPod(){
     tb.appendChild(tr);
   });
   document.getElementById('sum-podklady').textContent = podWord(podRows.length);
+  if(typeof renderDoplneni==='function') renderDoplneni();
 }
 var sslView=[];
 function renderSsl(){
@@ -1427,7 +1429,10 @@ function vlozitSsl(){
   if(!add.length){ toast('Vyberte alespoň jeden řádek ze SSL.'); return; }
   add.forEach(function(x){ if(!podRows.some(function(p){return p.f===x.f;})) podRows.push({f:x.f, cj:x.cj, dt:x.dt}); });
   sslView.forEach(function(x){x.sel=false;});
+  var st=loadState()||{}; var dnames=(st.sslDoplneni||[]).map(function(d){return d.f;});
+  if(add.some(function(x){ return dnames.indexOf(x.f)>=0; })){ st.doplneniInserted=true; try{ localStorage.setItem(KV_KEY, JSON.stringify(st)); }catch(e){} }
   renderPod(); renderSsl(); saveState();
+  if(typeof renderDoplneni==='function') renderDoplneni();
   toast(add.length+' příloh(y) zkopírováno ze spisové služby do podkladů.');
 }
 
@@ -1709,6 +1714,54 @@ function rizeniStavChange(){
     predState.prerus=false; if(pb) pb.style.display='none';
     saveState(); renderPrisp(); renderDoPanel();
     if(v) toast('„'+v+'" – tuto větev doplníme v dalším kroku.');
+  }
+}
+/* ===== Doplnění podkladů – kontrola úplnosti + obnovení běhu (nová funkcionalita) ===== */
+function doplneniPending(){
+  var st=loadState()||{}; var us=st.doplneniUseky||[]; var pr=st.prisp||{};
+  return us.filter(function(u){ var p=pr[u]||{}; return p.pod!=='ok'; });
+}
+function vyzvatKontrolaDoplneni(){
+  var st=loadState()||{}; var pr=st.prisp||{}, removed=st.removedDO||[], req=[];
+  PRISP.forEach(function(r){ if(removed.indexOf(r.usek)>=0) return; var p=pr[r.usek]; if(p && p.pod==='neuplne') req.push(r.usek); });
+  if(!req.length){ toast('Žádný úsek nepožadoval doplnění (nemá „neúplné").'); return; }
+  var dt=_fcz(_add(DNES_BASE,(st.simDays||0)));
+  req.forEach(function(u){ var p=pr[u]||{}; p.recheck=true; p.zpravy=p.zpravy||[]; p.zpravy.push({from:'Stavební úředník', text:'Doplnění podkladů vloženo do spisu — proveďte opětovnou kontrolu úplnosti.', datum:dt}); pr[u]=p; });
+  st.prisp=pr; st.doplneniUseky=req; st.doplneniStav='kekontrole';
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(st)); }catch(e){}
+  renderDoplneni(); renderPrisp();
+  toast('Vyzváno ke kontrole doplnění. Dotčené úseky: '+req.join(', ')+'. Stav: ke kontrole podkladů.');
+}
+function obnovitBeh(){
+  var pend=doplneniPending();
+  if(pend.length){ toast('Nelze obnovit — čeká se na kontrolu doplnění: '+pend.join(', ')+'.'); return; }
+  var st=loadState()||{}; var pr=st.prisp||{};
+  (st.doplneniUseky||[]).forEach(function(u){ if(pr[u]) pr[u].recheck=false; });
+  st.prisp=pr; st.doplneniStav='obnoveno'; st.prerus=false; st.rizeniStav='';
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(st)); }catch(e){}
+  predState.prerus=false; predState.rizeniStav='';
+  var sel=document.getElementById('rizeniStav'); if(sel) sel.value='';
+  var pb=document.getElementById('prerusBox'); if(pb) pb.style.display='none';
+  renderDoplneni(); renderDoPanel(); renderKoordBar(); renderPrisp();
+  toast('Běh řízení obnoven po doplnění. Lhůty opět běží, řízení pokračuje.');
+}
+function renderDoplneni(){
+  var box=document.getElementById('doplneniBox'); if(!box) return;
+  if(uiRole!=='uradnik'){ box.style.display='none'; return; }
+  var st=loadState()||{}; var stav=st.doplneniStav||'';
+  if(stav==='kekontrole'){
+    box.style.display='block';
+    var pend=doplneniPending(), ready=(pend.length===0);
+    box.innerHTML='<b>Doplnění podkladů — ke kontrole úplnosti</b><br>'+
+      'Dotčení přispěvatelé byli vyzváni k opětovné kontrole. '+
+      (ready ? '<span style="color:#0a7a28;font-weight:bold">Všichni potvrdili OK — lze obnovit běh.</span>'
+             : 'Čeká se na potvrzení od: <b>'+pend.join(', ')+'</b>.')+
+      '<br><button class="btn sm tag-new" onclick="obnovitBeh()"'+(ready?'':' disabled')+' style="margin-top:6px">Obnovit běh řízení</button>';
+  } else if(predState.prerus && st.doplneniInserted){
+    box.style.display='block';
+    box.innerHTML='<b>Doplnění podkladů vloženo do podkladů.</b><br>Vyzvěte dotčené orgány (koordinátora) k opětovné kontrole úplnosti — teprve po jejich potvrzení lze obnovit běh.<br><button class="btn sm tag-new" onclick="vyzvatKontrolaDoplneni()" style="margin-top:6px">Vyzvat ke kontrole doplnění</button>';
+  } else {
+    box.style.display='none';
   }
 }
 function zahajeniZpusobChange(){
