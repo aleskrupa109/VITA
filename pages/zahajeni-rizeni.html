@@ -2556,7 +2556,6 @@ function savePoznamka(){
     var rb=document.getElementById('rizeniBody'); rb.style.display='block'; rb.classList.add('ro-mode');
     if(st && st.faze){ faze=st.faze; } else if(faze==='zalozeno'){ faze='predano'; }
     predState.handed=true; predState.coord=(st&&st.coord)||'Ing. Pavla Nováková';
-    if(!podRows.length) podRows=[{f:'o4_Zadost_platnost_povoleni.pdf'},{f:'o6_Priloha_zadosti_-_projednani_s_DO.pdf'},{f:'o8_Zadost_pripojeni_10.pdf'},{f:'o10_Ucastnici_rizeni_vse.pdf'}];
     var tf=document.getElementById('typField'); if(tf) tf.value='KSVZ 6.3.1 – Stavební záměr';
     var pt=document.querySelector('.panel-head .ph-title'); if(pt) pt.textContent='Koordinované vyjádření';
   }
