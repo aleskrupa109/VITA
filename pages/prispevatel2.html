@@ -101,6 +101,8 @@ function mineState(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ v
 function kvPrerus(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return !!JSON.parse(s).prerus; } }catch(e){} return false; }
 function kvZahajeni(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return JSON.parse(s).zahajeniZpusob||''; } }catch(e){} return ''; }
 function kvVydano(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return JSON.parse(s).kvVydano||null; } }catch(e){} return null; }
+function kvAll(){ try{ return JSON.parse(localStorage.getItem('vita_kv_state'))||{}; }catch(e){ return {}; } }
+function doplneniInfo(o){ if(!o || o.doplneniStav!=='kekontrole') return null; var us=o.doplneniUseky||[], pr=o.prisp||{}; var pend=us.filter(function(u){ var p=pr[u]||{}; return p.pod!=='ok'; }); return pend.length ? {txt:'kontrola doplnění', cls:'wl-stav-w'} : {txt:'doplněno – k obnovení', cls:'wl-stav-ok'}; }
 
 var ROWS = [
   { aktiv:true,  sp:'013304/26', zad:'ALMANI s.r.o.',       nazev:'Povolení záměru - testovací zpráva mail 14.5.26', typ:'KSVZ 6.3.1', zah:'14.5.2026', termin:'13.7.2026' },
@@ -120,6 +122,7 @@ function render(){
         tr.onclick=function(){ location.href='prispevatel-detail.html?usek=HYG'; };
         var p=mineState(), stav, cls;
         if(p.recheck){ stav='k opětovné kontrole úplnosti'; cls='wl-stav-w'; }
+        else if(doplneniInfo(kvAll())){ var di=doplneniInfo(kvAll()); stav=di.txt; cls=di.cls; }
         else if(kvPrerus()){ stav='výzva'; cls='wl-stav-w'; }
         else if(kvVydano()){ stav='koordinované vyjádření vydáno'; cls='wl-stav-ok'; }
         else if(p.vraceno){ stav='vráceno k přepracování'; cls='wl-stav-w'; }

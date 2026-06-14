@@ -544,7 +544,7 @@ function renderOthers(){
     };
     var html=''+
       '<div class="opanel" id="op-'+o.u+'">'+
-        '<div class="op-bar" onclick="opToggle(\''+o.u+'\')"><div class="op-usek">'+o.u+'</div><div class="op-fill"></div><div class="op-prac">'+o.p+'</div></div>'+
+        '<div class="op-bar" onclick="opToggle(\''+o.u+'\')" oncontextmenu="othersCtx(event)"><div class="op-usek">'+o.u+'</div><div class="op-fill"></div><div class="op-prac">'+o.p+'</div></div>'+
         '<div class="op-exp">'+
           '<div class="spine" onclick="opToggle(\''+o.u+'\')"><span>'+o.u+'</span></div>'+
           '<div class="op-body">'+
@@ -570,6 +570,13 @@ function renderOthers(){
   });
 }
 function opToggle(u){ var el=document.getElementById('op-'+u); if(el) el.classList.toggle('open'); }
+function othersCtx(e){ ctxAt(e, [{t:'Znovu načíst', fn:znovuNacistOthers}]); }
+function znovuNacistOthers(){
+  renderOthers();
+  if(typeof renderPopisNahled==='function') renderPopisNahled();
+  if(typeof renderPod==='function') renderPod();
+  toast('Data znovu načtena ze spisu.');
+}
 function opTab(u,name){
   document.querySelectorAll('#opTabs-'+u+' .htab').forEach(function(t){ t.classList.toggle('active', t.dataset.pt===name); });
   ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ document.getElementById('op-'+u+'-'+n).style.display=(n===name)?'block':'none'; });

@@ -106,9 +106,15 @@ function prispAgg(o){
   list.forEach(function(u){ if(removed.indexOf(u)>=0) return; total++; var p=pr[u]; if(!p) return; if(p.pod==='ok') podOk++; if(p.vyrizeno||p.fikce) done++; if(p.paraf||p.fikce) paraf++; });
   return { allPodOk:(total>0 && podOk===total), allDone:(total>0 && done===total), allParaf:(total>0 && paraf===total) };
 }
+function doplneniInfo(o){
+  if(!o || o.doplneniStav!=='kekontrole') return null;
+  var us=o.doplneniUseky||[], pr=o.prisp||{};
+  var pend=us.filter(function(u){ var p=pr[u]||{}; return p.pod!=='ok'; });
+  return pend.length ? {txt:'kontrola doplnění', cls:'wl-stav-w'} : {txt:'doplněno – k obnovení', cls:'wl-stav-ok'};
+}
 function aktivniStav(){
   var o=kvStore();
-  if(o && o.doplneniStav==='kekontrole') return {cls:'wl-stav-w', txt:'kontrola doplnění'};
+  var __d=doplneniInfo(o); if(__d) return {cls:__d.cls, txt:__d.txt};
   if(o && o.prerus) return {cls:'wl-stav-k', txt:'výzva'};
   if(o && o.kvVydano) return {cls:'wl-stav-ok', txt:'vydáno'};
   var a=prispAgg(o);

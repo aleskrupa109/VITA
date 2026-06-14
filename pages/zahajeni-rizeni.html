@@ -1703,6 +1703,19 @@ function prispVyzva(){
 /* ---- stav řízení (přerušení / zastavení / …) v dolním bloku Termíny ---- */
 function rizeniStavChange(){
   var v=document.getElementById('rizeniStav').value;
+  var st=loadState()||{};
+  // Obnovení běhu během kontroly doplnění (prázdná volba) je podmíněné – až po potvrzení všech.
+  if(predState.prerus && v==='' && st.doplneniStav==='kekontrole'){
+    var pend=doplneniPending();
+    if(pend.length){
+      document.getElementById('rizeniStav').value='Přerušení';
+      toast('Nelze obnovit běh — čeká se na kontrolu doplnění: '+pend.join(', ')+'.');
+      return;
+    }
+    var pr=st.prisp||{}; (st.doplneniUseky||[]).forEach(function(u){ if(pr[u]) pr[u].recheck=false; });
+    st.prisp=pr; st.doplneniStav='obnoveno';
+    try{ localStorage.setItem(KV_KEY, JSON.stringify(st)); }catch(e){}
+  }
   predState.rizeniStav=v;
   var pb=document.getElementById('prerusBox');
   if(v==='Přerušení'){
@@ -1712,8 +1725,10 @@ function rizeniStavChange(){
     toast('Řízení přerušeno od data doručení žádosti (14.5.2026). Lhůty neběží.');
   } else {
     predState.prerus=false; if(pb) pb.style.display='none';
-    saveState(); renderPrisp(); renderDoPanel();
-    if(v) toast('„'+v+'" – tuto větev doplníme v dalším kroku.');
+    saveState(); renderPrisp(); renderDoPanel(); renderDoplneni();
+    if(st.doplneniStav==='obnoveno') toast('Běh řízení obnoven po doplnění. Lhůty opět běží, řízení pokračuje.');
+    else if(v) toast('„'+v+'" – tuto větev doplníme v dalším kroku.');
+    else toast('Řízení se rozběhlo (lhůty opět běží).');
   }
 }
 /* ===== Doplnění podkladů – kontrola úplnosti + obnovení běhu (nová funkcionalita) ===== */
@@ -1732,19 +1747,6 @@ function vyzvatKontrolaDoplneni(){
   renderDoplneni(); renderPrisp();
   toast('Vyzváno ke kontrole doplnění. Dotčené úseky: '+req.join(', ')+'. Stav: ke kontrole podkladů.');
 }
-function obnovitBeh(){
-  var pend=doplneniPending();
-  if(pend.length){ toast('Nelze obnovit — čeká se na kontrolu doplnění: '+pend.join(', ')+'.'); return; }
-  var st=loadState()||{}; var pr=st.prisp||{};
-  (st.doplneniUseky||[]).forEach(function(u){ if(pr[u]) pr[u].recheck=false; });
-  st.prisp=pr; st.doplneniStav='obnoveno'; st.prerus=false; st.rizeniStav='';
-  try{ localStorage.setItem(KV_KEY, JSON.stringify(st)); }catch(e){}
-  predState.prerus=false; predState.rizeniStav='';
-  var sel=document.getElementById('rizeniStav'); if(sel) sel.value='';
-  var pb=document.getElementById('prerusBox'); if(pb) pb.style.display='none';
-  renderDoplneni(); renderDoPanel(); renderKoordBar(); renderPrisp();
-  toast('Běh řízení obnoven po doplnění. Lhůty opět běží, řízení pokračuje.');
-}
 function renderDoplneni(){
   var box=document.getElementById('doplneniBox'); if(!box) return;
   if(uiRole!=='uradnik'){ box.style.display='none'; return; }
@@ -1754,9 +1756,8 @@ function renderDoplneni(){
     var pend=doplneniPending(), ready=(pend.length===0);
     box.innerHTML='<b>Doplnění podkladů — ke kontrole úplnosti</b><br>'+
       'Dotčení přispěvatelé byli vyzváni k opětovné kontrole. '+
-      (ready ? '<span style="color:#0a7a28;font-weight:bold">Všichni potvrdili OK — lze obnovit běh.</span>'
-             : 'Čeká se na potvrzení od: <b>'+pend.join(', ')+'</b>.')+
-      '<br><button class="btn sm tag-new" onclick="obnovitBeh()"'+(ready?'':' disabled')+' style="margin-top:6px">Obnovit běh řízení</button>';
+      (ready ? '<span style="color:#0a7a28;font-weight:bold">Všichni potvrdili OK — běh řízení obnovíte výběrem prázdné volby v roletce „stav řízení" u zahájení.</span>'
+             : 'Čeká se na potvrzení od: <b>'+pend.join(', ')+'</b>.');
   } else if(predState.prerus && st.doplneniInserted){
     box.style.display='block';
     box.innerHTML='<b>Doplnění podkladů vloženo do podkladů.</b><br>Vyzvěte dotčené orgány (koordinátora) k opětovné kontrole úplnosti — teprve po jejich potvrzení lze obnovit běh.<br><button class="btn sm tag-new" onclick="vyzvatKontrolaDoplneni()" style="margin-top:6px">Vyzvat ke kontrole doplnění</button>';
@@ -1864,6 +1865,24 @@ const PODTEXT = {
 };
 const VZ_OPTS = ['','nejsou dotčeny','nejsou dotčeny - podle zákona','jsou dotčeny - bez připomínek','jsou dotčeny - souhlas za podmínek','jsou dotčeny - nesouhlas'];
 
+function znovuNacist(){
+  // VITA „Znovu načíst" – načte aktuální sdílený stav (úpravy z jiných rolí) a překreslí náhledy
+  var st=loadState()||{};
+  if(Array.isArray(st.podRows)) podRows = st.podRows.slice();
+  if('prerus' in st) predState.prerus = !!st.prerus;
+  if('rizeniStav' in st) predState.rizeniStav = st.rizeniStav||'';
+  if(st.coord) predState.coord = st.coord;
+  if('zahajeniZpusob' in st) predState.zahajeniZpusob = st.zahajeniZpusob||'';
+  if(st.faze) faze = st.faze;
+  var rs=document.getElementById('rizeniStav'); if(rs) rs.value=predState.rizeniStav||'';
+  var pb=document.getElementById('prerusBox'); if(pb) pb.style.display=predState.prerus?'block':'none';
+  var zz=document.getElementById('zahajeniZpusob'); if(zz) zz.value=predState.zahajeniZpusob||'';
+  renderPod(); renderPrisp(); renderKoordBar(); renderDoPanel();
+  var w=document.getElementById('koordPrispWrap'); if(w && w.style.display!=='none') renderKoordPrisp();
+  if(typeof renderKV==='function' && typeof koordOpen!=='undefined' && koordOpen && koordActive==='kv') renderKV();
+  if(typeof initPopisZameru==='function') initPopisZameru();
+  toast('Data znovu načtena ze spisu.');
+}
 function prispCtx(e, idx){
   var r=PRISP[idx];
   var ov=(loadState()||{}).prisp||{}; var o=ov[r.usek];
@@ -1888,8 +1907,12 @@ function prispCtx(e, idx){
       xitems.push({sep:true});
       xitems.push({t:'Přidej DO\u2026', fn:function(){ openAddDO(); }});
       xitems.push({t:'Odstranit DO', fn:function(){ odstranitDO(idx); }});
+      xitems.push({sep:true});
+      xitems.push({t:'Znovu načíst', fn:znovuNacist});
     } else {
       xitems.push((o&&o.vyrizeno) ? {t:'Příspěvek', fn:function(){ openPrispevek(idx); }} : {t:'Příspěvek', dis:true});
+      xitems.push({sep:true});
+      xitems.push({t:'Znovu načíst', fn:znovuNacist});
     }
     ctxAt(e, xitems);
     return;
@@ -1924,6 +1947,8 @@ function prispCtx(e, idx){
   if(uiRole==='koordinator'){
     items.push({t:'Poznámka\u2026', fn:function(){ openPoznamka(idx); }});
   }
+  items.push({sep:true});
+  items.push({t:'Znovu načíst', fn:znovuNacist});
   items.push({sep:true});
   items.push({t:'Termín', dis:true});
   items.push({sep:true});
