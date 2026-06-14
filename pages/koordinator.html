@@ -97,7 +97,7 @@
 /* stav aktivního řízení ze sdíleného úložiště */
 function kvStore(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s) return JSON.parse(s); }catch(e){} return null; }
 function kvFaze(){ var o=kvStore(); return (o&&o.faze)||'predano'; }
-var USEKY=['PAK','OVZ','VOD','ZPF','LES','ODP','ZAV','PAM','HYG','PO','DOP','UUP'];
+var USEKY=['PAK','OVZ','ZPF','LES','ODP','ZAV','PAM','HYG','UUP'];
 function prispAgg(o){
   var pr=(o&&o.prisp)||{}, removed=(o&&o.removedDO)||[], extra=(o&&o.extraDO)||[];
   var list=USEKY.concat(extra.map(function(d){ return d.usek; }));

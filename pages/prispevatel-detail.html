@@ -123,6 +123,19 @@
       <button class="btn-cmd" onclick="window.open('https://aleskrupa109.github.io/ISSR/pages/detail-zameru.html','_blank')">Otevřít BPP (dokumentace v ISSŘ)</button>
     </div>
 
+    <!-- popis záměru (zadal stavební úředník) – náhled -->
+    <div class="vpanel" id="vp-popis">
+      <div class="vp-bar" onclick="vpToggle('vp-popis')"><span class="vp-bar-lbl">popis záměru</span><span class="vp-bar-sum" id="sum-popis">náhled popisu zadaného stavebním úředníkem</span></div>
+      <div class="vp-exp">
+        <div class="vp-row">
+          <div class="spine" onclick="vpToggle('vp-popis')"><span>popis</span></div>
+          <div class="vp-content">
+            <div id="popisNahled" style="padding:8px 12px;font-size:13px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- podklady (přidané úředníkem) -->
     <div class="vpanel" id="vp-pod">
       <div class="vp-bar" onclick="vpToggle('vp-pod')"><span class="vp-bar-lbl">podklady</span><span class="vp-bar-sum" id="sum-pod">rozbalte panel pro načtení podkladů</span></div>
@@ -263,6 +276,12 @@ function applyIdentity(){
 }
 
 function vpToggle(id){ var el=document.getElementById(id); if(el) el.classList.toggle('open'); }
+function renderPopisNahled(){
+  var el=document.getElementById('popisNahled'); if(!el) return;
+  var p=((loadState()||{}).popisZameru)||'';
+  if(p){ el.innerHTML=p; el.style.color='#000'; }
+  else { el.innerHTML='<span class="sub">Popis záměru zatím nevyplnil stavební úředník.</span>'; }
+}
 
 /* kontextové menu (Zobrazit) */
 function ctxAt(e, items){
@@ -404,7 +423,7 @@ function saveForm(status){
     // ALE dotčenost (interní/externí DO) ponecháváme per-úsek dle schématu,
     // NEPŘEPISUJEME úseky samostatně editované přispěvatelem (ownEdit)
     // a nepřenášíme návratový stav (vrácení/oprava/parafa jsou per-úsek).
-    ['OVZ','VOD','ZPF','LES','ODP','ZAV','PAM','HYG','PO','DOP','UUP'].forEach(function(u){
+    ['OVZ','ZPF','LES','ODP','ZAV','PAM','HYG','UUP'].forEach(function(u){
       var ex=cur.prisp[u];
       if(ex && ex.ownEdit) return;
       var c=JSON.parse(JSON.stringify(p));
@@ -547,7 +566,7 @@ function opTab(u,name){
   ['podminky','oduvodneni','upozorneni','negativni'].forEach(function(n){ document.getElementById('op-'+u+'-'+n).style.display=(n===name)?'block':'none'; });
 }
 
-applyIdentity(); renderPod(); initEditor(); renderOthers();
+applyIdentity(); renderPod(); initEditor(); renderOthers(); renderPopisNahled();
 </script>
 </body>
 </html>

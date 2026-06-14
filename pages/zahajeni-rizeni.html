@@ -38,6 +38,19 @@
   #kvWrap .kv-edit[contenteditable=true]:focus { outline:2px solid #9bc1ff; }
   #kvWrap .kv-edit.kv-ro { background:#f6f6f6; color:#222; }
   #kvWrap .opanel { margin:8px 0; }
+  /* === Provenance prvků: src-kv = převzato z apl. Koordinované vyjádření; src-new = zcela nové === */
+  .vpanel.src-kv > .vp-bar > .vp-bar-lbl { background:linear-gradient(#f2f8f6,#d8eae4); border-color:#7aac9d; }
+  .vpanel.src-kv > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#cde6df); border-color:#4d8f80; }
+  .vpanel.src-kv > .vp-bar > .vp-bar-sum { border-color:#7aac9d; color:#1f5e52; }
+  .vpanel.src-kv > .vp-exp > .vp-row > .spine { background:#4d8f80; }
+  .vpanel.src-new > .vp-bar > .vp-bar-lbl { background:linear-gradient(#fbf6ea,#eee1c4); border-color:#cbb077; }
+  .vpanel.src-new > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#e7d6a8); border-color:#b8862f; }
+  .vpanel.src-new > .vp-bar > .vp-bar-sum { border-color:#cbb077; color:#7a5a14; }
+  .vpanel.src-new > .vp-exp > .vp-row > .spine { background:#b8862f; }
+  .tag-kv  { background:#e6f1ee; border:1px solid #7aac9d; color:#1f5e52; }
+  .tag-new { background:#f7eed6; border:1px solid #cbb077; color:#7a5a14; }
+  .accent-kv  { box-shadow: inset 3px 0 0 #4d8f80; }
+  .accent-new { box-shadow: inset 3px 0 0 #b8862f; }
 </style>
 </head>
 <body>
@@ -188,11 +201,11 @@
       </div>
 
       <!-- DO – předání koordinátorovi + termíny (panel) -->
-      <div class="vpanel" id="vp-do">
-        <div class="vp-bar" onclick="vpToggle('vp-do')"><span class="vp-bar-lbl">DO</span><span class="vp-bar-sum" id="sum-do"></span></div>
+      <div class="vpanel src-kv" id="vp-do">
+        <div class="vp-bar" onclick="vpToggle('vp-do')"><span class="vp-bar-lbl">koordinátor DO</span><span class="vp-bar-sum" id="sum-do"></span></div>
         <div class="vp-exp">
           <div class="vp-row">
-            <div class="spine" onclick="vpToggle('vp-do')"><span>DO</span></div>
+            <div class="spine" onclick="vpToggle('vp-do')"><span>koordinátor DO</span></div>
             <div class="vp-content">
               <div id="doPredejBox">
                 <div class="pred-row">
@@ -222,7 +235,7 @@
       </div>
 
       <!-- PŘISPĚVATELÉ (panel) -->
-      <div class="vpanel" id="vp-prisp">
+      <div class="vpanel src-kv" id="vp-prisp">
         <div class="vp-bar" onclick="vpToggle('vp-prisp')"><span class="vp-bar-lbl">přispěvatelé</span><span class="vp-bar-sum" id="sum-prisp"></span></div>
         <div class="vp-exp">
           <div class="vp-row">
@@ -580,7 +593,7 @@
               <div class="rb" title="Kopírovat">&#128203;</div>
               <div class="rb" title="Vložit">&#128204;</div>
             </div>
-            <div class="rt-area" contenteditable="true" style="color:#888">Slovní popis stavby / záměru…</div>
+            <div class="rt-area" id="popisZameru" contenteditable="true" style="color:#888" onfocus="popisFocus()" onblur="savePopisZameru()">Slovní popis stavby / záměru…</div>
           </div>
 
           <!-- ===== VODOPRÁVNÍ EVIDENCE (předběžný návrh) ===== -->
@@ -623,7 +636,7 @@
       <span class="hint" style="margin:0">Záložky odpovídají rozbalenému tlačítku „záměr" v reálné aplikaci.</span>
       <div class="right">
         <button class="btn" onclick="closeStavba()">Zavřít</button>
-        <button class="btn" onclick="toast('Změny záměru uloženy.'); closeStavba();">Uložit</button>
+        <button class="btn" onclick="savePopisZameru(); toast('Změny záměru uloženy.'); closeStavba();">Uložit</button>
       </div>
     </div>
   </div>
@@ -909,6 +922,35 @@ function closeStavba(){ document.getElementById('stavbaOverlay').classList.remov
 function stavbaTab(id){
   document.querySelectorAll('#host-zamer .htab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
   document.querySelectorAll('#host-zamer .pane').forEach(p=>p.style.display = (p.id==='pane-'+id)?'block':'none');
+}
+/* ===== Popis záměru – ukládá úředník, ostatní role náhled (read-only) ===== */
+var POPIS_PH='Slovní popis stavby / záměru…';
+function popisFocus(){ var el=document.getElementById('popisZameru'); if(!el) return; if(el.getAttribute('contenteditable')!=='true') return; if(el.textContent.trim()===POPIS_PH){ el.innerHTML=''; el.style.color='#000'; } }
+function savePopisZameru(){
+  var el=document.getElementById('popisZameru'); if(!el) return;
+  if(el.getAttribute('contenteditable')!=='true') return;   // ukládá jen úředník
+  var plain=el.textContent.trim();
+  var html=(plain===POPIS_PH || plain==='') ? '' : el.innerHTML.trim();
+  var s=loadState()||{}; s.popisZameru=html;
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){}
+}
+function initPopisZameru(){
+  var el=document.getElementById('popisZameru'); if(!el) return;
+  var s=loadState()||{}; var p=(s&&s.popisZameru)||'';
+  var pane=document.getElementById('pane-popis');
+  var tb=pane?pane.querySelector('.rt-toolbar'):null;
+  var editable=(uiRole==='uradnik');
+  if(editable){
+    el.setAttribute('contenteditable','true');
+    if(tb) tb.style.display='';
+    if(p){ el.innerHTML=p; el.style.color='#000'; }
+    else { el.innerHTML=POPIS_PH; el.style.color='#888'; }
+  } else {
+    el.setAttribute('contenteditable','false');
+    if(tb) tb.style.display='none';
+    if(p){ el.innerHTML=p; el.style.color='#000'; }
+    else { el.innerHTML='<span class="sub">Popis záměru zatím nevyplnil stavební úředník.</span>'; }
+  }
 }
 function subTab(el){
   el.parentElement.querySelectorAll('.subtab').forEach(s=>s.classList.remove('active'));
@@ -1300,8 +1342,10 @@ function saveState(){ try{ var cur=loadState()||{}; cur.faze=faze; cur.coord=pre
 function loadState(){ try{ var s=localStorage.getItem(KV_KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
 
 function setRole(v){
+  savePopisZameru();
   uiRole=v;
   var rb=document.getElementById('rizeniBody'); if(rb) rb.classList.toggle('ro-mode', v==='koordinator');
+  initPopisZameru();
   renderKoordBar(); renderDoPanel(); renderPrisp();
 }
 function renderKoordBar(){
@@ -1443,15 +1487,12 @@ function renderDoPanel(){
 const PRISP = [
   { usek:'PAK', odbor:'Odbor ŽP — ochrana přírody a krajiny',      prac:'Dobisík Ondřej',      pod:'ok',      stav:'vyrizeno',   vz:'cond', ext:'' },
   { usek:'OVZ', odbor:'Odbor ŽP — ochrana ovzduší',                prac:'Dobisík Ondřej',      pod:'ok',      stav:'vyrizeno',   vz:'na',   ext:'' },
-  { usek:'VOD', odbor:'Odbor ŽP — ochrana vod',                    prac:'Herbrychová Jarmila', pod:'ok',      stav:'zpracovava', vz:'',     ext:'' },
   { usek:'ZPF', odbor:'Odbor ŽP — ochrana ZPF',                    prac:'Herbrychová Jarmila', pod:'ok',      stav:'vyrizeno',   vz:'ok',   ext:'' },
   { usek:'LES', odbor:'Odbor ŽP — ochrana lesa',                   prac:'Herbrychová Jarmila', pod:'ok',      stav:'vyrizeno',   vz:'cond', ext:'' },
   { usek:'ODP', odbor:'Odbor ŽP — odpadové hospodářství',          prac:'Herbrychová Jarmila', pod:'ok',      stav:'nezahajeno', vz:'',     ext:'' },
   { usek:'ZAV', odbor:'Odbor ŽP — prevence závažných havárií',     prac:'Dobisík Ondřej',      pod:'ok',      stav:'zpracovava', vz:'',     ext:'' },
   { usek:'PAM', odbor:'Odbor památkové péče',                      prac:'Krupa Aleš',          pod:'neuplne', stav:'nezahajeno', vz:'',     ext:'ORP památky (ZS)' },
   { usek:'HYG', odbor:'Samostatné oddělení ochrany veř. zdraví',   prac:'Marková Lucie',       pod:'ok',      stav:'zpracovava', vz:'',     ext:'' },
-  { usek:'PO',  odbor:'Odbor požární ochrany',                     prac:'Horák Petr',          pod:'ok',      stav:'parafa',     vz:'cond', ext:'' },
-  { usek:'DOP', odbor:'Odbor dopravy',                             prac:'Krupa Aleš',          pod:'ok',      stav:'fikce',      vz:'',     ext:'' },
   { usek:'UUP', odbor:'Odbor územního plánování',                  prac:'Janovský Martin',     pod:'ok',      stav:'vyrizeno',   vz:'ok',   ext:'' },
 ];
 const PSTAV = {
@@ -1501,6 +1542,8 @@ function renderPrisp(){
   order.sort(function(a,b){ var ea=emOf(PRISP[a])==='externi'?1:0, eb=emOf(PRISP[b])==='externi'?1:0; if(ea!==eb) return ea-eb; return a-b; });
   var removed = stAll.removedDO || [];
   order = order.filter(function(i){ return removed.indexOf(PRISP[i].usek)<0; });
+  var addedDO = (stAll.extraDO||[]).map(function(d){ return d.usek; });
+  order = order.filter(function(i){ var r=PRISP[i]; return emOf(r)!=='externi' || addedDO.indexOf(r.usek)>=0; });
   prispOrder=order;
   order.forEach(function(idx){
     var r=PRISP[idx];
@@ -2208,6 +2251,9 @@ function parafovatVice(){
 
 /* ===== Přidej DO – další dotčené orgány (dosud nepokryté veřejné zájmy) ===== */
 var DO_KATALOG=[
+  {usek:'VOD', name:'Vodoprávní úřad — ochrana vod',     zakon:'254/2001',                 mode:'externi'},
+  {usek:'PO',  name:'HZS — požární ochrana',             zakon:'133/1985',                 mode:'externi'},
+  {usek:'DOP', name:'Silniční správní úřad — doprava',   zakon:'13/1997, 266/1994',        mode:'externi'},
   {usek:'VET', name:'Veterinární správa',                zakon:'166/1999',                 mode:'externi'},
   {usek:'BAN', name:'Báňská správa',                     zakon:'44/1988, 61/1988, 157/2009', mode:'externi'},
   {usek:'IZS', name:'IZS / ochrana obyvatelstva',        zakon:'239/2000',                 mode:'externi'},
@@ -2444,7 +2490,7 @@ function savePoznamka(){
     var pbx=document.getElementById('prerusBox'); if(pbx && predState.rizeniStav==='Přerušení') pbx.style.display='block';
     var zsel=document.getElementById('zahajeniZpusob'); if(zsel && predState.zahajeniZpusob) zsel.value=predState.zahajeniZpusob;
   }
-  renderPod(); renderKoordBar(); renderDoPanel(); renderPrisp();
+  renderPod(); renderKoordBar(); renderDoPanel(); renderPrisp(); initPopisZameru();
 })();
 </script>
 </body>
