@@ -316,7 +316,7 @@ function cjOk(){
   st.sslDoplneni=[
     {f:'Doplnění podkladů – průvodní dopis.pdf', cj:cj, dt:dt},
     {f:'Plná moc zástupce.pdf', cj:cj, dt:dt},
-    {f:'Doplněná dokumentace záměru (DSŘ).pdf', cj:cj, dt:dt}
+    {f:'Doplněná situace C.3.pdf', cj:cj, dt:dt}
   ];
   kvSave(st);
   closeCjModal();
@@ -328,7 +328,15 @@ function kvFaze(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ retu
 function kvPrerus(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return !!JSON.parse(s).prerus; } }catch(e){} return false; }
 function kvZahajeni(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return JSON.parse(s).zahajeniZpusob||''; } }catch(e){} return ''; }
 function kvVydano(){ try{ var s=localStorage.getItem('vita_kv_state'); if(s){ return JSON.parse(s).kvVydano||null; } }catch(e){} return null; }
+function kvAll(){ try{ return JSON.parse(localStorage.getItem('vita_kv_state'))||{}; }catch(e){ return {}; } }
+function doplneniInfo(o){
+  if(!o || o.doplneniStav!=='kekontrole') return null;
+  var us=o.doplneniUseky||[], pr=o.prisp||{};
+  var pend=us.filter(function(u){ var p=pr[u]||{}; return p.pod!=='ok'; });
+  return pend.length ? {txt:'kontrola doplnění', cls:'wl-stav-w'} : {txt:'doplněno – k obnovení', cls:'wl-stav-ok'};
+}
 function uStav(){
+  var __d=doplneniInfo(kvAll()); if(__d) return [__d.txt, __d.cls];
   if(kvPrerus()) return ['výzva','wl-stav-w'];
   if(kvVydano()) return ['koord. vyjádření vydáno – k rozhodnutí','wl-stav-ok'];
   var z=kvZahajeni(); if(z) return [z,'wl-stav-k'];
