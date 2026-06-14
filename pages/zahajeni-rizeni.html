@@ -1355,6 +1355,7 @@ function setRole(v){
   var aw=document.querySelector('.app-window'); if(aw) aw.classList.toggle('koord-view', v==='koordinator');
   initPopisZameru();
   renderKoordBar(); renderDoPanel(); renderPrisp();
+  if(typeof vitaMsgSetRole==='function') vitaMsgSetRole(v);
 }
 function renderKoordBar(){
   var bar=document.getElementById('koordBar'); if(!bar) return;
@@ -2583,5 +2584,6 @@ function savePoznamka(){
   renderPod(); renderKoordBar(); renderDoPanel(); renderPrisp(); initPopisZameru();
 })();
 </script>
+<script>vitaMsgInit(typeof uiRole!=='undefined'?uiRole:'uradnik');</script>
 </body>
 </html>
