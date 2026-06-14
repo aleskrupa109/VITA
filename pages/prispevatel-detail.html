@@ -120,11 +120,11 @@
     </div>
 
     <div class="pd-actions">
-      <button class="btn-cmd" onclick="window.open('https://aleskrupa109.github.io/ISSR/pages/detail-zameru.html','_blank')">Otevřít BPP (dokumentace v ISSŘ)</button>
+      <button class="btn-cmd tag-new" onclick="window.open('https://aleskrupa109.github.io/ISSR/pages/detail-zameru.html','_blank')">Otevřít BPP (dokumentace v ISSŘ)</button>
     </div>
 
     <!-- popis záměru (zadal stavební úředník) – náhled -->
-    <div class="vpanel" id="vp-popis">
+    <div class="vpanel src-new" id="vp-popis">
       <div class="vp-bar" onclick="vpToggle('vp-popis')"><span class="vp-bar-lbl">popis záměru</span><span class="vp-bar-sum" id="sum-popis">náhled popisu zadaného stavebním úředníkem</span></div>
       <div class="vp-exp">
         <div class="vp-row">
@@ -175,7 +175,7 @@
         <div class="sub" id="edGateNote" style="padding:6px 12px;color:#8a3a00;display:none;border-bottom:1px solid #eee"></div>
         <div class="ed-fld"><label>Zmocnění</label><input type="text" id="edZmoc"><button class="btn sm" title="Vybrat zmocnění">…</button></div>
         <div class="ed-fld"><span class="ed-usek">PAK</span><label>dotčenost</label>
-          <select id="edExt" onchange="edExtChange()">
+          <select id="edExt" class="tag-new" onchange="edExtChange()">
             <option value="">&lt;vyberte&gt;</option>
             <option value="interni">vyjadřuje se interní DO (ÚRÚ)</option>
             <option value="externi">vyjadřuje se externí DO</option>
