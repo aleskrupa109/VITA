@@ -218,6 +218,7 @@
                   <label>Koordinátor</label>
                   <select id="doCoord">
                     <option value="">— vyberte koordinátora —</option>
+                    <option>vedoucí koordinátorů</option>
                     <option>Ing. Pavla Nováková</option>
                     <option>Mgr. Jan Dvořák</option>
                     <option>Ing. Petr Horák</option>
@@ -1368,12 +1369,17 @@ function renderKoordBar(){
   } else if(fi>=2){
     html='<span class="kb-stav kekontrole">Stav: předáno ke kontrole</span><span class="sub">úkol „převzít a předat DO" splněn · běží kontrola úplnosti (1. lhůta)</span>';
   } else {
-    html='<span class="kb-stav kprevzeti">Stav: k převzetí</span><button class="btn" onclick="predatVsemDO()">Předat všem integrovaným DO</button><span class="sub">převzetím a předáním všem DO splníte svůj první úkol</span>';
+    if(predState.coord==='vedoucí koordinátorů'){
+      html='<span class="kb-stav kprevzeti">Stav: nepřiděleno</span><span class="sub">jako vedoucí koordinátorů přidělte případ konkrétnímu koordinátorovi v sekci „koordinátor DO"</span>';
+    } else {
+      html='<span class="kb-stav kprevzeti">Stav: k převzetí</span><button class="btn" onclick="predatVsemDO()">Předat všem integrovaným DO</button><span class="sub">převzetím a předáním všem DO splníte svůj první úkol</span>';
+    }
   }
   bar.innerHTML=html;
 }
 function predatVsemDO(){
   if(faze==='zalozeno'){ toast('Řízení nebylo předáno stavebním úředníkem.'); return; }
+  if(predState.coord==='vedoucí koordinátorů'){ toast('Případ je nepřidělený — nejprve přidělte konkrétního koordinátora.'); return; }
   faze='prideleno'; saveState();
   toast('Předáno všem integrovaným DO. Vznikl úkol „Kontrola žádosti" (1. lhůta 10 dní). Stav: předáno ke kontrole.');
   renderKoordBar(); renderPrisp(); renderDoPanel();
@@ -1469,13 +1475,22 @@ function sslCtx(e){ ctxAt(e,[ {t:'Zobrazit (SSL)',dis:true}, {sep:true}, {t:'\u2
 document.addEventListener('click', hideCtx);
 
 /* ---- DO panel (předání + role) ---- */
+var COORD_NAMES=['Ing. Pavla Nováková','Mgr. Jan Dvořák','Ing. Petr Horák','Bc. Lucie Marková'];
 function doPredej(){
   var c=document.getElementById('doCoord').value;
   if(!c){ toast('Vyberte koordinátora.'); return; }
   predState.handed=true; predState.coord=c; if(faze==='zalozeno') faze='predano';
   saveState();
-  toast('Řízení předáno koordinátorovi: '+c+'. Koordinátor následně zahájí přidělení příspěvků.');
-  renderDoPanel(); renderPrisp();
+  if(c==='vedoucí koordinátorů') toast('Řízení předáno vedoucímu koordinátorů. Případ je nepřidělený — konkrétního koordinátora přidělí vedoucí.');
+  else toast('Řízení předáno koordinátorovi: '+c+'. Koordinátor následně zahájí přidělení příspěvků.');
+  renderDoPanel(); renderPrisp(); renderKoordBar();
+}
+function doPridel(){
+  var sel=document.getElementById('doAssign'); var c=sel?sel.value:'';
+  if(!c){ toast('Vyberte koordinátora k přidělení.'); return; }
+  predState.coord=c; saveState();
+  toast('Případ přidělen koordinátorovi: '+c+'.');
+  renderDoPanel(); renderPrisp(); renderKoordBar();
 }
 function renderDoPanel(){
   var box=document.getElementById('doPredejBox'), done=document.getElementById('doPredanoBox');
@@ -1492,9 +1507,21 @@ function renderDoPanel(){
   if(predState.handed){
     done.style.display='block';
     done.className='pred-done'+(predState.prerus?' prerus':'');
-    var fazeTxt = (faze==='predano') ? ' Čeká na zahájení přidělení koordinátorem.' : ' Přidělení zahájeno; kontrola úplnosti (1. lhůta) běží do 24.5.2026.';
-    done.innerHTML='Předáno koordinátorovi: <b>'+predState.coord+'</b> · dne 14.5.2026.'+fazeTxt+(predState.prerus?' <b>· ŘÍZENÍ PŘERUŠENO (výzva k doplnění)</b>':'');
-    sum.textContent='předáno: '+predState.coord.split(' ').slice(0,2).join(' ')+(predState.prerus?' · řízení přerušeno':'');
+    if(predState.coord==='vedoucí koordinátorů'){
+      if(uiRole==='koordinator'){
+        done.innerHTML='Předáno <b>vedoucímu koordinátorů</b> · dne 14.5.2026. <b>Nepřiděleno</b> konkrétnímu koordinátorovi.'+
+          '<div class="pred-row" style="margin-top:8px"><label>Přidělit koordinátora</label>'+
+          '<select id="doAssign"><option value="">— vyberte —</option>'+COORD_NAMES.map(function(n){return '<option>'+n+'</option>';}).join('')+'</select>'+
+          '<button class="btn" onclick="doPridel()">Přidělit</button></div>';
+      } else {
+        done.innerHTML='Předáno <b>vedoucímu koordinátorů</b> · dne 14.5.2026. Čeká na <b>přidělení konkrétního koordinátora</b> vedoucím.';
+      }
+      sum.textContent='předáno: nepřiděleno';
+    } else {
+      var fazeTxt = (faze==='predano') ? ' Čeká na zahájení přidělení koordinátorem.' : ' Přidělení zahájeno; kontrola úplnosti (1. lhůta) běží do 24.5.2026.';
+      done.innerHTML='Předáno koordinátorovi: <b>'+predState.coord+'</b> · dne 14.5.2026.'+fazeTxt+(predState.prerus?' <b>· ŘÍZENÍ PŘERUŠENO (výzva k doplnění)</b>':'');
+      sum.textContent='předáno: '+predState.coord.split(' ').slice(0,2).join(' ')+(predState.prerus?' · řízení přerušeno':'');
+    }
   } else {
     done.style.display='none';
     sum.textContent='Nepředáno koordinátorovi';
