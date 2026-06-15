@@ -549,6 +549,7 @@
   .koord-bar .kb-stav.kekontrole { color:#1f6b1f; }
   .koord-bar .kb-back { margin-left:auto; color:#1f4e88; cursor:pointer; text-decoration:underline; }
   #rizeniBody.ro-mode input, #rizeniBody.ro-mode select, #rizeniBody.ro-mode textarea, #rizeniBody.ro-mode [contenteditable] { pointer-events:none; background:#f4f4f4; color:#555; }
+  #rizeniBody.ro-mode #doAssign { pointer-events:auto; background:#fff; color:#222; }
 
   /* ====== VITA potvrzovací dialog (message box) ====== */
   .msgbox { width:430px; max-width:92vw; background:#f0f0f0; border:1px solid #6a6a6a; box-shadow:0 10px 34px rgba(0,0,0,.34); font-family:inherit; }
