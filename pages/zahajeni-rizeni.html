@@ -296,6 +296,20 @@
         <div class="fld-label-btn"><u>ú</u>častníci</div>
         <div class="val empty"></div>
       </div>
+      <div class="field-row" onclick="doRozToggle()" style="cursor:pointer">
+        <div class="fld-label-btn">DO</div>
+        <div class="val" id="doRozSum"><span class="sub">— žádné dotčené orgány</span></div>
+      </div>
+      <div id="doRozPanel" style="display:none;padding:2px 0 6px 0">
+        <table class="grid" style="margin:0 0 6px"><thead><tr><th style="width:110px">ID (IČO)</th><th>Konkrétní dotčený orgán</th><th style="width:150px">generický DO</th><th style="width:30px"></th></tr></thead><tbody id="doRozBody"></tbody></table>
+        <div id="doRozAdd" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:4px">
+          <select id="doRozGen" style="min-width:160px"></select>
+          <input type="text" id="doRozIco" placeholder="IČO" style="width:100px">
+          <input type="text" id="doRozNazev" placeholder="Konkrétní DO (název)" style="flex:1 1 200px">
+          <button class="btn sm" onclick="doRozAdd()">Přidat</button>
+        </div>
+        <div class="sub">Konkrétní dotčené orgány pro <b>rozdělovník</b> — podle nich se dokumenty vypravují. Koordinátor vybírá generické DO, stavební úředník je zde zkonkrétňuje.</div>
+      </div>
       <div class="field-row">
         <div class="fld-label-btn"><u>o</u>statní</div>
         <div class="val empty"></div>
@@ -1369,6 +1383,7 @@ function setRole(v){
   var aw=document.querySelector('.app-window'); if(aw) aw.classList.toggle('koord-view', v==='koordinator');
   initPopisZameru();
   renderKoordBar(); renderDoPanel(); renderPrisp();
+  if(typeof renderDORozdel==='function') renderDORozdel();
   if(typeof vitaMsgSetRole==='function') vitaMsgSetRole(v);
 }
 function renderKoordBar(){
@@ -1488,6 +1503,59 @@ function sslCtx(e){ ctxAt(e,[ {t:'Zobrazit (SSL)',dis:true}, {sep:true}, {t:'\u2
 document.addEventListener('click', hideCtx);
 
 /* ---- DO panel (předání + role) ---- */
+/* ===== Záložka DO – konkrétní dotčené orgány pro rozdělovník (zadává úředník) ===== */
+function externalDOList(){
+  var st=loadState()||{}; var ov=st.prisp||{}; var removed=st.removedDO||[]; var out=[]; var seen={};
+  var arr=PRISP.slice(); (st.extraDO||[]).forEach(function(d){ if(!arr.some(function(r){return r.usek===d.usek;})) arr.push({usek:d.usek,odbor:d.odbor}); });
+  arr.forEach(function(r){ if(removed.indexOf(r.usek)>=0||seen[r.usek]) return; var o=ov[r.usek]; var d=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[r.usek])?VITA_EXT_DEFAULT[r.usek]:{mode:''}; var m=(o&&o.extMode)?o.extMode:d.mode; if(m==='externi'){ seen[r.usek]=1; out.push({usek:r.usek, odbor:r.odbor||r.usek}); } });
+  return out;
+}
+function fillDoRozGen(){
+  var sel=document.getElementById('doRozGen'); if(!sel) return;
+  var ex=externalDOList();
+  sel.innerHTML='<option value="">— generický DO —</option>'+ex.map(function(e){return '<option value="'+esc(e.usek)+'">'+esc(e.usek+' · '+e.odbor)+'</option>';}).join('')+'<option value="__jiny__">jiný…</option>';
+}
+function renderDORozdel(){
+  var st=loadState()||{}; var list=st.doRozdel||[];
+  var sum=document.getElementById('doRozSum');
+  if(sum) sum.innerHTML = list.length ? (list.length+' DO: '+list.map(function(d){return esc(d.nazev||d.gen||'');}).join(', ')) : '<span class="sub">— žádné dotčené orgány</span>';
+  var body=document.getElementById('doRozBody');
+  if(body){
+    if(!list.length){ body.innerHTML='<tr><td colspan="4" class="sub" style="text-align:center;padding:8px">Zatím nezadán žádný konkrétní DO.</td></tr>'; }
+    else body.innerHTML=list.map(function(d,i){
+      var rm=(uiRole==='uradnik')?'<a href="javascript:void(0)" onclick="doRozRemove('+i+')" title="Odebrat" style="color:#a33;text-decoration:none">&#10005;</a>':'';
+      return '<tr><td>'+esc(d.ico||'—')+'</td><td>'+esc(d.nazev||'')+'</td><td class="sub">'+esc(d.gen||'')+'</td><td style="text-align:center">'+rm+'</td></tr>';
+    }).join('');
+  }
+  var add=document.getElementById('doRozAdd'); if(add) add.style.display=(uiRole==='uradnik')?'flex':'none';
+}
+function doRozToggle(){
+  var p=document.getElementById('doRozPanel'); if(!p) return;
+  var show=(p.style.display==='none'); p.style.display=show?'block':'none';
+  if(show){ fillDoRozGen(); renderDORozdel(); }
+}
+function doRozAdd(){
+  if(uiRole!=='uradnik'){ toast('Konkrétní DO do rozdělovníku přidává stavební úředník.'); return; }
+  var gen=document.getElementById('doRozGen'); var genTxt='';
+  if(gen && gen.value && gen.value!=='__jiny__'){ var opt=gen.options[gen.selectedIndex]; genTxt=opt?opt.textContent:gen.value; }
+  var ico=(document.getElementById('doRozIco').value||'').trim();
+  var nazev=(document.getElementById('doRozNazev').value||'').trim();
+  if(!nazev){ toast('Zadejte název konkrétního dotčeného orgánu.'); return; }
+  var st=loadState()||{}; st.doRozdel=st.doRozdel||[];
+  st.doRozdel.push({ico:ico, nazev:nazev, gen:genTxt});
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(st)); }catch(e){}
+  document.getElementById('doRozIco').value=''; document.getElementById('doRozNazev').value=''; if(gen) gen.value='';
+  renderDORozdel();
+  toast('Dotčený orgán přidán do rozdělovníku: '+nazev+'.');
+}
+function doRozRemove(i){
+  if(uiRole!=='uradnik') return;
+  var st=loadState()||{}; st.doRozdel=st.doRozdel||[]; if(i<0||i>=st.doRozdel.length) return;
+  var nm=st.doRozdel[i].nazev||''; st.doRozdel.splice(i,1);
+  try{ localStorage.setItem(KV_KEY, JSON.stringify(st)); }catch(e){}
+  renderDORozdel();
+  toast('Odebráno z rozdělovníku: '+nm+'.');
+}
 var COORD_NAMES=['Ing. Pavla Nováková','Mgr. Jan Dvořák','Ing. Petr Horák','Bc. Lucie Marková'];
 function doPredej(){
   var c=document.getElementById('doCoord').value;
@@ -2651,6 +2719,7 @@ function savePoznamka(){
   }
   var aw0=document.querySelector('.app-window'); if(aw0) aw0.classList.toggle('koord-view', uiRole==='koordinator');
   renderPod(); renderKoordBar(); renderDoPanel(); renderPrisp(); initPopisZameru();
+  if(typeof renderDORozdel==='function') renderDORozdel();
 })();
 </script>
 <script>vitaMsgInit(typeof uiRole!=='undefined'?uiRole:'uradnik');</script>
