@@ -335,8 +335,10 @@ function doplneniInfo(o){
   var pend=us.filter(function(u){ var p=pr[u]||{}; return p.pod!=='ok'; });
   return pend.length ? {txt:'kontrola doplnění', cls:'wl-stav-w'} : {txt:'doplněno – k obnovení', cls:'wl-stav-ok'};
 }
+function vyzadatPending(o){ var pr=(o&&o.prisp)||{}; for(var k in pr){ if(pr[k] && pr[k].extVyzadat && !pr[k].extVyzadano) return true; } return false; }
 function uStav(){
   var __d=doplneniInfo(kvAll()); if(__d) return [__d.txt, __d.cls];
+  if(vyzadatPending(kvAll())) return ['vyžádat DO','wl-stav-w'];
   if(kvPrerus()) return ['výzva','wl-stav-w'];
   if(kvVydano()) return ['koord. vyjádření vydáno – k rozhodnutí','wl-stav-ok'];
   var z=kvZahajeni(); if(z) return [z,'wl-stav-k'];
