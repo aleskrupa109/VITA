@@ -1232,6 +1232,7 @@ kvRenderSummary();
           <tr data-cislo="0855" onclick="tiskSelect(this)" ondblclick="tiskOk()"><td>0855</td><td>Výzva k doplnění žádosti a usnesení o přerušení</td></tr>
           <tr data-cislo="0390" onclick="tiskSelect(this)" ondblclick="tiskOk()"><td>0390</td><td>Vyrozumění o zahájení řízení</td></tr>
           <tr data-cislo="KV" onclick="tiskSelect(this)" ondblclick="tiskOk()"><td>KV</td><td>Interní koordinované vyjádření</td></tr>
+          <tr data-cislo="ZADDO" onclick="tiskSelect(this)" ondblclick="tiskOk()"><td>ZADDO</td><td>Žádost o vyjádření nebo stanovisko DO</td></tr>
         </tbody>
       </table>
     </div>
@@ -1297,17 +1298,28 @@ kvRenderSummary();
       </div>
       <div id="extStanDolozeno" style="display:none;border-top:1px solid #ddd;padding-top:8px">
         <div class="op-fld"><label style="min-width:130px">Dokument</label><input type="file" id="extFile"></div>
-        <div class="op-fld"><label style="min-width:130px">Původce</label><input type="text" id="extPuvodce" style="flex:1 1 auto" placeholder="Orgán, který stanovisko vydal"></div>
+        <div class="op-fld"><label style="min-width:130px">Konkrétní orgán</label><input type="text" id="extPuvodce" style="flex:1 1 auto" placeholder="Konkrétní DO dle dokumentu, např. HZS Středočeského kraje"></div>
         <div class="op-fld"><label style="min-width:130px">Datum vystavení</label><input type="text" id="extDatum" style="width:140px" placeholder="d.m.rrrr"></div>
         <div class="op-fld"><label style="min-width:130px">Číslo jednací</label><input type="text" id="extCj" style="flex:1 1 auto" placeholder="č.j. dokumentu"></div>
         <div class="sub" style="margin-top:4px">Po uložení navážeme vytvořením příspěvku (přepis veřejných zájmů a podmínek z dokumentu).</div>
       </div>
       <div id="extStanVyzadat" style="display:none;border-top:1px solid #ddd;padding-top:8px">
-        <div class="op-fld"><label style="min-width:130px">Datum vyžádání</label><input type="text" id="extVyzDatum" style="width:140px"></div>
-        <div class="sub">Uložením se vytvoří <b>žádost o vyjádření / závazné stanovisko dle § 178 SZ</b> (s odkazem na číslo záměru) a přidá se do podkladů. Běží vlastní lhůta externího DO (30 dnů), mimo režim fikce u interních; výjimka EIA / ZS.</div>
+        <div class="op-fld" style="align-items:flex-start"><label style="min-width:130px">Poznámka</label><textarea id="extVyzPozn" rows="3" style="flex:1 1 auto" placeholder="Volitelná poznámka pro stavebního úředníka (např. komu žádost adresovat, na co upozornit)…"></textarea></div>
+        <div class="sub">Koordinátor pouze označí, že stanovisko je třeba <b>vyžádat</b> — jde o strukturovaný podklad bez vazby na spisovou službu, nevzniká žádný dokument. <b>Samotnou žádost vystaví stavební úředník</b> (potvrdí datum a vytiskne „Žádost o vyjádření nebo stanovisko DO"). Tím práce koordinátora na tomto DO končí; stav podkladů = <b>vyžádat</b>.</div>
       </div>
     </div>
     <div class="m-foot"><button class="btn" id="extStanOk" onclick="extStanOk()" disabled>Uložit</button><button class="btn" onclick="closeExtStan()">Storno</button></div>
+  </div>
+</div>
+<div class="overlay" id="vyzadatDOModal">
+  <div class="modal" style="width:560px;max-width:94vw">
+    <div class="m-title"><span id="vyzTitle">Vyžádat vyjádření / stanovisko DO</span><div class="m-x" onclick="closeVyzadatDO()" title="Storno">&#10005;</div></div>
+    <div class="m-body" style="padding:10px 12px;background:#fff">
+      <div class="sub" style="margin-bottom:8px">Koordinátor označil tento externí DO k vyžádání. Potvrďte datum vyžádání; <b>žádost poté vystavíte přes Tisk → „Žádost o vyjádření nebo stanovisko DO".</b></div>
+      <div id="vyzPoznBox" style="display:none;background:#fbf3e2;border:1px solid #cbb077;color:#7a5a14;padding:6px 10px;border-radius:4px;margin-bottom:8px;font-size:13px"></div>
+      <div class="op-fld"><label style="min-width:130px">Datum vyžádání</label><input type="text" id="vyzDatum" style="width:140px"></div>
+    </div>
+    <div class="m-foot"><button class="btn" onclick="vyzadatDOok()">Potvrdit vyžádání</button><button class="btn" onclick="closeVyzadatDO()">Storno</button></div>
   </div>
 </div>
 <div class="overlay" id="extEditModal">
@@ -1614,10 +1626,12 @@ function renderPrisp(){
     var isExt = (em==='externi');
     var podCell = isExt ? (o&&o.extDoc ? '<span class="kv-pod-ok">doloženo</span>'
                           : (o&&o.extVyzadano ? '<span class="kv-pod-wait">vyžádáno</span>'
-                          : '<span class="sub">nezkontrolováno</span>')) : pod;
+                          : (o&&o.extVyzadat ? '<span class="kv-pod-wait">vyžádat</span>'
+                          : '<span class="sub">nezkontrolováno</span>'))) : pod;
     var lhutaC = isExt ? (o&&o.vyrizeno ? '<span class="kv-pod-ok">vyřízeno</span>'
                          : (o&&o.extVyzadano ? 'vyžádáno <span class="sub">'+(o.extVyzadano.datum||'')+'</span>'
-                         : '<span class="sub">—</span>')) : lhutaCell(o);
+                         : (o&&o.extVyzadat ? '<span class="sub">čeká na vyžádání úředníkem</span>'
+                         : '<span class="sub">—</span>'))) : lhutaCell(o);
     var tr=document.createElement('tr');
     tr.dataset.idx=idx;
     tr.onclick=function(e){ prispRowClick(idx, e); };
@@ -1849,6 +1863,14 @@ function tiskOk(){
   if(!tr){ toast('Vyberte dokument k vytvoření.'); return; }
   var cislo=tr.getAttribute('data-cislo'), nazev=tr.cells[1].textContent;
   if(cislo==='KV'){ closeTisk(); vydatKV(); return; }
+  if(cislo==='ZADDO'){
+    var st=loadState()||{}; var pr=st.prisp||{}; var added=0;
+    PRISP.forEach(function(r){ var p=pr[r.usek]; if(p && p.extVyzadano && p.extVyzadano.doc && !podRows.some(function(x){return x.f===p.extVyzadano.doc;})){ podRows.push({f:p.extVyzadano.doc, cj:p.extVyzadano.cj||'DESU/013304/26', dt:p.extVyzadano.datum||''}); added++; } });
+    if(!added){ toast('Žádný externí DO není ve stavu „vyžádáno" (nebo je žádost už ve spisu). Nejprve na řádku DO potvrďte „Vyžádat DO".'); return; }
+    saveState(); renderPod(); closeTisk();
+    toast(added+'× žádost o vyjádření / stanovisko DO vytvořena a uložena do spisu (podklady).');
+    renderPrisp(); return;
+  }
   var DOCFILE={'0855':'0855_vyzva_k_doplneni_a_usneseni_o_preruseni.pdf','0390':'0390_vyrozumeni_o_zahajeni_rizeni.pdf'};
   var fname=DOCFILE[cislo]||(cislo+'_dokument.pdf');
   if(!podRows.some(function(p){return p.f===fname;})){
@@ -1941,6 +1963,8 @@ function prispCtx(e, idx){
       xitems.push({sep:true});
       xitems.push({t:'Znovu načíst', fn:znovuNacist, nw:true});
     } else {
+      if(uiRole==='uradnik' && o && o.extVyzadat && !o.extVyzadano) xitems.push({t:'Vyžádat DO\u2026', fn:function(){ openVyzadatDO(idx); }, nw:true});
+      else if(uiRole==='uradnik' && o && o.extVyzadano) xitems.push({t:'Vyžádáno '+(o.extVyzadano.datum||''), dis:true});
       xitems.push((o&&o.vyrizeno) ? {t:'Příspěvek', fn:function(){ openPrispevek(idx); }} : {t:'Příspěvek', dis:true});
       xitems.push({sep:true});
       xitems.push({t:'Znovu načíst', fn:znovuNacist, nw:true});
@@ -2460,10 +2484,13 @@ function openExtStan(idx){
   document.getElementById('extDatum').value=(o.extDoc&&o.extDoc.datum)||'';
   document.getElementById('extCj').value=(o.extDoc&&o.extDoc.cj)||'';
   try{ document.getElementById('extFile').value=''; }catch(e){}
-  document.getElementById('extVyzDatum').value=(o.extVyzadano&&o.extVyzadano.datum)||_fcz(_add(DNES_BASE,KVSIM));
-  document.getElementById('extStanDolozeno').style.display='none';
-  document.getElementById('extStanVyzadat').style.display='none';
-  document.getElementById('extStanOk').disabled=true;
+  document.getElementById('extVyzPozn').value=(o.extVyzadat&&o.extVyzadat.pozn)||'';
+  var radios=document.getElementsByName('extStanVolba');
+  if(o.extDoc){ radios[0].checked=true; }
+  else if(o.extVyzadat){ radios[1].checked=true; }
+  document.getElementById('extStanDolozeno').style.display = o.extDoc?'block':'none';
+  document.getElementById('extStanVyzadat').style.display = (o.extVyzadat&&!o.extDoc)?'block':'none';
+  document.getElementById('extStanOk').disabled = !(o.extDoc||o.extVyzadat);
   document.getElementById('extStanModal').classList.add('show');
 }
 function extStanSwitch(){
@@ -2490,18 +2517,32 @@ function extStanOk(){
     renderPrisp();
     openExtEdit(extIdx);
   } else if(v==='vyzadat'){
-    var vd=document.getElementById('extVyzDatum').value.trim()||_fcz(_add(DNES_BASE,KVSIM));
-    var fname='Žádost o vyjádření DO – '+r.usek+' (§ 178 SZ; záměr '+CZAM+').pdf';
-    var cj='DESU/013304/26-'+r.usek;
-    kvPatchUsek(r.usek, function(p){ p.extVyzadano={datum:vd, doc:fname, cj:cj}; p.extDoc=null; });
-    if(!podRows.some(function(p){ return p.f===fname; })){
-      podRows.push({f:fname, cj:cj, dt:vd});
-      saveState(); renderPod();
-    }
+    var pozn=(document.getElementById('extVyzPozn').value||'').trim();
+    kvPatchUsek(r.usek, function(p){ p.extVyzadat={pozn:pozn}; p.extDoc=null; p.extVyzadano=null; });
     closeExtStan();
-    toast('Vytvořena žádost o vyjádření (úsek '+r.usek+', § 178 SZ; záměr '+CZAM+') – vyžádáno '+vd+', přidáno do podkladů.');
+    toast('Úsek '+r.usek+' označen k vyžádání stanoviska (podklad: vyžádat). Žádost vystaví stavební úředník — stav řízení: vyžádat DO.');
     renderPrisp();
   }
+}
+var vyzIdx=null;
+function openVyzadatDO(idx){
+  vyzIdx=idx; var r=PRISP[idx]; var o=((loadState()||{}).prisp||{})[r.usek]||{};
+  document.getElementById('vyzTitle').textContent='Vyžádat vyjádření / stanovisko DO — úsek '+r.usek;
+  var pb=document.getElementById('vyzPoznBox'); var pozn=(o.extVyzadat&&o.extVyzadat.pozn)||'';
+  if(pozn){ pb.style.display='block'; pb.innerHTML='<b>Poznámka koordinátora:</b> '+esc(pozn); } else { pb.style.display='none'; }
+  document.getElementById('vyzDatum').value=(o.extVyzadano&&o.extVyzadano.datum)||_fcz(_add(DNES_BASE,KVSIM));
+  document.getElementById('vyzadatDOModal').classList.add('show');
+}
+function closeVyzadatDO(){ document.getElementById('vyzadatDOModal').classList.remove('show'); }
+function vyzadatDOok(){
+  if(vyzIdx==null) return; var r=PRISP[vyzIdx];
+  var vd=(document.getElementById('vyzDatum').value||'').trim()||_fcz(_add(DNES_BASE,KVSIM));
+  var fname='Žádost o vyjádření / stanovisko DO – '+r.usek+' (záměr '+CZAM+').pdf';
+  var cj='DESU/013304/26-'+r.usek;
+  kvPatchUsek(r.usek, function(p){ p.extVyzadano={datum:vd, doc:fname, cj:cj}; });
+  closeVyzadatDO();
+  toast('Vyžádání DO potvrzeno k datu '+vd+'. Žádost vystavte přes Tisk → „Žádost o vyjádření nebo stanovisko DO".');
+  renderPrisp();
 }
 function openExtEdit(idx){
   exIdx=idx; var r=PRISP[idx]; var o=((loadState()||{}).prisp||{})[r.usek]||{};
