@@ -1678,7 +1678,7 @@ function renderPrisp(){
     var vz=PVZ[r.vz||''];
     var prac = (em==='externi') ? '<span class="sub">—</span>' : (assigned ? (r.prac||'<span class="sub">nepřiděleno</span>') : '');
     var pod  = effPod==='ok' ? '<span class="kv-pod-ok">OK</span>'
-             : effPod==='neuplne' ? '<span class="kv-pod-no">Neúplné</span>'
+             : effPod==='neuplne' ? ((o&&o.recheck) ? '<span class="kv-pod-wait">k opětovné kontrole</span>' : '<span class="kv-pod-no">Neúplné</span>')
              : effPod==='ceka' ? '<span class="kv-pod-wait">čeká</span>' : '';
     var fikce = o && o.fikce;
     var done = (fikce || (o&&o.vyrizeno) || (vyjVisible && (r.stav==='vyrizeno'||r.stav==='fikce'))) ? '✓' : '';
@@ -1718,12 +1718,15 @@ function renderPrisp(){
   paintPrispSel();
 
   var total=PRISP.length, sumtxt;
-  var neup = PRISP.filter(function(r){ return effPodOf(r)==='neuplne'; });
+  var neupAll = PRISP.filter(function(r){ return effPodOf(r)==='neuplne'; });
+  var recheckN = neupAll.filter(function(r){ var o=ov[r.usek]; return o&&o.recheck; }).length;
+  var neup = neupAll.filter(function(r){ var o=ov[r.usek]; return !(o&&o.recheck); });
   var okN  = PRISP.filter(function(r){ return effPodOf(r)==='ok'; }).length;
   var doneN = PRISP.filter(function(r){ var o=ov[r.usek]; return (o&&(o.vyrizeno||o.fikce)) || (vyjVisible&&(r.stav==='vyrizeno'||r.stav==='fikce')); }).length;
+  var tail = (neup.length?(' · neúplné '+neup.length):'') + (recheckN?(' · ke kontrole '+recheckN):'');
   if(fi<=1) sumtxt = total+' úseků'+(fi===1?' · předáno koordinátorovi':' · nepřiděleno');
-  else if(doneN>0) sumtxt = 'vyřízeno '+doneN+'/'+total + (neup.length?(' · neúplné '+neup.length):'');
-  else if(neup.length) sumtxt = 'přiděleno '+total+' · neúplné ('+neup.length+')';
+  else if(doneN>0) sumtxt = 'vyřízeno '+doneN+'/'+total + tail;
+  else if(neup.length || recheckN) sumtxt = 'přiděleno '+total + tail;
   else if(okN>0) sumtxt = 'přiděleno '+total+' · kontrola podkladů OK';
   else if(fi===2) sumtxt = 'přiděleno '+total+' · kontrola úplnosti běží';
   else sumtxt = 'přiděleno '+total+' · kontrola dokončena';
