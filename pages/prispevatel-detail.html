@@ -586,7 +586,7 @@ function externalPanel(u, odbor, saved){
   var badge, detail, tabs='';
   if(saved&&saved.extDoc){
     badge='doloženo'; var d=saved.extDoc;
-    detail='doloženo dokumentem · <b>'+esc(d.puvodce||'—')+'</b>'+(d.datum?' · '+esc(d.datum):'')+(d.cj?' · č.j. '+esc(d.cj):'');
+    detail='doloženo'+(d.druh?' – <b>'+esc(d.druh)+'</b>':' dokumentem')+' · '+esc(d.puvodce||'—')+(d.datum?' · '+esc(d.datum):'')+(d.cj?' · č.j. '+esc(d.cj):'');
     tabs=prispevekTabs(u, saved);
   } else if(saved&&saved.extKontrola){
     badge='kontrola DO';

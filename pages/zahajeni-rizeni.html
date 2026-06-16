@@ -1324,6 +1324,7 @@ kvRenderSummary();
       </div>
       <div id="extStanDolozeno" style="display:none;border-top:1px solid #ddd;padding-top:8px">
         <div class="op-fld"><label style="min-width:130px">Dokument</label><input type="file" id="extFile"></div>
+        <div class="op-fld"><label style="min-width:130px">Druh dokumentu</label><select id="extDruh" style="flex:0 0 auto;min-width:200px"></select></div>
         <div class="op-fld"><label style="min-width:130px">Konkrétní orgán</label><input type="text" id="extPuvodce" style="flex:1 1 auto" placeholder="Konkrétní DO dle dokumentu, např. HZS Středočeského kraje"></div>
         <div class="op-fld"><label style="min-width:130px">Datum vystavení</label><input type="text" id="extDatum" style="width:140px" placeholder="d.m.rrrr"></div>
         <div class="op-fld"><label style="min-width:130px">Číslo jednací</label><input type="text" id="extCj" style="flex:1 1 auto" placeholder="č.j. dokumentu"></div>
@@ -1367,6 +1368,7 @@ kvRenderSummary();
     <div class="m-body" style="padding:0;background:#fff">
       <div class="pm-head"><span class="pm-usek" id="exUsek">VOD</span><label>veřejné zájmy</label><select id="exVz"></select></div>
       <div style="display:flex;flex-wrap:wrap;border-bottom:1px solid #ddd;background:#f7f7f7">
+        <div class="op-fld" style="flex:0 0 220px"><label>Druh dokumentu</label><select id="exDruh" style="flex:1 1 auto"></select></div>
         <div class="op-fld" style="flex:1 1 280px"><label>Původce</label><input type="text" id="exPuvodce" style="flex:1 1 auto"></div>
         <div class="op-fld" style="flex:0 0 220px"><label>Datum vystavení</label><input type="text" id="exDatum" style="width:120px"></div>
         <div class="op-fld" style="flex:0 0 260px"><label>Č.j.</label><input type="text" id="exCj" style="flex:1 1 auto"></div>
@@ -1733,7 +1735,7 @@ function renderPrisp(){
     tr.oncontextmenu=function(e){ prispCtxAt(e, idx); };
     tr.ondblclick=function(){ openPrispevek(idx); };
     var noteIco = (o && o.poznamka) ? ' <span class="note-flag" title="'+esc(o.poznamka)+'" onclick="event.stopPropagation(); openPoznamka('+idx+')">&#9998;</span>' : '';
-    var docIco = (o && o.extDoc) ? ' <span class="note-flag" title="'+esc((o.extDoc.nazev||'dokument')+' · '+(o.extDoc.puvodce||'')+' · č.j. '+(o.extDoc.cj||'')+' · '+(o.extDoc.datum||''))+'" onclick="event.stopPropagation(); showExtDoc('+idx+')">&#128206;</span>' : '';
+    var docIco = (o && o.extDoc) ? ' <span class="note-flag" title="'+esc((o.extDoc.nazev||'dokument')+' · '+(o.extDoc.druh||'')+' · '+(o.extDoc.puvodce||'')+' · č.j. '+(o.extDoc.cj||'')+' · '+(o.extDoc.datum||''))+'" onclick="event.stopPropagation(); showExtDoc('+idx+')">&#128206;</span>' : '';
     var oprIco = (o && o.opraveno) ? ' <span class="note-flag" title="'+esc('Opraveno po vrácení. Důvod vrácení: '+(o.vratDuvod||'—'))+'" onclick="event.stopPropagation(); showVratDuvod('+idx+')" style="color:#1f6b1f">&#8635;</span>' : '';
     var doneCell = (o && o.vyrizeno && o.paraf)
       ? '<span style="color:#0a7a28;font-weight:bold" title="parafováno koordinátorem">&#10003;&nbsp;paraf.</span>'
@@ -2011,6 +2013,8 @@ const PODTEXT = {
   PO:'před zahájením užívání doložit požárně bezpečnostní řešení'
 };
 const VZ_OPTS = ['','nejsou dotčeny','nejsou dotčeny - podle zákona','jsou dotčeny - bez připomínek','jsou dotčeny - souhlas za podmínek','jsou dotčeny - nesouhlas'];
+const DRUH_OPTS = ['stanovisko','závazné stanovisko','vyjádření'];
+function druhOpts(cur){ return DRUH_OPTS.map(function(x){ return '<option'+(x===cur?' selected':'')+'>'+x+'</option>'; }).join(''); }
 
 function znovuNacist(){
   // VITA „Znovu načíst" – načte aktuální sdílený stav (úpravy z jiných rolí) a překreslí náhledy
@@ -2257,7 +2261,8 @@ function sestavitKV(){
   var s=loadState()||{}; var removed=s.removedDO||[], pr=s.prisp||{}, secs=[];
   PRISP.forEach(function(r){ if(removed.indexOf(r.usek)>=0) return; var p=pr[r.usek]; if(!p) return;
     secs.push({usek:r.usek, odbor:r.odbor, prac:r.prac||'', em:emLabelOf(r.usek,p),
-      vz:(p.vz||''), podminky:(p.podminky||''), oduvodneni:(p.oduvodneni||''), upozorneni:(p.upozorneni||''), negativni:(p.negativni||''), fikce:!!p.fikce}); });
+      vz:(p.vz||''), podminky:(p.podminky||''), oduvodneni:(p.oduvodneni||''), upozorneni:(p.upozorneni||''), negativni:(p.negativni||''), fikce:!!p.fikce,
+      doc:(p.extDoc?{druh:(p.extDoc.druh||''), puvodce:(p.extDoc.puvodce||''), datum:(p.extDoc.datum||''), cj:(p.extDoc.cj||'')}:null)}); });
   var kv=s.kv||{};
   s.kv={ sestaveno:true, podepsano:false,
     datum:(kv.datum||s.kvDatum||_fcz(_add(DNES_BASE,(s.simDays||0)))),
@@ -2332,9 +2337,11 @@ function renderKV(){
       }
     });
     if(locked && !fieldsHtml) fieldsHtml='<div class="kv-lbl" style="color:#888;font-weight:normal">bez podmínek a dalšího textu'+(sec.fikce?' (fikce souhlasu)':'')+'</div>';
+    var docRow = sec.doc ? '<div class="op-fld"><label>Dokument DO</label><div style="flex:1 1 auto;font-size:13px"><b>'+esc(sec.doc.druh||'—')+'</b> · '+esc(sec.doc.puvodce||'—')+' · č.j. '+esc(sec.doc.cj||'—')+' · '+esc(sec.doc.datum||'—')+'</div></div>' : '';
     body+='<div class="opanel open"><div class="op-bar"><div class="op-usek">'+esc(sec.usek)+'</div><div class="op-fill"></div><div class="op-prac">'+esc(sec.em)+(sec.fikce?' · <span class="sub">fikce souhlasu</span>':'')+'</div></div>'+
       '<div class="op-exp"><div class="spine"><span>'+esc(sec.usek)+'</span></div><div class="op-body">'+
         '<div class="op-fld"><label>Odbor</label><input type="text" value="'+esc(sec.odbor)+'" readonly></div>'+
+        docRow+
         '<div class="op-fld"><label>Veřejné zájmy</label>'+(locked
             ? '<input type="text" value="'+esc(sec.vz)+'" readonly style="flex:1 1 auto">'
             : '<input type="text" value="'+esc(sec.vz)+'" style="flex:1 1 auto" onchange="kvSecSet('+i+',\'vz\',this.value)">')+'</div>'+
@@ -2587,7 +2594,7 @@ function potvrdit(usek){
 function showExtDoc(idx){
   var r=PRISP[idx]; var o=((loadState()||{}).prisp||{})[r.usek]||{}; var d=o.extDoc;
   if(!d){ toast('K úseku '+r.usek+' není připojen žádný dokument.'); return; }
-  toast('Dokument: '+(d.nazev||'—')+' · původce: '+(d.puvodce||'—')+' · č.j. '+(d.cj||'—')+' · '+(d.datum||'—'));
+  toast('Dokument: '+(d.nazev||'—')+' · druh: '+(d.druh||'—')+' · původce: '+(d.puvodce||'—')+' · č.j. '+(d.cj||'—')+' · '+(d.datum||'—'));
 }
 function showVratDuvod(idx){
   var r=PRISP[idx]; var o=((loadState()||{}).prisp||{})[r.usek]||{};
@@ -2614,6 +2621,7 @@ function openExtStan(idx){
   var kontrola=(o.extKontrola && !o.extDoc) ? o.extKontrola : null;
   var radios=document.getElementsByName('extStanVolba'); radios[0].checked=false; radios[1].checked=false;
   document.getElementById('extPuvodce').value=(o.extDoc&&o.extDoc.puvodce)||'';
+  document.getElementById('extDruh').innerHTML=druhOpts((o.extDoc&&o.extDoc.druh)||DRUH_OPTS[0]);
   document.getElementById('extDatum').value=(o.extDoc&&o.extDoc.datum)||(kontrola&&kontrola.datum)||'';
   document.getElementById('extCj').value=(o.extDoc&&o.extDoc.cj)||(kontrola&&kontrola.cj)||'';
   try{ document.getElementById('extFile').value=''; }catch(e){}
@@ -2645,9 +2653,10 @@ function extStanOk(){
     var defName=(o0.extKontrola&&o0.extKontrola.doc)||'stanovisko_DO.pdf';
     var nazev=(fi&&fi.files&&fi.files[0])?fi.files[0].name:defName;
     var puv=document.getElementById('extPuvodce').value.trim();
+    var druh=document.getElementById('extDruh').value;
     var dat=document.getElementById('extDatum').value.trim();
     var cj=document.getElementById('extCj').value.trim();
-    kvPatchUsek(r.usek, function(p){ p.extDoc={nazev:nazev, puvodce:puv, datum:dat, cj:cj}; p.extVyzadano=null; p.extKontrola=null; });
+    kvPatchUsek(r.usek, function(p){ p.extDoc={nazev:nazev, druh:druh, puvodce:puv, datum:dat, cj:cj}; p.extVyzadano=null; p.extKontrola=null; });
     closeExtStan();
     toast('Dokument „'+nazev+'" připojen k úseku '+r.usek+'.');
     renderPrisp();
@@ -2710,6 +2719,7 @@ function openExtEdit(idx){
   document.getElementById('exUsek').textContent=r.usek;
   var cur=(o.vz&&o.vz!=='<vyberte>')?o.vz:'';
   document.getElementById('exVz').innerHTML=VZ_OPTS.map(function(x){ return '<option'+(x===cur?' selected':'')+'>'+(x||'<vyberte>')+'</option>'; }).join('');
+  document.getElementById('exDruh').innerHTML=druhOpts((o.extDoc&&o.extDoc.druh)||DRUH_OPTS[0]);
   document.getElementById('exPuvodce').value=(o.extDoc&&o.extDoc.puvodce)||'';
   document.getElementById('exDatum').value=(o.extDoc&&o.extDoc.datum)||'';
   document.getElementById('exCj').value=(o.extDoc&&o.extDoc.cj)||'';
@@ -2732,12 +2742,13 @@ function exSave(){
   var r=PRISP[exIdx];
   exData[exTabCur]=document.getElementById('exContent').innerHTML;
   var vz=document.getElementById('exVz').value;
+  var druh=document.getElementById('exDruh').value;
   var puv=document.getElementById('exPuvodce').value.trim();
   var dat=document.getElementById('exDatum').value.trim();
   var cj=document.getElementById('exCj').value.trim();
   kvPatchUsek(r.usek, function(p){
     p.vz=vz; p.podminky=exData.podminky; p.oduvodneni=exData.oduvodneni; p.upozorneni=exData.upozorneni; p.negativni=exData.negativni;
-    p.extDoc=p.extDoc||{}; p.extDoc.puvodce=puv; p.extDoc.datum=dat; p.extDoc.cj=cj;
+    p.extDoc=p.extDoc||{}; p.extDoc.druh=druh; p.extDoc.puvodce=puv; p.extDoc.datum=dat; p.extDoc.cj=cj;
     p.extMode='externi'; p.vyrizeno=true; p.hotovo=true;
   });
   closeExtEdit();
