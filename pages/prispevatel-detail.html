@@ -545,51 +545,102 @@ function rtToolbar(){
     '<div class="rb" style="text-decoration:underline">U</div><div class="rb">A<sup>2</sup></div><div class="rb">A<sub>2</sub></div>'+
     '<div class="rsep"></div><div class="rb">&#9986;</div><div class="rb">&#128203;</div><div class="rb">&#128204;</div></div>';
 }
+function othersOdbor(u){ for(var i=0;i<OTHERS.length;i++) if(OTHERS[i].u===u) return OTHERS[i].odbor; return u; }
+function prispevekTabs(u, saved){
+  var panes={
+    podminky:(saved&&saved.podminky)?saved.podminky:(OSAMPLE[u]?'<ul><li>'+esc(OSAMPLE[u])+'</li></ul>':'<ul><li><br></li></ul>'),
+    oduvodneni:(saved&&saved.oduvodneni)?saved.oduvodneni:'<ul><li><br></li></ul>',
+    upozorneni:(saved&&saved.upozorneni)?saved.upozorneni:'<ul><li><br></li></ul>',
+    negativni:(saved&&saved.negativni)?saved.negativni:'<ul><li><br></li></ul>'
+  };
+  return '<div class="htabs" id="opTabs-'+u+'">'+
+      '<div class="htab active" data-pt="podminky" onclick="opTab(\''+u+'\',\'podminky\')">Podmínky</div>'+
+      '<div class="htab" data-pt="oduvodneni" onclick="opTab(\''+u+'\',\'oduvodneni\')">Odůvodnění</div>'+
+      '<div class="htab" data-pt="upozorneni" onclick="opTab(\''+u+'\',\'upozorneni\')">Upozornění</div>'+
+      '<div class="htab" data-pt="negativni" onclick="opTab(\''+u+'\',\'negativni\')">Negativní - důvody</div>'+
+    '</div>'+rtToolbar()+
+    '<div class="rt-area op-ro" id="op-'+u+'-podminky">'+panes.podminky+'</div>'+
+    '<div class="rt-area op-ro" id="op-'+u+'-oduvodneni" style="display:none">'+panes.oduvodneni+'</div>'+
+    '<div class="rt-area op-ro" id="op-'+u+'-upozorneni" style="display:none">'+panes.upozorneni+'</div>'+
+    '<div class="rt-area op-ro" id="op-'+u+'-negativni" style="display:none">'+panes.negativni+'</div>';
+}
+function internalPanel(o, saved, ed, em){
+  var vzPhrase=(saved&&saved.vz&&saved.vz!=='<vyberte>')?saved.vz:VZP[o.vz];
+  var zmoc=(saved&&saved.zmoc)?saved.zmoc:'<vyberte>';
+  var emTxt=em==='externi'?'vyjadřuje se externí DO':em==='oba'?'vyjadřuje se interní i externí DO':em==='interni'?'vyjadřuje se interní DO (ÚRÚ)':'—';
+  var emZdu=(saved&&saved.extZduvodneni)?saved.extZduvodneni:ed.zdu;
+  var extRow='<div class="op-fld"><span class="op-usek-lbl">'+o.u+'</span><label>dotčenost</label><input type="text" value="'+esc(emTxt)+'" readonly style="flex:1 1 auto"></div>'+
+    (((em==='externi'||em==='oba')&&emZdu)?'<div class="op-fld"><span class="op-usek-lbl"></span><label>zdůvodnění</label><div style="flex:1 1 auto;color:#8a3a00;font-size:13px">'+esc(emZdu)+'</div></div>':'');
+  return '<div class="opanel" id="op-'+o.u+'">'+
+    '<div class="op-bar" onclick="opToggle(\''+o.u+'\')" oncontextmenu="othersCtx(event)"><div class="op-usek">'+o.u+'</div><div class="op-fill"></div><div class="op-prac">'+o.p+'</div></div>'+
+    '<div class="op-exp"><div class="spine" onclick="opToggle(\''+o.u+'\')"><span>'+o.u+'</span></div><div class="op-body">'+
+      '<div class="op-fld"><label>Zmocnění</label><input type="text" value="'+esc(zmoc)+'" readonly></div>'+
+      extRow+
+      '<div class="op-fld"><span class="op-usek-lbl">'+o.u+'</span><label>veřejné zájmy</label><select disabled><option>'+esc(vzPhrase)+'</option></select><span class="op-prac-r">'+o.p+'</span></div>'+
+      prispevekTabs(o.u, saved)+
+    '</div></div></div>';
+}
+function externalPanel(u, odbor, saved){
+  var ed=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[u])?VITA_EXT_DEFAULT[u]:{mode:'externi',zdu:''};
+  var zdu=(saved&&saved.extZduvodneni)?saved.extZduvodneni:ed.zdu;
+  var badge, detail, tabs='';
+  if(saved&&saved.extDoc){
+    badge='doloženo'; var d=saved.extDoc;
+    detail='doloženo dokumentem · <b>'+esc(d.puvodce||'—')+'</b>'+(d.datum?' · '+esc(d.datum):'')+(d.cj?' · č.j. '+esc(d.cj):'');
+    tabs=prispevekTabs(u, saved);
+  } else if(saved&&saved.extVyzadano){
+    badge='vyžádáno';
+    detail='vyžádáno dne <b>'+esc(saved.extVyzadano.datum||'')+'</b> · čeká se na vyjádření externího DO';
+  } else if(saved&&saved.extVyzadat){
+    badge='k vyžádání';
+    detail='označeno k vyžádání'+(saved.extVyzadat.pozn?' · poznámka koordinátora: '+esc(saved.extVyzadat.pozn):'');
+  } else {
+    badge='nerozhodnuto';
+    detail='<span style="color:#888">koordinátor zatím nerozhodl (doložit / vyžádat)</span>';
+  }
+  return '<div class="opanel" id="op-'+u+'">'+
+    '<div class="op-bar" onclick="opToggle(\''+u+'\')" oncontextmenu="othersCtx(event)" style="background:#fbf6ea"><div class="op-usek">'+u+'</div><div class="op-fill"></div><div class="op-prac" style="color:#7a5a14">externí DO · '+badge+'</div></div>'+
+    '<div class="op-exp"><div class="spine" onclick="opToggle(\''+u+'\')"><span>'+u+'</span></div><div class="op-body">'+
+      '<div class="op-fld"><span class="op-usek-lbl">'+u+'</span><label>odbor</label><input type="text" value="'+esc(odbor||u)+'" readonly style="flex:1 1 auto"></div>'+
+      '<div class="op-fld"><span class="op-usek-lbl"></span><label>dotčenost</label><input type="text" value="vyjadřuje se externí DO" readonly style="flex:1 1 auto"></div>'+
+      (zdu?'<div class="op-fld"><span class="op-usek-lbl"></span><label>zdůvodnění</label><div style="flex:1 1 auto;color:#8a3a00;font-size:13px">'+esc(zdu)+'</div></div>':'')+
+      '<div class="op-fld"><span class="op-usek-lbl"></span><label>stanovisko</label><div style="flex:1 1 auto">'+detail+'</div></div>'+
+      tabs+
+    '</div></div></div>';
+}
 function renderOthers(){
-  var prispState=(loadState()||{}).prisp||{};
+  var st=loadState()||{}; var prispState=st.prisp||{}; var extra=st.extraDO||[]; var removed=st.removedDO||[];
   var wrap=document.getElementById('othersWrap'); wrap.innerHTML='';
+  var seen={};
+  // 1) interní DO (z OTHERS; externí přeskočíme – řeší se níže)
   OTHERS.forEach(function(o){
     if(o.u===MYUSEK) return;
     var saved=prispState[o.u]||null;
-    var vzPhrase=(saved && saved.vz && saved.vz!=='<vyberte>') ? saved.vz : VZP[o.vz];
-    var zmoc=(saved && saved.zmoc) ? saved.zmoc : '<vyberte>';
-    var ed=(typeof VITA_EXT_DEFAULT!=='undefined' && VITA_EXT_DEFAULT[o.u]) ? VITA_EXT_DEFAULT[o.u] : {mode:'',zdu:''};
-    var em=(saved && saved.extMode) ? saved.extMode : ed.mode;
-    var emTxt = em==='externi'?'vyjadřuje se externí DO' : em==='oba'?'vyjadřuje se interní i externí DO' : em==='interni'?'vyjadřuje se interní DO (ÚRÚ)' : '—';
-    var emZdu=(saved && saved.extZduvodneni) ? saved.extZduvodneni : ed.zdu;
-    var extRow='<div class="op-fld"><span class="op-usek-lbl">'+o.u+'</span><label>dotčenost</label><input type="text" value="'+esc(emTxt)+'" readonly style="flex:1 1 auto"></div>'+
-      (((em==='externi'||em==='oba') && emZdu) ? '<div class="op-fld"><span class="op-usek-lbl"></span><label>zdůvodnění</label><div style="flex:1 1 auto;color:#8a3a00;font-size:13px">'+esc(emZdu)+'</div></div>' : '');
-    var panes={
-      podminky: (saved&&saved.podminky)?saved.podminky:(OSAMPLE[o.u]?'<ul><li>'+esc(OSAMPLE[o.u])+'</li></ul>':'<ul><li><br></li></ul>'),
-      oduvodneni:(saved&&saved.oduvodneni)?saved.oduvodneni:'<ul><li><br></li></ul>',
-      upozorneni:(saved&&saved.upozorneni)?saved.upozorneni:'<ul><li><br></li></ul>',
-      negativni:(saved&&saved.negativni)?saved.negativni:'<ul><li><br></li></ul>'
-    };
-    var html=''+
-      '<div class="opanel" id="op-'+o.u+'">'+
-        '<div class="op-bar" onclick="opToggle(\''+o.u+'\')" oncontextmenu="othersCtx(event)"><div class="op-usek">'+o.u+'</div><div class="op-fill"></div><div class="op-prac">'+o.p+'</div></div>'+
-        '<div class="op-exp">'+
-          '<div class="spine" onclick="opToggle(\''+o.u+'\')"><span>'+o.u+'</span></div>'+
-          '<div class="op-body">'+
-            '<div class="op-fld"><label>Zmocnění</label><input type="text" value="'+esc(zmoc)+'" readonly></div>'+
-            extRow+
-            '<div class="op-fld"><span class="op-usek-lbl">'+o.u+'</span><label>veřejné zájmy</label>'+
-              '<select disabled><option>'+esc(vzPhrase)+'</option></select><span class="op-prac-r">'+o.p+'</span></div>'+
-            '<div class="htabs" id="opTabs-'+o.u+'">'+
-              '<div class="htab active" data-pt="podminky" onclick="opTab(\''+o.u+'\',\'podminky\')">Podmínky</div>'+
-              '<div class="htab" data-pt="oduvodneni" onclick="opTab(\''+o.u+'\',\'oduvodneni\')">Odůvodnění</div>'+
-              '<div class="htab" data-pt="upozorneni" onclick="opTab(\''+o.u+'\',\'upozorneni\')">Upozornění</div>'+
-              '<div class="htab" data-pt="negativni" onclick="opTab(\''+o.u+'\',\'negativni\')">Negativní - důvody</div>'+
-            '</div>'+
-            rtToolbar()+
-            '<div class="rt-area op-ro" id="op-'+o.u+'-podminky">'+panes.podminky+'</div>'+
-            '<div class="rt-area op-ro" id="op-'+o.u+'-oduvodneni" style="display:none">'+panes.oduvodneni+'</div>'+
-            '<div class="rt-area op-ro" id="op-'+o.u+'-upozorneni" style="display:none">'+panes.upozorneni+'</div>'+
-            '<div class="rt-area op-ro" id="op-'+o.u+'-negativni" style="display:none">'+panes.negativni+'</div>'+
-          '</div>'+
-        '</div>'+
-      '</div>';
-    wrap.insertAdjacentHTML('beforeend', html);
+    var ed=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[o.u])?VITA_EXT_DEFAULT[o.u]:{mode:'',zdu:''};
+    var em=(saved&&saved.extMode)?saved.extMode:ed.mode;
+    if(em==='externi') return;
+    seen[o.u]=1;
+    wrap.insertAdjacentHTML('beforeend', internalPanel(o, saved, ed, em));
+  });
+  // 2) externí DO přidané koordinátorem (z extraDO) + případné OTHERS s ext stavem
+  var extList=[];
+  extra.forEach(function(d){
+    if(d.usek===MYUSEK || removed.indexOf(d.usek)>=0 || seen[d.usek]) return;
+    if((d.mode||'externi')!=='externi') return;
+    if(extList.some(function(x){return x.u===d.usek;})) return;
+    extList.push({u:d.usek, odbor:d.odbor||othersOdbor(d.usek)});
+  });
+  OTHERS.forEach(function(o){
+    if(o.u===MYUSEK || seen[o.u] || removed.indexOf(o.u)>=0) return;
+    if(extList.some(function(x){return x.u===o.u;})) return;
+    var saved=prispState[o.u]||null;
+    var ed=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[o.u])?VITA_EXT_DEFAULT[o.u]:{mode:'',zdu:''};
+    var em=(saved&&saved.extMode)?saved.extMode:ed.mode;
+    if(em!=='externi') return;
+    if(saved&&(saved.extDoc||saved.extVyzadat||saved.extVyzadano)) extList.push({u:o.u, odbor:o.odbor});
+  });
+  extList.forEach(function(e){
+    wrap.insertAdjacentHTML('beforeend', externalPanel(e.u, e.odbor, prispState[e.u]||null));
   });
 }
 function opToggle(u){ var el=document.getElementById('op-'+u); if(el) el.classList.toggle('open'); }
