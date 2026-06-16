@@ -1335,6 +1335,19 @@ kvRenderSummary();
     <div class="m-foot"><button class="btn" onclick="vyzadatDOok()">Potvrdit vyžádání</button><button class="btn" onclick="closeVyzadatDO()">Storno</button></div>
   </div>
 </div>
+<div class="overlay" id="vratDOModal">
+  <div class="modal" style="width:600px;max-width:94vw">
+    <div class="m-title"><span id="vratDOTitle">Vrátit ke kontrole — odpověď externího DO</span><div class="m-x" onclick="closeVratDO()" title="Storno">&#10005;</div></div>
+    <div class="m-body" style="padding:10px 12px;background:#fff">
+      <div class="sub" style="margin-bottom:8px">Došlá odpověď externího DO se přiřadí k <b>číslu jednacímu</b>, dokument se vloží do <b>podkladů</b> a stanovisko se vrátí <b>koordinátorovi ke kontrole</b>.</div>
+      <div id="vratPoznBox" style="display:none;background:#fbf3e2;border:1px solid #cbb077;color:#7a5a14;padding:6px 10px;border-radius:4px;margin-bottom:8px;font-size:13px"></div>
+      <div class="op-fld"><label style="min-width:150px">Dokument (došlá pošta)</label><input type="text" id="vratDoc" style="flex:1 1 auto" placeholder="název dokumentu odpovědi DO"></div>
+      <div class="op-fld"><label style="min-width:150px">Číslo jednací</label><input type="text" id="vratCj" style="flex:1 1 auto" placeholder="č.j. došlé odpovědi"></div>
+      <div class="op-fld"><label style="min-width:150px">Datum doručení</label><input type="text" id="vratDatum" style="width:140px"></div>
+    </div>
+    <div class="m-foot"><button class="btn" onclick="vratDOok()">Vrátit ke kontrole</button><button class="btn" onclick="closeVratDO()">Storno</button></div>
+  </div>
+</div>
 <div class="overlay" id="extEditModal">
   <div class="modal" style="width:1000px;max-width:96vw">
     <div class="m-title"><span id="exTitle">Příspěvek z externího stanoviska</span><div class="m-x" onclick="closeExtEdit()" title="Storno">&#10005;</div></div>
@@ -1692,13 +1705,15 @@ function renderPrisp(){
             : (vyjVisible && r.ext) ? '<span class="ext-flag">'+r.ext+'</span>' : '';
     var isExt = (em==='externi');
     var podCell = isExt ? (o&&o.extDoc ? '<span class="kv-pod-ok">doloženo</span>'
+                          : (o&&o.extKontrola ? '<span class="kv-pod-wait">kontrola DO</span>'
                           : (o&&o.extVyzadano ? '<span class="kv-pod-wait">vyžádáno</span>'
                           : (o&&o.extVyzadat ? '<span class="kv-pod-wait">vyžádat</span>'
-                          : '<span class="sub">nezkontrolováno</span>'))) : pod;
+                          : '<span class="sub">nezkontrolováno</span>')))) : pod;
     var lhutaC = isExt ? (o&&o.vyrizeno ? '<span class="kv-pod-ok">vyřízeno</span>'
+                         : (o&&o.extKontrola ? 'odpověď doručena <span class="sub">'+(o.extKontrola.datum||'')+'</span>'
                          : (o&&o.extVyzadano ? 'vyžádáno <span class="sub">'+(o.extVyzadano.datum||'')+'</span>'
                          : (o&&o.extVyzadat ? '<span class="sub">čeká na vyžádání úředníkem</span>'
-                         : '<span class="sub">—</span>'))) : lhutaCell(o);
+                         : '<span class="sub">—</span>')))) : lhutaCell(o);
     var tr=document.createElement('tr');
     tr.dataset.idx=idx;
     tr.onclick=function(e){ prispRowClick(idx, e); };
@@ -2029,8 +2044,16 @@ function prispCtx(e, idx){
       xitems.push({sep:true});
       xitems.push({t:'Znovu načíst', fn:znovuNacist, nw:true});
     } else {
-      if(uiRole==='uradnik' && o && o.extVyzadat && !o.extVyzadano) xitems.push({t:'Vyžádat DO\u2026', fn:function(){ openVyzadatDO(idx); }, nw:true});
-      else if(uiRole==='uradnik' && o && o.extVyzadano) xitems.push({t:'Vyžádáno '+(o.extVyzadano.datum||''), dis:true});
+      if(uiRole==='uradnik' && o && o.extVyzadat && !o.extVyzadano){
+        xitems.push({t:'Vyžádat DO\u2026', fn:function(){ openVyzadatDO(idx); }, nw:true});
+      } else if(uiRole==='uradnik' && o && o.extVyzadano && !o.extKontrola && !o.extDoc){
+        xitems.push({t:'Vyžádáno '+(o.extVyzadano.datum||''), dis:true});
+        xitems.push({t:'Vrátit ke kontrole\u2026', fn:function(){ openVratDO(idx); }, nw:true});
+      } else if(uiRole==='uradnik' && o && o.extKontrola && !o.extDoc){
+        xitems.push({t:'Vráceno ke kontrole '+(o.extKontrola.datum||''), dis:true});
+      } else if(uiRole==='uradnik' && o && o.extDoc){
+        xitems.push({t:'Stanovisko DO vypořádáno', dis:true});
+      }
       xitems.push((o&&o.vyrizeno) ? {t:'Příspěvek', fn:function(){ openPrispevek(idx); }} : {t:'Příspěvek', dis:true});
       xitems.push({sep:true});
       xitems.push({t:'Znovu načíst', fn:znovuNacist, nw:true});
@@ -2558,18 +2581,19 @@ function openExtStan(idx){
   extIdx=idx; var r=PRISP[idx];
   document.getElementById('extStanTitle').textContent='Stanovisko externího DO — úsek '+r.usek;
   var o=((loadState()||{}).prisp||{})[r.usek]||{};
+  var kontrola=(o.extKontrola && !o.extDoc) ? o.extKontrola : null;
   var radios=document.getElementsByName('extStanVolba'); radios[0].checked=false; radios[1].checked=false;
   document.getElementById('extPuvodce').value=(o.extDoc&&o.extDoc.puvodce)||'';
-  document.getElementById('extDatum').value=(o.extDoc&&o.extDoc.datum)||'';
-  document.getElementById('extCj').value=(o.extDoc&&o.extDoc.cj)||'';
+  document.getElementById('extDatum').value=(o.extDoc&&o.extDoc.datum)||(kontrola&&kontrola.datum)||'';
+  document.getElementById('extCj').value=(o.extDoc&&o.extDoc.cj)||(kontrola&&kontrola.cj)||'';
   try{ document.getElementById('extFile').value=''; }catch(e){}
   document.getElementById('extVyzPozn').value=(o.extVyzadat&&o.extVyzadat.pozn)||'';
-  var radios=document.getElementsByName('extStanVolba');
-  if(o.extDoc){ radios[0].checked=true; }
+  if(o.extDoc||kontrola){ radios[0].checked=true; }
   else if(o.extVyzadat){ radios[1].checked=true; }
-  document.getElementById('extStanDolozeno').style.display = o.extDoc?'block':'none';
-  document.getElementById('extStanVyzadat').style.display = (o.extVyzadat&&!o.extDoc)?'block':'none';
-  document.getElementById('extStanOk').disabled = !(o.extDoc||o.extVyzadat);
+  var showDol=!!(o.extDoc||kontrola);
+  document.getElementById('extStanDolozeno').style.display = showDol?'block':'none';
+  document.getElementById('extStanVyzadat').style.display = (o.extVyzadat&&!o.extDoc&&!kontrola)?'block':'none';
+  document.getElementById('extStanOk').disabled = !(o.extDoc||kontrola||o.extVyzadat);
   document.getElementById('extStanModal').classList.add('show');
 }
 function extStanSwitch(){
@@ -2586,18 +2610,21 @@ function extStanOk(){
   var v='', radios=document.getElementsByName('extStanVolba');
   for(var i=0;i<radios.length;i++) if(radios[i].checked) v=radios[i].value;
   if(v==='dolozeno'){
-    var fi=document.getElementById('extFile'); var nazev=(fi&&fi.files&&fi.files[0])?fi.files[0].name:'stanovisko_DO.pdf';
+    var fi=document.getElementById('extFile');
+    var o0=((loadState()||{}).prisp||{})[r.usek]||{};
+    var defName=(o0.extKontrola&&o0.extKontrola.doc)||'stanovisko_DO.pdf';
+    var nazev=(fi&&fi.files&&fi.files[0])?fi.files[0].name:defName;
     var puv=document.getElementById('extPuvodce').value.trim();
     var dat=document.getElementById('extDatum').value.trim();
     var cj=document.getElementById('extCj').value.trim();
-    kvPatchUsek(r.usek, function(p){ p.extDoc={nazev:nazev, puvodce:puv, datum:dat, cj:cj}; p.extVyzadano=null; });
+    kvPatchUsek(r.usek, function(p){ p.extDoc={nazev:nazev, puvodce:puv, datum:dat, cj:cj}; p.extVyzadano=null; p.extKontrola=null; });
     closeExtStan();
     toast('Dokument „'+nazev+'" připojen k úseku '+r.usek+'.');
     renderPrisp();
     openExtEdit(extIdx);
   } else if(v==='vyzadat'){
     var pozn=(document.getElementById('extVyzPozn').value||'').trim();
-    kvPatchUsek(r.usek, function(p){ p.extVyzadat={pozn:pozn}; p.extDoc=null; p.extVyzadano=null; });
+    kvPatchUsek(r.usek, function(p){ p.extVyzadat={pozn:pozn}; p.extDoc=null; p.extVyzadano=null; p.extKontrola=null; });
     closeExtStan();
     toast('Úsek '+r.usek+' označen k vyžádání stanoviska (podklad: vyžádat). Žádost vystaví stavební úředník — stav řízení: vyžádat DO.');
     renderPrisp();
@@ -2622,6 +2649,30 @@ function vyzadatDOok(){
   closeVyzadatDO();
   toast('Vyžádání DO potvrzeno k datu '+vd+'. Žádost vystavte přes Tisk → „Žádost o vyjádření nebo stanovisko DO".');
   renderPrisp();
+}
+var vratIdx=null;
+function openVratDO(idx){
+  vratIdx=idx; var r=PRISP[idx]; var o=((loadState()||{}).prisp||{})[r.usek]||{};
+  document.getElementById('vratDOTitle').textContent='Vrátit ke kontrole — odpověď externího DO · úsek '+r.usek;
+  var pb=document.getElementById('vratPoznBox'); var pozn=(o.extVyzadat&&o.extVyzadat.pozn)||'';
+  if(pozn){ pb.style.display='block'; pb.innerHTML='<b>Poznámka koordinátora:</b> '+esc(pozn); } else { pb.style.display='none'; }
+  document.getElementById('vratDoc').value='Stanovisko DO – '+r.usek+' (záměr '+CZAM+').pdf';
+  document.getElementById('vratCj').value='DESU/0'+(13400+idx)+'/26';
+  document.getElementById('vratDatum').value=_fcz(_add(DNES_BASE,KVSIM));
+  document.getElementById('vratDOModal').classList.add('show');
+}
+function closeVratDO(){ document.getElementById('vratDOModal').classList.remove('show'); }
+function vratDOok(){
+  if(vratIdx==null) return; var r=PRISP[vratIdx];
+  var doc=(document.getElementById('vratDoc').value||'').trim()||('Stanovisko DO – '+r.usek+'.pdf');
+  var cj=(document.getElementById('vratCj').value||'').trim()||'DESU/013400/26';
+  var dt=(document.getElementById('vratDatum').value||'').trim()||_fcz(_add(DNES_BASE,KVSIM));
+  if(!podRows.some(function(p){return p.f===doc;})) podRows.push({f:doc, cj:cj, dt:dt});
+  kvPatchUsek(r.usek, function(p){ p.extKontrola={datum:dt, doc:doc, cj:cj}; });
+  saveState();
+  closeVratDO();
+  toast('Odpověď DO ('+r.usek+') zaevidována k č.j. '+cj+', vložena do podkladů a vrácena koordinátorovi ke kontrole.');
+  renderPod(); renderPrisp();
 }
 function openExtEdit(idx){
   exIdx=idx; var r=PRISP[idx]; var o=((loadState()||{}).prisp||{})[r.usek]||{};

@@ -112,9 +112,16 @@ function doplneniInfo(o){
   var pend=us.filter(function(u){ var p=pr[u]||{}; return p.pod!=='ok'; });
   return pend.length ? {txt:'kontrola doplnění', cls:'wl-stav-w'} : {txt:'doplněno – k obnovení', cls:'wl-stav-ok'};
 }
+function doKontrolaInfo(o){
+  if(!o) return null;
+  var pr=o.prisp||{}, removed=o.removedDO||[];
+  var any=Object.keys(pr).some(function(u){ if(removed.indexOf(u)>=0) return false; var p=pr[u]||{}; return p.extKontrola && !p.extDoc && !p.vyrizeno; });
+  return any ? {txt:'kontrola DO', cls:'wl-stav-k'} : null;
+}
 function aktivniStav(){
   var o=kvStore();
   var __d=doplneniInfo(o); if(__d) return {cls:__d.cls, txt:__d.txt};
+  var __k=doKontrolaInfo(o); if(__k) return {cls:__k.cls, txt:__k.txt};
   if(o && o.prerus) return {cls:'wl-stav-k', txt:'výzva'};
   if(o && o.kvVydano) return {cls:'wl-stav-ok', txt:'vydáno'};
   var a=prispAgg(o);

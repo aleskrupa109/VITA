@@ -588,6 +588,9 @@ function externalPanel(u, odbor, saved){
     badge='doloženo'; var d=saved.extDoc;
     detail='doloženo dokumentem · <b>'+esc(d.puvodce||'—')+'</b>'+(d.datum?' · '+esc(d.datum):'')+(d.cj?' · č.j. '+esc(d.cj):'');
     tabs=prispevekTabs(u, saved);
+  } else if(saved&&saved.extKontrola){
+    badge='kontrola DO';
+    detail='odpověď DO doručena <b>'+esc(saved.extKontrola.datum||'')+'</b> · probíhá kontrola koordinátorem';
   } else if(saved&&saved.extVyzadano){
     badge='vyžádáno';
     detail='vyžádáno dne <b>'+esc(saved.extVyzadano.datum||'')+'</b> · čeká se na vyjádření externího DO';
@@ -637,7 +640,7 @@ function renderOthers(){
     var ed=(typeof VITA_EXT_DEFAULT!=='undefined'&&VITA_EXT_DEFAULT[o.u])?VITA_EXT_DEFAULT[o.u]:{mode:'',zdu:''};
     var em=(saved&&saved.extMode)?saved.extMode:ed.mode;
     if(em!=='externi') return;
-    if(saved&&(saved.extDoc||saved.extVyzadat||saved.extVyzadano)) extList.push({u:o.u, odbor:o.odbor});
+    if(saved&&(saved.extDoc||saved.extVyzadat||saved.extVyzadano||saved.extKontrola)) extList.push({u:o.u, odbor:o.odbor});
   });
   extList.forEach(function(e){
     wrap.insertAdjacentHTML('beforeend', externalPanel(e.u, e.odbor, prispState[e.u]||null));
