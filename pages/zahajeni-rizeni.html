@@ -282,7 +282,7 @@
               <div id="koordPrispTools" style="margin-top:8px;display:none">
                 <button class="btn sm" id="tabPrisp" onclick="koordTab('prisp')">Příspěvky jednotlivých DO &#9656;</button>
                 <button class="btn sm" id="tabKV" onclick="koordTab('kv')">Koordinované vyjádření &#9656;</button>
-                <span class="sub">&nbsp;— „Příspěvky" = porovnání jednotlivých vyjádření; KV sestavte z parafovaných příspěvků</span>
+                <span class="sub" id="koordTabsHint">&nbsp;— „Příspěvky" = porovnání jednotlivých vyjádření; KV sestavte z parafovaných příspěvků</span>
               </div>
               <div id="kvWrap" style="display:none"></div>
               <div id="koordPrispWrap" style="display:none"></div>
@@ -1801,8 +1801,13 @@ function renderPrisp(){
 
   var kpt=document.getElementById('koordPrispTools');
   if(kpt){
-    var showKP=(uiRole==='koordinator' && fi>=2);
+    var kvZalozeno=!!(stAll.kv && stAll.kv.sestaveno);
+    var showKP=(uiRole==='koordinator' && fi>=2) || (uiRole==='uradnik' && kvZalozeno);
     kpt.style.display = showKP ? 'block' : 'none';
+    var hint=document.getElementById('koordTabsHint');
+    if(hint) hint.textContent = (uiRole==='koordinator')
+      ? '\u00a0— „Příspěvky" = porovnání jednotlivých vyjádření; KV sestavte z parafovaných příspěvků'
+      : '\u00a0— náhled koordinovaného vyjádření a jednotlivých příspěvků (jen pro čtení)';
     if(!showKP){
       koordOpen=false;
       var kvW=document.getElementById('kvWrap'); if(kvW) kvW.style.display='none';
@@ -2294,16 +2299,28 @@ function kvFieldToggle(el){ var f=el.parentNode; if(!f) return; f.classList.togg
 function renderKV(){
   var wrap=document.getElementById('kvWrap'); if(!wrap) return;
   var s=loadState()||{}; var kv=s.kv;
+  var roView=(uiRole!=='koordinator');   // úředník (a jiné role) = jen čtení
   if(!kv || !kv.sestaveno){
     wrap.classList.remove('kv-editable');
+    if(roView){
+      wrap.innerHTML='<div class="kv-tool"><span class="sub">Koordinované vyjádření zatím nebylo koordinátorem založeno. Jakmile ho koordinátor sestaví z parafovaných příspěvků, zobrazí se zde k nahlédnutí.</span></div>';
+      return;
+    }
     var rdy=kvReady();
     wrap.innerHTML='<div class="kv-tool"><span class="sub">Koordinované vyjádření zatím nesestaveno. Sestaví se zkopírováním parafovaných příspěvků (interních i externích DO) do jednoho editovatelného datového souboru.</span><br>'+
       '<button class="btn sm" onclick="sestavitKV()"'+(rdy?'':' disabled')+'>Sestavit z parafovaných příspěvků</button>'+
       (rdy?'':' <span class="kv-pod-no">nejprve parafujte všechny příspěvky</span>')+'</div>';
     return;
   }
-  var locked=!!kv.podepsano, head;
-  if(locked){
+  var locked=!!kv.podepsano, ro=(locked||roView), head;
+  if(roView){
+    var stavTxt = s.kvVydano ? ('vydáno '+esc(s.kvVydano.datum)) : (locked ? ('podepsáno a uzamčeno '+esc(kv.podpisDatum||'')) : 'rozpracováno koordinátorem');
+    head='<div class="kv-tool"><b>Koordinované vyjádření</b> — '+stavTxt+'. '+
+      'Výsledek: <b>'+esc(kv.vysledek||'')+'</b>'+(kv.datum?', datum vydání '+esc(kv.datum):'')+'. '+
+      '<span class="sub">Náhled pro stavebního úředníka (bez možnosti editace).</span>'+
+      (kvStrip(kv.coordText||'')!==''?'<div style="margin-top:6px"><label class="sub">Koordinační text / vypořádání veřejných zájmů:</label><div class="kv-edit kv-ro">'+(kv.coordText||'')+'</div></div>':'')+
+      '</div>';
+  } else if(locked){
     head='<div class="kv-tool"><b>Koordinované vyjádření — podepsáno a uzamčeno</b> dne '+esc(kv.podpisDatum||'')+'. '+
       'Výsledek: <b>'+esc(kv.vysledek)+'</b>, datum vydání '+esc(kv.datum)+'. '+
       '<span class="sub">Z tohoto podepsaného datového souboru se generuje interní KV i rozhodnutí.</span><br>'+
@@ -2325,7 +2342,7 @@ function renderKV(){
     KVFIELDS.forEach(function(fd){
       var key=fd[0], lbl=fd[1], val=sec[key]||'';
       var filled=(kvStrip(val)!=='');
-      if(locked){
+      if(ro){
         if(!filled) return;
         fieldsHtml+='<div class="kv-field open"><div class="kv-lbl">'+lbl+'</div>'+
           '<div class="kv-edit kv-ro">'+val+'</div></div>';
@@ -2336,19 +2353,19 @@ function renderKV(){
           '<div class="kv-edit" contenteditable="true" onblur="kvSecSet('+i+',\''+key+'\',this.innerHTML)">'+(val||'')+'</div></div>';
       }
     });
-    if(locked && !fieldsHtml) fieldsHtml='<div class="kv-lbl" style="color:#888;font-weight:normal">bez podmínek a dalšího textu'+(sec.fikce?' (fikce souhlasu)':'')+'</div>';
+    if(ro && !fieldsHtml) fieldsHtml='<div class="kv-lbl" style="color:#888;font-weight:normal">bez podmínek a dalšího textu'+(sec.fikce?' (fikce souhlasu)':'')+'</div>';
     var docRow = sec.doc ? '<div class="op-fld"><label>Dokument DO</label><div style="flex:1 1 auto;font-size:13px"><b>'+esc(sec.doc.druh||'—')+'</b> · '+esc(sec.doc.puvodce||'—')+' · č.j. '+esc(sec.doc.cj||'—')+' · '+esc(sec.doc.datum||'—')+'</div></div>' : '';
     body+='<div class="opanel open"><div class="op-bar"><div class="op-usek">'+esc(sec.usek)+'</div><div class="op-fill"></div><div class="op-prac">'+esc(sec.em)+(sec.fikce?' · <span class="sub">fikce souhlasu</span>':'')+'</div></div>'+
       '<div class="op-exp"><div class="spine"><span>'+esc(sec.usek)+'</span></div><div class="op-body">'+
         '<div class="op-fld"><label>Odbor</label><input type="text" value="'+esc(sec.odbor)+'" readonly></div>'+
         docRow+
-        '<div class="op-fld"><label>Veřejné zájmy</label>'+(locked
+        '<div class="op-fld"><label>Veřejné zájmy</label>'+(ro
             ? '<input type="text" value="'+esc(sec.vz)+'" readonly style="flex:1 1 auto">'
             : '<input type="text" value="'+esc(sec.vz)+'" style="flex:1 1 auto" onchange="kvSecSet('+i+',\'vz\',this.value)">')+'</div>'+
         fieldsHtml+
       '</div></div></div>';
   });
-  wrap.classList.toggle('kv-editable', !locked);
+  wrap.classList.toggle('kv-editable', !locked && !roView);
   wrap.innerHTML=head+body;
 }
 function renderKoordPrisp(){
