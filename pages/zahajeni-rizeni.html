@@ -1770,11 +1770,8 @@ function renderPrisp(){
   else sumtxt = 'přiděleno '+total+' · kontrola dokončena';
   var spEl=document.getElementById('sum-prisp');
   var kvTag='';
-  if(uiRole==='uradnik'){
-    if(stAll.kvVydano) kvTag='<span style="color:#0a7a28;font-weight:bold">&#10003;&nbsp;koordinované vyjádření vydáno</span>';
-    else if(stAll.kv && stAll.kv.podepsano) kvTag='<span style="color:#0a7a28;font-weight:bold">&#10003;&nbsp;koordinované vyjádření hotové</span>';
-    else if(stAll.kv && stAll.kv.sestaveno) kvTag='<span style="color:#7a5a14">koordinované vyjádření se zpracovává</span>';
-  }
+  if(stAll.kv && stAll.kv.podepsano) kvTag='<span style="color:#0a7a28;font-weight:bold">&#10003;&nbsp;koordinované vyjádření hotové</span>';
+  else if(stAll.kv && stAll.kv.sestaveno) kvTag='<span style="color:#7a5a14">koordinované vyjádření se zpracovává</span>';
   if(kvTag) spEl.innerHTML = esc(sumtxt)+' · '+kvTag;
   else spEl.textContent = sumtxt;
 
