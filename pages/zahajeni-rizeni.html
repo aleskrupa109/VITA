@@ -346,7 +346,6 @@
       <div class="term-row"><label>přerušení řízení</label><input type="text" class="readonly" style="width:110px" value="14.5.2026" readonly><button class="btn sm" style="margin-left:8px" onclick="openDoplnitO()">doplnit o …</button></div>
       <div class="term-row"><label>termín doplnění</label><input type="text" class="readonly" style="width:110px" value="13.6.2026" readonly></div>
       <div class="prisp-note" style="color:#1f4e88;font-weight:bold;background:#eef3fb;border-color:#cfe0f5">Lhůty neběží (řízení je přerušeno)</div>
-      <div id="doplneniBox" style="display:none;border:1px solid #cbb077;background:#fbf3e2;color:#7a5a14;padding:8px 10px;margin-top:8px;font-size:13px"></div>
     </div>
     <div class="term-row">
       <label>z<u>r</u>ychlené řízení</label>
@@ -1849,35 +1848,31 @@ function doplneniPending(){
   var st=loadState()||{}; var us=st.doplneniUseky||[]; var pr=st.prisp||{};
   return us.filter(function(u){ var p=pr[u]||{}; return p.pod!=='ok'; });
 }
-function vyzvatKontrolaDoplneni(){
-  var st=loadState()||{}; var pr=st.prisp||{}, removed=st.removedDO||[], req=[];
-  PRISP.forEach(function(r){ if(removed.indexOf(r.usek)>=0) return; var p=pr[r.usek]; if(p && p.pod==='neuplne') req.push(r.usek); });
-  if(!req.length){ toast('Žádný úsek nepožadoval doplnění (nemá „neúplné").'); return; }
+function vratitKeKontrole(useky){
+  if(!useky||!useky.length){ toast('Vyberte úseky k vrácení ke kontrole.'); return; }
+  if(!predState.prerus){ toast('Vrátit ke kontrole lze jen u přerušeného řízení (po výzvě k doplnění).'); return; }
+  var st=loadState()||{}; var pr=st.prisp||{}, removed=st.removedDO||[];
   var dt=_fcz(_add(DNES_BASE,(st.simDays||0)));
-  req.forEach(function(u){ var p=pr[u]||{}; p.recheck=true; p.zpravy=p.zpravy||[]; p.zpravy.push({from:'Stavební úředník', text:'Doplnění podkladů vloženo do spisu — proveďte opětovnou kontrolu úplnosti.', datum:dt}); pr[u]=p; });
-  st.prisp=pr; st.doplneniUseky=req; st.doplneniStav='kekontrole';
+  var done=[];
+  useky.forEach(function(u){
+    if(removed.indexOf(u)>=0) return;
+    var p=pr[u]||{};
+    if(p.pod!=='neuplne'){ return; }
+    p.recheck=true; p.zpravy=p.zpravy||[];
+    p.zpravy.push({from:'Stavební úředník', text:'Doplnění podkladů vloženo do spisu — proveďte opětovnou kontrolu úplnosti.', datum:dt});
+    pr[u]=p; done.push(u);
+  });
+  if(!done.length){ toast('Vybrané úseky nepožadovaly doplnění (nemají „neúplné"), nebo už byly vráceny.'); return; }
+  // doplneniUseky = celá množina úseků v procesu doplnění (sjednocení)
+  var us=(st.doplneniUseky||[]).slice();
+  PRISP.forEach(function(r){ if(removed.indexOf(r.usek)>=0) return; var o=pr[r.usek]; if(o && o.pod==='neuplne' && us.indexOf(r.usek)<0) us.push(r.usek); });
+  done.forEach(function(u){ if(us.indexOf(u)<0) us.push(u); });
+  st.prisp=pr; st.doplneniUseky=us; st.doplneniStav='kekontrole';
   try{ localStorage.setItem(KV_KEY, JSON.stringify(st)); }catch(e){}
-  renderDoplneni(); renderPrisp();
-  toast('Vyzváno ke kontrole doplnění. Dotčené úseky: '+req.join(', ')+'. Stav: ke kontrole podkladů.');
+  renderPrisp();
+  toast('Vráceno ke kontrole doplnění: '+done.join(', ')+'.');
 }
-function renderDoplneni(){
-  var box=document.getElementById('doplneniBox'); if(!box) return;
-  if(uiRole!=='uradnik'){ box.style.display='none'; return; }
-  var st=loadState()||{}; var stav=st.doplneniStav||'';
-  if(stav==='kekontrole'){
-    box.style.display='block';
-    var pend=doplneniPending(), ready=(pend.length===0);
-    box.innerHTML='<b>Doplnění podkladů — ke kontrole úplnosti</b><br>'+
-      'Dotčení přispěvatelé byli vyzváni k opětovné kontrole. '+
-      (ready ? '<span style="color:#0a7a28;font-weight:bold">Všichni potvrdili OK — běh řízení obnovíte výběrem prázdné volby v roletce „stav řízení" u zahájení.</span>'
-             : 'Čeká se na potvrzení od: <b>'+pend.join(', ')+'</b>.');
-  } else if(predState.prerus && st.doplneniInserted){
-    box.style.display='block';
-    box.innerHTML='<b>Doplnění podkladů vloženo do podkladů.</b><br>Vyzvěte dotčené orgány (koordinátora) k opětovné kontrole úplnosti — teprve po jejich potvrzení lze obnovit běh.<br><button class="btn sm tag-new" onclick="vyzvatKontrolaDoplneni()" style="margin-top:6px">Vyzvat ke kontrole doplnění</button>';
-  } else {
-    box.style.display='none';
-  }
-}
+function renderDoplneni(){ /* samostatný banner odstraněn – vrácení ke kontrole je v kontextovém menu nad přispěvateli (i hromadně) */ }
 function zahajeniZpusobChange(){
   var v=document.getElementById('zahajeniZpusob').value;
   predState.zahajeniZpusob=v;
@@ -2045,6 +2040,10 @@ function prispCtx(e, idx){
   var items=[ {t:'Příspěvek', fn:function(){ openPrispevek(idx); }} ];
   if(o && o.pod==='neuplne' && o.doplnit && (uiRole==='uradnik'||uiRole==='koordinator')){
     items.push({t:'Doplnit (zobrazit)', fn:function(){ openDoplnit(idx); }});
+  }
+  if(uiRole==='uradnik' && predState.prerus && o && o.pod==='neuplne'){
+    if(o.recheck) items.push({t:'Vrátit ke kontrole (vráceno)', dis:true});
+    else items.push({t:'Vrátit ke kontrole', fn:function(){ vratitKeKontrole([r.usek]); }, nw:true});
   }
   if(em==='oba' && ez && (uiRole==='uradnik'||uiRole==='koordinator')){
     items.push({t:'Externí DO – zdůvodnění', fn:function(){ openExtZdu(idx); }});
@@ -2442,7 +2441,16 @@ function prispRowClick(idx, e){
 function prispCtxAt(e, idx){
   if(prispSel.indexOf(idx)<0){ prispSel=[idx]; prispAnchor=idx; paintPrispSel(); }
   if(uiRole==='koordinator' && prispSel.length>1){ prispCtxMulti(e); }
+  else if(uiRole==='uradnik' && prispSel.length>1){ prispCtxMultiUradnik(e); }
   else { prispCtx(e, idx); }
+}
+function prispCtxMultiUradnik(e){
+  var ov=(loadState()||{}).prisp||{}, elig=[];
+  prispSel.forEach(function(i){ var u=PRISP[i].usek; var o=ov[u]; if(o && o.pod==='neuplne' && !o.recheck) elig.push(u); });
+  var items=[ {t:'Vybráno úseků: '+prispSel.length, dis:true}, {sep:true} ];
+  if(elig.length && predState.prerus) items.push({t:'Vrátit ke kontrole ('+elig.length+')', fn:function(){ vratitKeKontrole(elig); }, nw:true});
+  else items.push({t:'Vrátit ke kontrole', dis:true});
+  ctxAt(e, items);
 }
 function prispCtxMulti(e){
   var ov=(loadState()||{}).prisp||{}, elig=0;
