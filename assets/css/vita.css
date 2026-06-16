@@ -550,6 +550,19 @@
   .koord-bar .kb-back { margin-left:auto; color:#1f4e88; cursor:pointer; text-decoration:underline; }
   #rizeniBody.ro-mode input, #rizeniBody.ro-mode select, #rizeniBody.ro-mode textarea, #rizeniBody.ro-mode [contenteditable] { pointer-events:none; background:#f4f4f4; color:#555; }
   #rizeniBody.ro-mode #doAssign { pointer-events:auto; background:#fff; color:#222; }
+  /* KV editor musí zůstat editovatelný v pohledu koordinátora, dokud není podepsáno */
+  #rizeniBody.ro-mode #kvWrap.kv-editable input, #rizeniBody.ro-mode #kvWrap.kv-editable select, #rizeniBody.ro-mode #kvWrap.kv-editable textarea, #rizeniBody.ro-mode #kvWrap.kv-editable [contenteditable] { pointer-events:auto; background:#fff; color:#222; }
+  #rizeniBody.ro-mode #kvWrap.kv-editable input[readonly] { background:#f4f4f4; color:#555; }
+  /* KV – sbalitelná pole sekce */
+  #kvWrap .kv-field > .kv-edit { display:none; }
+  #kvWrap .kv-field.open > .kv-edit { display:block; }
+  #kvWrap .kv-lbl-tog { cursor:pointer; user-select:none; }
+  #kvWrap .kv-lbl-tog:hover { color:#1f4e88; }
+  #kvWrap .kv-field:not(.open) > .kv-lbl-tog { color:#9a9a9a; font-weight:normal; }
+  #kvWrap .kv-add-hint { color:#1f6b1f; font-weight:normal; font-size:11px; margin-left:6px; }
+  #kvWrap .kv-field.open > .kv-lbl-tog .kv-add-hint { display:none; }
+  #kvWrap .kv-field > .kv-lbl-tog::before { content:"\25B8\00a0"; font-size:10px; color:#888; }
+  #kvWrap .kv-field.open > .kv-lbl-tog::before { content:"\25BE\00a0"; }
 
   /* ====== VITA potvrzovací dialog (message box) ====== */
   .msgbox { width:430px; max-width:92vw; background:#f0f0f0; border:1px solid #6a6a6a; box-shadow:0 10px 34px rgba(0,0,0,.34); font-family:inherit; }
