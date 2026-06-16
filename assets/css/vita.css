@@ -628,6 +628,11 @@
 .app-window.koord-view { outline:2px solid #b8862f; outline-offset:-2px; }
 .koord-badge { display:none; }
 .app-window.koord-view .koord-badge { display:inline-flex; align-items:center; background:#f7eed6; border:1px solid #cbb077; color:#7a5a14; font-size:11px; line-height:1; padding:2px 8px; border-radius:2px; margin-left:10px; font-weight:normal; }
+/* Nově navržená funkcionalita KS (přepínače + plochy) – jantarové (src-new) schéma, oba pohledy */
+.ks-new { border:1.5px solid #cbb077; background:linear-gradient(#fffdf7,#fbf6ea); border-radius:3px; padding:6px 10px 10px; margin:10px 0; }
+.ks-new-tag { display:inline-flex; align-items:center; gap:6px; background:#f7eed6; border:1px solid #cbb077; color:#7a5a14; font-size:11px; line-height:1; padding:3px 8px; border-radius:2px; font-weight:bold; margin-bottom:6px; }
+.ks-new-tag::before { content:"\25C6"; color:#b8862f; }
+.ks-new #tabKV.tab-on, .ks-new #tabPrisp.tab-on { background:#f3e6c4; border-color:#b8862f; }
 
 /* Nová položka v kontextovém menu (jantarová = zcela nová funkcionalita) */
 .ci.ci-new { color:#8a5a12; }
