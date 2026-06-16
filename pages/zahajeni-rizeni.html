@@ -41,6 +41,19 @@
   #kvWrap .kv-edit[contenteditable=true]:focus { outline:2px solid #9bc1ff; }
   #kvWrap .kv-edit.kv-ro { background:#f6f6f6; color:#222; }
   #kvWrap .opanel { margin:8px 0; }
+  /* KV v pohledu koordinátora musí být editovatelné, dokud není podepsáno (výjimka z ro-mode) */
+  #rizeniBody.ro-mode #kvWrap.kv-editable input, #rizeniBody.ro-mode #kvWrap.kv-editable select, #rizeniBody.ro-mode #kvWrap.kv-editable textarea, #rizeniBody.ro-mode #kvWrap.kv-editable [contenteditable] { pointer-events:auto !important; background:#fff !important; color:#222 !important; }
+  #rizeniBody.ro-mode #kvWrap.kv-editable input[readonly] { background:#f4f4f4 !important; color:#555 !important; }
+  /* Sbalitelná pole sekce (prázdná sbalená, koordinátor může rozkliknout a doplnit) */
+  #kvWrap .kv-field > .kv-edit { display:none; }
+  #kvWrap .kv-field.open > .kv-edit { display:block; }
+  #kvWrap .kv-lbl-tog { cursor:pointer; user-select:none; }
+  #kvWrap .kv-lbl-tog:hover { color:#1f4e88; }
+  #kvWrap .kv-field:not(.open) > .kv-lbl-tog { color:#9a9a9a; font-weight:normal; }
+  #kvWrap .kv-add-hint { color:#1f6b1f; font-weight:normal; font-size:11px; margin-left:6px; }
+  #kvWrap .kv-field.open > .kv-lbl-tog .kv-add-hint { display:none; }
+  #kvWrap .kv-field > .kv-lbl-tog::before { content:"\25B8\00a0"; font-size:10px; color:#888; }
+  #kvWrap .kv-field.open > .kv-lbl-tog::before { content:"\25BE\00a0"; }
   /* === Provenance prvků: src-kv = převzato z apl. Koordinované vyjádření; src-new = zcela nové === */
   .app-window:not(.koord-view) .vpanel.src-kv > .vp-bar > .vp-bar-lbl { background:linear-gradient(#f2f8f6,#d8eae4); border-color:#7aac9d; }
   .app-window:not(.koord-view) .vpanel.src-kv > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#cde6df); border-color:#4d8f80; }
@@ -2271,10 +2284,13 @@ function odemknoutKV(){
   try{ localStorage.setItem(KV_KEY, JSON.stringify(s)); }catch(e){}
   renderKV(); renderPrisp();
 }
+function kvStrip(h){ var d=document.createElement('div'); d.innerHTML=h||''; return (d.textContent||d.innerText||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim(); }
+function kvFieldToggle(el){ var f=el.parentNode; if(!f) return; f.classList.toggle('open'); if(f.classList.contains('open')){ var ed=f.querySelector('.kv-edit'); if(ed) ed.focus(); } }
 function renderKV(){
   var wrap=document.getElementById('kvWrap'); if(!wrap) return;
   var s=loadState()||{}; var kv=s.kv;
   if(!kv || !kv.sestaveno){
+    wrap.classList.remove('kv-editable');
     var rdy=kvReady();
     wrap.innerHTML='<div class="kv-tool"><span class="sub">Koordinované vyjádření zatím nesestaveno. Sestaví se zkopírováním parafovaných příspěvků (interních i externích DO) do jednoho editovatelného datového souboru.</span><br>'+
       '<button class="btn sm" onclick="sestavitKV()"'+(rdy?'':' disabled')+'>Sestavit z parafovaných příspěvků</button>'+
@@ -2298,20 +2314,34 @@ function renderKV(){
       '<div class="kv-edit" contenteditable="true" onblur="kvSet(\'coordText\',this.innerHTML)" style="min-height:40px">'+(kv.coordText||'')+'</div></div></div>';
   }
   var body='';
+  var KVFIELDS=[['podminky','Podmínky'],['oduvodneni','Odůvodnění'],['upozorneni','Upozornění'],['negativni','Negativní – důvody']];
   (kv.sections||[]).forEach(function(sec,i){
-    var ro=locked?'':' contenteditable="true"', roCls=locked?' kv-ro':'';
+    var fieldsHtml='';
+    KVFIELDS.forEach(function(fd){
+      var key=fd[0], lbl=fd[1], val=sec[key]||'';
+      var filled=(kvStrip(val)!=='');
+      if(locked){
+        if(!filled) return;
+        fieldsHtml+='<div class="kv-field open"><div class="kv-lbl">'+lbl+'</div>'+
+          '<div class="kv-edit kv-ro">'+val+'</div></div>';
+      } else {
+        var oc=filled?' open':'';
+        var hint=filled?'':'<span class="kv-add-hint">+ doplnit</span>';
+        fieldsHtml+='<div class="kv-field'+oc+'"><div class="kv-lbl kv-lbl-tog" onclick="kvFieldToggle(this)">'+lbl+hint+'</div>'+
+          '<div class="kv-edit" contenteditable="true" onblur="kvSecSet('+i+',\''+key+'\',this.innerHTML)">'+(val||'')+'</div></div>';
+      }
+    });
+    if(locked && !fieldsHtml) fieldsHtml='<div class="kv-lbl" style="color:#888;font-weight:normal">bez podmínek a dalšího textu'+(sec.fikce?' (fikce souhlasu)':'')+'</div>';
     body+='<div class="opanel open"><div class="op-bar"><div class="op-usek">'+esc(sec.usek)+'</div><div class="op-fill"></div><div class="op-prac">'+esc(sec.em)+(sec.fikce?' · <span class="sub">fikce souhlasu</span>':'')+'</div></div>'+
       '<div class="op-exp"><div class="spine"><span>'+esc(sec.usek)+'</span></div><div class="op-body">'+
         '<div class="op-fld"><label>Odbor</label><input type="text" value="'+esc(sec.odbor)+'" readonly></div>'+
         '<div class="op-fld"><label>Veřejné zájmy</label>'+(locked
             ? '<input type="text" value="'+esc(sec.vz)+'" readonly style="flex:1 1 auto">'
             : '<input type="text" value="'+esc(sec.vz)+'" style="flex:1 1 auto" onchange="kvSecSet('+i+',\'vz\',this.value)">')+'</div>'+
-        '<div class="kv-lbl">Podmínky</div><div class="kv-edit'+roCls+'"'+ro+' onblur="kvSecSet('+i+',\'podminky\',this.innerHTML)">'+(sec.podminky||'')+'</div>'+
-        '<div class="kv-lbl">Odůvodnění</div><div class="kv-edit'+roCls+'"'+ro+' onblur="kvSecSet('+i+',\'oduvodneni\',this.innerHTML)">'+(sec.oduvodneni||'')+'</div>'+
-        '<div class="kv-lbl">Upozornění</div><div class="kv-edit'+roCls+'"'+ro+' onblur="kvSecSet('+i+',\'upozorneni\',this.innerHTML)">'+(sec.upozorneni||'')+'</div>'+
-        '<div class="kv-lbl">Negativní – důvody</div><div class="kv-edit'+roCls+'"'+ro+' onblur="kvSecSet('+i+',\'negativni\',this.innerHTML)">'+(sec.negativni||'')+'</div>'+
+        fieldsHtml+
       '</div></div></div>';
   });
+  wrap.classList.toggle('kv-editable', !locked);
   wrap.innerHTML=head+body;
 }
 function renderKoordPrisp(){
