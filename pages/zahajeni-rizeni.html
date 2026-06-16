@@ -54,6 +54,11 @@
   #kvWrap .kv-field.open > .kv-lbl-tog .kv-add-hint { display:none; }
   #kvWrap .kv-field > .kv-lbl-tog::before { content:"\25B8\00a0"; font-size:10px; color:#888; }
   #kvWrap .kv-field.open > .kv-lbl-tog::before { content:"\25BE\00a0"; }
+  /* Nově navržená funkcionalita KS – jantarové (src-new) schéma, oba pohledy */
+  .ks-new { border:1.5px solid #cbb077; background:linear-gradient(#fffdf7,#fbf6ea); border-radius:3px; padding:6px 10px 10px; margin:10px 0; }
+  .ks-new-tag { display:inline-flex; align-items:center; gap:6px; background:#f7eed6; border:1px solid #cbb077; color:#7a5a14; font-size:11px; line-height:1; padding:3px 8px; border-radius:2px; font-weight:bold; margin-bottom:6px; }
+  .ks-new-tag::before { content:"\25C6"; color:#b8862f; }
+  .ks-new #tabKV.tab-on, .ks-new #tabPrisp.tab-on { background:#f3e6c4; border-color:#b8862f; }
   /* === Provenance prvků: src-kv = převzato z apl. Koordinované vyjádření; src-new = zcela nové === */
   .app-window:not(.koord-view) .vpanel.src-kv > .vp-bar > .vp-bar-lbl { background:linear-gradient(#f2f8f6,#d8eae4); border-color:#7aac9d; }
   .app-window:not(.koord-view) .vpanel.src-kv > .vp-bar:hover > .vp-bar-lbl { background:linear-gradient(#ffffff,#cde6df); border-color:#4d8f80; }
@@ -279,13 +284,16 @@
                 </tr></thead>
                 <tbody id="prispBody"></tbody>
               </table>
-              <div id="koordPrispTools" style="margin-top:8px;display:none">
-                <button class="btn sm" id="tabPrisp" onclick="koordTab('prisp')">Příspěvky jednotlivých DO &#9656;</button>
-                <button class="btn sm" id="tabKV" onclick="koordTab('kv')">Koordinované vyjádření &#9656;</button>
-                <span class="sub" id="koordTabsHint">&nbsp;— „Příspěvky" = porovnání jednotlivých vyjádření; KV sestavte z parafovaných příspěvků</span>
+              <div id="ksNewZone" class="ks-new" style="display:none">
+                <div class="ks-new-tag">Nově navržená funkcionalita — koordinované stanovisko (KS)</div>
+                <div id="koordPrispTools" style="margin-top:2px">
+                  <button class="btn sm" id="tabPrisp" onclick="koordTab('prisp')">Příspěvky jednotlivých DO &#9656;</button>
+                  <button class="btn sm" id="tabKV" onclick="koordTab('kv')">Koordinované vyjádření &#9656;</button>
+                  <span class="sub" id="koordTabsHint">&nbsp;— „Příspěvky" = porovnání jednotlivých vyjádření; KV sestavte z parafovaných příspěvků</span>
+                </div>
+                <div id="kvWrap" style="display:none"></div>
+                <div id="koordPrispWrap" style="display:none"></div>
               </div>
-              <div id="kvWrap" style="display:none"></div>
-              <div id="koordPrispWrap" style="display:none"></div>
               <div class="prisp-note" id="prispNote"></div>
             </div>
           </div>
@@ -1760,7 +1768,15 @@ function renderPrisp(){
   else if(okN>0) sumtxt = 'přiděleno '+total+' · kontrola podkladů OK';
   else if(fi===2) sumtxt = 'přiděleno '+total+' · kontrola úplnosti běží';
   else sumtxt = 'přiděleno '+total+' · kontrola dokončena';
-  document.getElementById('sum-prisp').textContent = sumtxt;
+  var spEl=document.getElementById('sum-prisp');
+  var kvTag='';
+  if(uiRole==='uradnik'){
+    if(stAll.kvVydano) kvTag='<span style="color:#0a7a28;font-weight:bold">&#10003;&nbsp;koordinované vyjádření vydáno</span>';
+    else if(stAll.kv && stAll.kv.podepsano) kvTag='<span style="color:#0a7a28;font-weight:bold">&#10003;&nbsp;koordinované vyjádření hotové</span>';
+    else if(stAll.kv && stAll.kv.sestaveno) kvTag='<span style="color:#7a5a14">koordinované vyjádření se zpracovává</span>';
+  }
+  if(kvTag) spEl.innerHTML = esc(sumtxt)+' · '+kvTag;
+  else spEl.textContent = sumtxt;
 
   var anyU=false, allParafV=true;
   order.forEach(function(i){ anyU=true; var oo=ov[PRISP[i].usek]||{}; if(!(oo.paraf||oo.fikce)) allParafV=false; });
@@ -1799,11 +1815,11 @@ function renderPrisp(){
     } else { vb.style.display='none'; vb.innerHTML=''; }
   }
 
-  var kpt=document.getElementById('koordPrispTools');
-  if(kpt){
+  var ksZone=document.getElementById('ksNewZone');
+  if(ksZone){
     var kvZalozeno=!!(stAll.kv && stAll.kv.sestaveno);
     var showKP=(uiRole==='koordinator' && fi>=2) || (uiRole==='uradnik' && kvZalozeno);
-    kpt.style.display = showKP ? 'block' : 'none';
+    ksZone.style.display = showKP ? 'block' : 'none';
     var hint=document.getElementById('koordTabsHint');
     if(hint) hint.textContent = (uiRole==='koordinator')
       ? '\u00a0— „Příspěvky" = porovnání jednotlivých vyjádření; KV sestavte z parafovaných příspěvků'
