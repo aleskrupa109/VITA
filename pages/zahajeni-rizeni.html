@@ -1836,8 +1836,8 @@ function renderPrisp(){
     al.style.display='flex'; al.innerHTML='Řízení přerušeno – vydána výzva k doplnění (vzor 3002). Po doplnění proběhne nová kontrola úplnosti.';
   } else if(neup.length){
     var us=neup.map(function(r){return r.usek;}).join(', ');
-    var btn=(uiRole==='uradnik')?'<button class="btn sm" onclick="prispVyzva()">Vydat výzvu k doplnění + přerušit řízení</button>':'<span class="sub">koordinátor konsoliduje a předá úředníkovi</span>';
-    al.style.display='flex'; al.innerHTML='⚠ DO hlásí neúplné podklady (1. lhůta): <b>'+us+'</b>. '+btn;
+    var btn=(uiRole==='uradnik')?'<button class="btn sm" onclick="prispVyzva()">Vydat výzvu k doplnění + přerušit řízení</button>':'';
+    al.style.display='flex'; al.innerHTML='⚠ DO hlásí neúplné podklady (1. lhůta): <b>'+us+'</b>'+(btn?'. '+btn:'');
   } else al.style.display='none';
 
   var extN=document.getElementById('extNote');
