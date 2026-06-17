@@ -650,3 +650,7 @@
 .wl-proc-zah { color:#1f4e88; font-weight:bold; }    /* Zahájení */
 .wl-proc-stan { color:#6b4ea8; font-weight:bold; }   /* Stanoviska / námitky */
 .wl-proc-prer { color:#8a5a00; font-weight:bold; }   /* Přerušeno */
+
+/* ===== úkolový sloupec = nová KS funkcionalita (jantarová) ===== */
+table.grid thead th.wl-col-ukol { background:linear-gradient(#fdf6e3,#f3e6c4); color:#7a5a14; border-left:2px solid #cbb077; }
+table.grid tbody td.wl-col-ukol { background:#fbf6ea; border-left:2px solid #cbb077; }
