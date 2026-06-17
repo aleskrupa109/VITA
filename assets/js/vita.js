@@ -214,3 +214,75 @@ function vitaMsgInit(role){
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go();
 }
+
+/* ===================== DVOUOSÁ MATICE STAVŮ ===================== */
+/* Jeden výpočet f(data) napříč rolemi: procesní osa (jen úředník) + úkolová osa (všichni). */
+function vitaStLoad(){ try{ return JSON.parse(localStorage.getItem('vita_kv_state'))||{}; }catch(e){ return {}; } }
+var VITA_USEKY=['PAK','OVZ','ZPF','LES','ODP','ZAV','PAM','HYG','UUP'];
+var VITA_OWNER_NAME={uradnik:'úředník', koordinator:'koordinátor', do:'DO', vedouci:'vedoucí koord.', done:''};
+
+/* procesní stav podle správního řádu — zobrazuje jen pohled úředníka */
+function vitaProces(st){
+  st = st || vitaStLoad();
+  if(st.prerus || st.doplneniStav==='kekontrole') return {txt:'Přerušeno', cls:'wl-proc-prer'};
+  if(st.zahajeniZpusob) return {txt:'Stanoviska / námitky', cls:'wl-proc-stan'};
+  return {txt:'Zahájení', cls:'wl-proc-zah'};
+}
+
+/* úkolový stav — kanonický vlastník (kdo má míč) + label, jednotně z dat */
+function vitaUkol(st){
+  st = st || vitaStLoad();
+  var pr=st.prisp||{}, removed=st.removedDO||[], extra=st.extraDO||[];
+  var list=VITA_USEKY.concat(extra.map(function(d){ return d.usek; }));
+  var total=0, podOk=0, done=0, paraf=0;
+  list.forEach(function(u){ if(removed.indexOf(u)>=0) return; total++; var p=pr[u]; if(!p) return; if(p.pod==='ok')podOk++; if(p.vyrizeno||p.fikce)done++; if(p.paraf||p.fikce)paraf++; });
+  var allPodOk=(total>0&&podOk===total), allDone=(total>0&&done===total), allParaf=(total>0&&paraf===total);
+  var extKontrola=Object.keys(pr).some(function(u){ if(removed.indexOf(u)>=0)return false; var p=pr[u]||{}; return p.extKontrola && !p.extDoc && !p.vyrizeno; });
+  var extVyzadat=Object.keys(pr).some(function(u){ var p=pr[u]||{}; return p.extVyzadat && !p.extVyzadano; });
+
+  if(st.doplneniStav==='kekontrole'){
+    var us=st.doplneniUseky||[]; var pend=us.filter(function(u){ var p=pr[u]||{}; return p.pod!=='ok'; });
+    return pend.length ? {owner:'do', label:'Opětovná kontrola podkladů'} : {owner:'uradnik', label:'Obnovit běh řízení'};
+  }
+  if(extKontrola) return {owner:'koordinator', label:'Vypořádat stanovisko DO'};
+  if(extVyzadat)  return {owner:'uradnik', label:'Vyžádat stanovisko DO'};
+  if(st.prerus)   return {owner:'uradnik', label:'Vyřídit doplnění podkladů'};
+  if(st.kv && st.kv.podepsano) return {owner:'done', label:'KV hotové – podklad rozhodnutí'};
+  if(st.kv && st.kv.sestaveno) return {owner:'koordinator', label:'Dokončit a podepsat KV'};
+  if(allParaf) return {owner:'koordinator', label:'Sestavit koordinované vyjádření'};
+  if(allDone)  return {owner:'koordinator', label:'Parafovat příspěvky'};
+  if(st.faze==='vyjadreni' || st.zahajeniZpusob) return {owner:'do', label:'Zpracovat vyjádření DO'};
+  if(st.faze==='prideleno' || st.faze==='kontrola') return {owner:'do', label:'Kontrola úplnosti podkladů'};
+  if(st.faze==='predano') return {owner:'koordinator', label:'Převzít a předat DO'};
+  return {owner:'uradnik', label:'Založit a předat řízení'};
+}
+
+/* vykreslení úkolového stavu relativně k pozorovateli (role); přispěvateli zpřesní dle úseku */
+function vitaUkolView(role, st, usek){
+  st = st || vitaStLoad();
+  var u = vitaUkol(st);
+  var act = (u.owner==='uradnik'&&role==='uradnik') ||
+            (u.owner==='koordinator'&&role==='koordinator') ||
+            (u.owner==='vedouci'&&role==='koordinator') ||
+            (u.owner==='do'&&(role==='pak'||role==='hyg'||role==='prispevatel'));
+  if((role==='pak'||role==='hyg'||role==='prispevatel') && usek){
+    var p=(st.prisp&&st.prisp[usek])||{};
+    var doneVyriz = (role==='hyg') ? (p.vyrizeno&&p.ownEdit) : p.vyrizeno;
+    if(p.recheck) return {txt:'Opětovná kontrola úplnosti', cls:'wl-task-act', owner:'do', act:true};
+    if(p.vraceno) return {txt:'Vráceno k přepracování', cls:'wl-task-act', owner:'do', act:true};
+    if(doneVyriz) return {txt:(p.opraveno?'Vyřízeno (opraveno)':'Vyřízeno (odesláno)'), cls:'wl-task-done', owner:'done', act:false};
+    if(p.rozprac) return {txt:'Rozpracováno – k dokončení', cls:'wl-task-act', owner:'do', act:true};
+    if(act){
+      if(st.zahajeniZpusob || st.faze==='vyjadreni') return {txt:'Zpracovat vyjádření', cls:'wl-task-act', owner:'do', act:true};
+      if(p.pod==='neuplne') return {txt:'Neúplné – k doplnění', cls:'wl-task-act', owner:'do', act:true};
+      if(p.pod==='ok') return {txt:'Podklady OK – k vyjádření', cls:'wl-task-act', owner:'do', act:true};
+      return {txt:'Kontrola úplnosti podkladů', cls:'wl-task-act', owner:'do', act:true};
+    }
+    return {txt:u.label+' · '+VITA_OWNER_NAME[u.owner], cls:(u.owner==='done'?'wl-task-done':'wl-task-wait'), owner:u.owner, act:false};
+  }
+  var cls, txt=u.label;
+  if(u.owner==='done'){ cls='wl-task-done'; }
+  else if(act){ cls='wl-task-act'; }
+  else { cls='wl-task-wait'; txt=u.label+' · '+VITA_OWNER_NAME[u.owner]; }
+  return {txt:txt, cls:cls, owner:u.owner, act:act};
+}
