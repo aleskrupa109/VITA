@@ -252,7 +252,17 @@ function vitaUkol(st){
   if(allParaf) return {owner:'koordinator', label:'Sestavit koordinované vyjádření'};
   if(allDone)  return {owner:'koordinator', label:'Parafovat příspěvky'};
   if(st.faze==='vyjadreni' || st.zahajeniZpusob) return {owner:'do', label:'Zpracovat vyjádření DO'};
-  if(st.faze==='prideleno' || st.faze==='kontrola') return {owner:'do', label:'Kontrola úplnosti podkladů'};
+  if(st.faze==='prideleno' || st.faze==='kontrola'){
+    // Úkol se smí změnit teprve po kontrole VŠECH interních DO (ne při dílčím výsledku).
+    // PAK je lead: PAK=OK se replikuje na ostatní interní úseky (vč. HYG), nemá-li HYG vlastní „neúplné".
+    var pak=pr.PAK||{}, hyg=pr.HYG||{}, hygNeuplne=(hyg.pod==='neuplne');
+    var kompletni, neuplne;
+    if(pak.pod==='ok' && !hygNeuplne){ kompletni=true; neuplne=false; }
+    else { kompletni = !!pak.pod && !!hyg.pod; neuplne = (pak.pod==='neuplne' || hygNeuplne); }
+    if(!kompletni) return {owner:'do', label:'Kontrola úplnosti podkladů'};
+    if(neuplne)    return {owner:'uradnik', label:'Vydat výzvu k doplnění a přerušit řízení'};
+    return {owner:'uradnik', label:'Vyrozumět o zahájení řízení'};
+  }
   if(st.faze==='predano') return {owner:'koordinator', label:'Převzít a předat DO'};
   return {owner:'uradnik', label:'Založit a předat řízení'};
 }
@@ -274,10 +284,11 @@ function vitaUkolView(role, st, usek){
     if(p.rozprac) return {txt:'Rozpracováno – k dokončení', cls:'wl-task-act', owner:'do', act:true};
     if(act){
       if(st.zahajeniZpusob || st.faze==='vyjadreni') return {txt:'Zpracovat vyjádření', cls:'wl-task-act', owner:'do', act:true};
-      if(p.pod==='neuplne') return {txt:'Neúplné – k doplnění', cls:'wl-task-act', owner:'do', act:true};
-      if(p.pod==='ok') return {txt:'Podklady OK – k vyjádření', cls:'wl-task-act', owner:'do', act:true};
+      if(p.pod==='ok') return {txt:'Podklady OK – čeká na ostatní DO', cls:'wl-task-wait', owner:'do', act:false};
+      if(p.pod==='neuplne') return {txt:'Neúplné – čeká na ostatní DO', cls:'wl-task-wait', owner:'do', act:false};
       return {txt:'Kontrola úplnosti podkladů', cls:'wl-task-act', owner:'do', act:true};
     }
+    if(p.pod==='neuplne') return {txt:'Neúplné – čeká na doplnění', cls:'wl-task-wait', owner:'uradnik', act:false};
     return {txt:u.label+' · '+VITA_OWNER_NAME[u.owner], cls:(u.owner==='done'?'wl-task-done':'wl-task-wait'), owner:u.owner, act:false};
   }
   var cls, txt=u.label;
