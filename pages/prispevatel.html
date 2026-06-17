@@ -18,6 +18,8 @@
   .wl-task-act { color:#b8862f; font-weight:bold; }
   .wl-task-wait { color:#6b7280; }
   .wl-task-done { color:#1c7a3a; font-weight:bold; }
+  table.grid thead th.wl-col-ukol { background:linear-gradient(#fdf6e3,#f3e6c4); color:#7a5a14; border-left:2px solid #cbb077; }
+  table.grid tbody td.wl-col-ukol { background:#fbf6ea; border-left:2px solid #cbb077; }
 </style>
 </head>
 <body>
@@ -74,7 +76,7 @@
         <th style="min-width:150px">Žadatel / povinný</th>
         <th style="min-width:300px">Název</th>
         <th style="width:90px">Typ</th>
-        <th style="width:210px">Úkol</th>
+        <th class="wl-col-ukol" style="width:210px">&#9670; Úkol</th>
         <th style="width:100px">Zahájení</th>
         <th style="width:120px">Termín vyřízení</th>
       </tr></thead>
@@ -125,16 +127,16 @@ function render(){
         tr.onclick=function(){ location.href='prispevatel-detail.html'; };
         var uk=vitaUkolView('pak', null, 'PAK');
         tr.innerHTML='<td><b>'+r.sp+'</b></td><td>OnDo</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
-          '<td><span class="'+uk.cls+'">'+uk.txt+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
+          '<td class="wl-col-ukol"><span class="'+uk.cls+'">'+uk.txt+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
       } else {
         tr.className='inactive';
         tr.innerHTML='<td>'+r.sp+'</td><td>OnDo</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
-          '<td><span class="wl-task-wait">Čeká na předání · koordinátor</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
+          '<td class="wl-col-ukol"><span class="wl-task-wait">Čeká na předání · koordinátor</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
       }
     } else {
       tr.className='inactive';
       tr.innerHTML='<td>'+r.sp+'</td><td>OnDo</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
-        '<td><span class="wl-stav-x">'+r.stav+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
+        '<td class="wl-col-ukol"><span class="wl-stav-x">'+r.stav+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
     }
     tb.appendChild(tr);
   });
