@@ -642,3 +642,11 @@
 .ro-row.ri-new { background:#fbf6ea; border-left:3px solid #cbb077; padding-left:6px; }
 .ro-row.ri-new label { color:#8a5a12; }
 .ro-row.ri-new .v { color:#7a5a14; }
+
+/* ===== dvouosá matice stavů: jednotné barvení worklistů ===== */
+.wl-task-act { color:#b8862f; font-weight:bold; }   /* tvůj úkol (máš míč) */
+.wl-task-wait { color:#6b7280; }                     /* čeká u jiné role */
+.wl-task-done { color:#1c7a3a; font-weight:bold; }   /* hotovo */
+.wl-proc-zah { color:#1f4e88; font-weight:bold; }    /* Zahájení */
+.wl-proc-stan { color:#6b4ea8; font-weight:bold; }   /* Stanoviska / námitky */
+.wl-proc-prer { color:#8a5a00; font-weight:bold; }   /* Přerušeno */
