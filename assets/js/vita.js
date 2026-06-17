@@ -254,13 +254,12 @@ function vitaUkol(st){
   if(st.faze==='vyjadreni' || st.zahajeniZpusob) return {owner:'do', label:'Zpracovat vyjádření DO'};
   if(st.faze==='prideleno' || st.faze==='kontrola'){
     // Úkol se smí změnit teprve po kontrole VŠECH interních DO (ne při dílčím výsledku).
-    // PAK je lead: PAK=OK se replikuje na ostatní interní úseky (vč. HYG), nemá-li HYG vlastní „neúplné".
-    var pak=pr.PAK||{}, hyg=pr.HYG||{}, hygNeuplne=(hyg.pod==='neuplne');
-    var kompletni, neuplne;
-    if(pak.pod==='ok' && !hygNeuplne){ kompletni=true; neuplne=false; }
-    else { kompletni = !!pak.pod && !!hyg.pod; neuplne = (pak.pod==='neuplne' || hygNeuplne); }
-    if(!kompletni) return {owner:'do', label:'Kontrola úplnosti podkladů'};
-    if(neuplne)    return {owner:'uradnik', label:'Vydat výzvu k doplnění a přerušit řízení'};
+    // PAK je lead: jeho kontrola (OK i neúplné) se replikuje na ostatní interní úseky vč. HYG,
+    // takže „kontrola všech interních DO" = PAK zkontrolováno. (HYG s vlastním „neúplné" se respektuje.)
+    var pak=pr.PAK||{};
+    if(!pak.pod) return {owner:'do', label:'Kontrola úplnosti podkladů'};
+    var neuplne=list.some(function(u){ if(removed.indexOf(u)>=0)return false; var p=pr[u]||{}; return p.pod==='neuplne'; });
+    if(neuplne) return {owner:'uradnik', label:'Vydat výzvu k doplnění a přerušit řízení'};
     return {owner:'uradnik', label:'Vyrozumět o zahájení řízení'};
   }
   if(st.faze==='predano') return {owner:'koordinator', label:'Převzít a předat DO'};
