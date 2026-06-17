@@ -14,6 +14,9 @@
   .wl-stav-k { color:#8a5a00; font-weight:bold; }
   .wl-stav-ke { color:#1f6b1f; font-weight:bold; }
   .wl-stav-ok { color:#1f4e88; font-weight:bold; }
+  .wl-task-act { color:#b8862f; font-weight:bold; }
+  .wl-task-wait { color:#6b7280; }
+  .wl-task-done { color:#1c7a3a; font-weight:bold; }
   .wl-stav-x { color:#666; }
 </style>
 </head>
@@ -72,7 +75,7 @@
         <th style="min-width:170px">Žadatel / povinný</th>
         <th style="min-width:300px">Název</th>
         <th style="width:90px">Typ</th>
-        <th style="width:150px">Stav</th>
+        <th style="width:210px">Úkol</th>
         <th style="width:120px">Termín vyřízení</th>
       </tr></thead>
       <tbody id="wlBody"></tbody>
@@ -160,11 +163,11 @@ function render(){
   ROWS.forEach(function(r){
     var tr=document.createElement('tr');
     if(r.aktiv){
-      var s=aktivniStav();
+      var uk=vitaUkolView('koordinator');
       tr.className='active';
       tr.onclick=function(){ location.href='zahajeni-rizeni.html?role=koordinator&cj=DESU/013304/26&vec='+encodeURIComponent(r.nazev); };
       tr.innerHTML='<td><b>'+r.sp+'</b></td><td>'+PRAC+'</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
-        '<td><span class="'+s.cls+'">'+s.txt+'</span></td><td>'+r.termin+'</td>';
+        '<td><span class="'+uk.cls+'">'+uk.txt+'</span></td><td>'+r.termin+'</td>';
     } else {
       tr.className='inactive';
       tr.innerHTML='<td>'+r.sp+'</td><td>'+PRAC+'</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+

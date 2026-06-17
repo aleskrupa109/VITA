@@ -15,6 +15,9 @@
   .wl-stav-x { color:#666; }
   .wl-stav-w { color:#8a5a00; }
   .wl-stav-ok { color:#1c7a3a; font-weight:bold; }
+  .wl-task-act { color:#b8862f; font-weight:bold; }
+  .wl-task-wait { color:#6b7280; }
+  .wl-task-done { color:#1c7a3a; font-weight:bold; }
 </style>
 </head>
 <body>
@@ -71,7 +74,7 @@
         <th style="min-width:150px">Žadatel / povinný</th>
         <th style="min-width:300px">Název</th>
         <th style="width:90px">Typ</th>
-        <th style="width:140px">Stav</th>
+        <th style="width:210px">Úkol</th>
         <th style="width:100px">Zahájení</th>
         <th style="width:120px">Termín vyřízení</th>
       </tr></thead>
@@ -120,24 +123,13 @@ function render(){
       if(akt){
         tr.className='active';
         tr.onclick=function(){ location.href='prispevatel-detail.html?usek=HYG'; };
-        var p=mineState(), stav, cls;
-        if(p.recheck){ stav='k opětovné kontrole úplnosti'; cls='wl-stav-w'; }
-        else if(doplneniInfo(kvAll())){ var di=doplneniInfo(kvAll()); stav=di.txt; cls=di.cls; }
-        else if(kvPrerus()){ stav='výzva'; cls='wl-stav-w'; }
-        else if(kvVydano()){ stav='koordinované vyjádření vydáno'; cls='wl-stav-ok'; }
-        else if(p.vraceno){ stav='vráceno k přepracování'; cls='wl-stav-w'; }
-        else if(p.vyrizeno && p.ownEdit){ stav=p.opraveno?'vyřízeno (opraveno)':'vyřízeno (odesláno)'; cls='wl-stav-ok'; }
-        else if(p.rozprac){ stav='rozpracováno – k dokončení'; cls='wl-stav-k'; }
-        else if(p.pod==='ok'){ stav='podklady OK – k vyjádření'; cls='wl-stav-k'; }
-        else if(kvZahajeni()){ stav='příspěvky'; cls='wl-stav-k'; }
-        else if(p.pod==='neuplne'){ stav='neúplné – k doplnění'; cls='wl-stav-w'; }
-        else { stav='k vyjádření'; cls='wl-stav-k'; }
+        var uk=vitaUkolView('hyg', null, 'HYG');
         tr.innerHTML='<td><b>'+r.sp+'</b></td><td>MaLu</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
-          '<td><span class="'+cls+'">'+stav+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
+          '<td><span class="'+uk.cls+'">'+uk.txt+'</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
       } else {
         tr.className='inactive';
         tr.innerHTML='<td>'+r.sp+'</td><td>MaLu</td><td>'+r.zad+'</td><td>'+r.nazev+'</td><td>'+r.typ+'</td>'+
-          '<td><span class="wl-stav-w">čeká na předání koordinátorem</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
+          '<td><span class="wl-task-wait">Čeká na předání · koordinátor</span></td><td>'+r.zah+'</td><td>'+r.termin+'</td>';
       }
     } else {
       tr.className='inactive';
